@@ -7,7 +7,6 @@ import {
   ChevronUp,
   HelpCircle,
   Lightbulb,
-  Scale,
   Search,
   ShieldAlert,
   ShieldCheck,
@@ -122,7 +121,7 @@ export function RulesPage() {
             Labour Law Compliance Rules
           </h1>
           <p className="text-lg leading-relaxed text-slate-800 sm:text-xl">
-            Every mandatory rule under the four Labour Codes, explained in simple English with real world practical examples and actionable steps to stay compliant.
+            Simplifying labour compliance requirements under the four Labour Codes through clear, actionable guidance.
           </p>
         </div>
       </header>
@@ -257,39 +256,30 @@ export function RulesPage() {
                     type="button"
                     onClick={() => toggleExpand(rule.id)}
                     aria-expanded={isExpanded}
-                    className="flex w-full cursor-pointer items-start justify-between gap-4 p-5 text-left sm:p-7"
+                    className="flex w-full cursor-pointer items-center justify-between gap-4 p-5 text-left sm:p-7"
                   >
-                    <div className="flex items-start gap-4 sm:gap-5">
-                      {/* Step Badge */}
-                      <div className="flex flex-col items-center">
-                        <span
-                          className={[
-                            "flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-black sm:h-14 sm:w-14 sm:text-base",
-                            colorConfig.stepBg,
-                          ].join(" ")}
-                        >
-                          {stepNumber}
-                        </span>
-                        <span className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-400">
-                          Step
-                        </span>
-                      </div>
+                    <div className="flex items-center gap-4 sm:gap-6">
+                      {/* Number Badge */}
+                      <span
+                        className={[
+                          "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-sm font-black sm:h-14 sm:w-14 sm:text-base",
+                          colorConfig.stepBg,
+                        ].join(" ")}
+                      >
+                        {stepNumber}
+                      </span>
 
-                      {/* Rule Title & Citation */}
-                      <div className="space-y-2">
-                        <div className="flex flex-wrap items-center gap-2.5">
+                      {/* Rule Title & Category */}
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2">
                           <span
                             className={[
-                              "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold sm:text-sm",
+                              "inline-flex items-center rounded-full px-3 py-0.5 text-xs font-bold sm:text-sm",
                               colorConfig.badgeBg,
                               colorConfig.badgeText,
                             ].join(" ")}
                           >
                             {CODE_LABELS[rule.code]}
-                          </span>
-                          <span className="flex items-center gap-1.5 text-xs font-medium text-slate-600 sm:text-sm">
-                            <Scale className="h-4 w-4 text-slate-400" />
-                            {rule.citation}
                           </span>
                         </div>
 
@@ -306,7 +296,7 @@ export function RulesPage() {
                     </div>
 
                     {/* Toggle Indicator Button */}
-                    <div className="flex shrink-0 items-center gap-2 pt-1.5">
+                    <div className="flex shrink-0 items-center gap-2">
                       <span className="hidden text-sm font-bold text-sky-700 sm:inline-block">
                         {isExpanded ? "Hide Details" : "View Example & Guide"}
                       </span>
