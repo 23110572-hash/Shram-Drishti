@@ -61,6 +61,15 @@ concrete: a figure that was misread, a column that was mapped to the wrong \
 field, an exemption stated on the document itself, a period mismatch. You are \
 not being asked whether the law is fair or whether the employer meant well.
 
+Part of that review is severity. Each rule declares one severity for its entire \
+class of breach, so it cannot tell a deduction that crossed the cap by one per \
+cent for a single worker from one at ninety per cent across the whole workforce \
+three months running. You can see the difference. Where the documents show a \
+breach is markedly graver or markedly slighter than its class, say so through \
+severity_opinion and give the specific reason. It moves the recorded severity by \
+one step and affects the score, so leave it null when the breach is simply \
+typical of its kind — which is most of the time.
+
 Second, and this is where you add what the rules cannot: tell the inspector what \
 else is wrong. The rules only check what someone thought to encode. You are \
 reading the actual documents. Look for:
@@ -170,7 +179,8 @@ class FindingBrief:
     observed: dict[str, Any] = field(default_factory=dict)
     expected: dict[str, Any] = field(default_factory=dict)
     evidence: list[str] = field(default_factory=list)
-    rule_verified: bool = True
+    awaiting_notification: bool = False
+    """True when the Act left this rule's number to a notification not obtained."""
 
     def render(self) -> str:
         lines = [
@@ -186,10 +196,12 @@ class FindingBrief:
             lines.append(f"expected: {_render_mapping(self.expected)}")
         if self.evidence:
             lines.append("evidence: " + "; ".join(self.evidence[:6]))
-        if not self.rule_verified:
+        if self.awaiting_notification:
             lines.append(
-                "note: this rule's threshold is not yet confirmed against primary "
-                "statutory text, so treat it with extra caution"
+                "note: the Act leaves this rule's operative number to the "
+                "appropriate Government and that notification has not been "
+                "obtained, so the figure compared against came from a secondary "
+                "source; treat it with extra caution"
             )
         return "\n".join(lines)
 

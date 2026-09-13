@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -7,7 +7,7 @@ import {
   FileText,
   Image as ImageIcon,
   Loader2,
-  Sparkles,
+  Search,
   Trash2,
   UploadCloud,
   X,
@@ -34,9 +34,12 @@ import type { EstablishmentSummary } from "@/lib/types";
  *  mislabelled document gets read against the wrong schema — which produces
  *  confident nonsense rather than an obvious failure.
  *
- *  **Establishment is optional.** The binder reads the header and matches it.
- *  Selecting it here simply removes a failure mode for an employer with several
- *  units, where headers are abbreviated and easily confused.
+ *  **The workplace is asked as a question, not offered as a dropdown.** This used
+ *  to be a pre-populated select, which failed twice over: "establishment" was
+ *  never explained, and an employer with ten units had to scroll a list whose
+ *  first entry looked pre-chosen. Now it is an explicit choice between taking the
+ *  name from the document and picking one, with the list only appearing — and only
+ *  loading — if the second is chosen.
  *
  *  **Real progress, not a spinner.** XHR rather than fetch, only because fetch
  *  cannot report upload progress. A fifty-megabyte scan over a slow line needs a
@@ -46,7 +49,15 @@ import type { EstablishmentSummary } from "@/lib/types";
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.tif,.tiff,.webp,.bmp,.txt,.csv,.ecr";
 const MAX_BYTES = 64 * 1024 * 1024;
 
+/** How many workplaces to list before asking the user to type. Long enough to
+ *  scan, short enough that nobody scrolls looking for theirs. */
+const MAX_VISIBLE_ESTABLISHMENTS = 8;
+
 type ItemStatus = "queued" | "uploading" | "done" | "error";
+
+/** Where the workplace comes from. Default is the document, because the header is
+ *  usually right and because a pre-selected list invites the wrong pick. */
+type BindMode = "auto" | "manual";
 
 interface QueueItem {
   key: string;
@@ -68,16 +79,41 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
 
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [bindMode, setBindMode] = useState<BindMode>("auto");
   const [establishmentId, setEstablishmentId] = useState("");
+  const [filter, setFilter] = useState("");
   const [busy, setBusy] = useState(false);
 
-  // Offered as a convenience only, so a failure to load the list must not block
-  // uploading. The backend binds from the document header regardless.
+  // Only fetched when the user asks to choose for themselves. An employer with one
+  // unit never needs this list, and a failure to load it must not block uploading:
+  // the header binding does not depend on it.
   const establishments = useQuery({
     queryKey: ["establishments", "for-upload"],
     queryFn: () => api.get<EstablishmentSummary[]>("/establishments?limit=200"),
+    enabled: bindMode === "manual",
     retry: false,
   });
+
+  // Typed filtering rather than a long dropdown. With ten or more units a
+  // pre-populated select is a scrolling exercise, and the first entry sitting
+  // there selected-looking is what makes people file against the wrong workplace.
+  const { matches, truncated } = useMemo(() => {
+    const all = establishments.data ?? [];
+    const needle = filter.trim().toLowerCase();
+
+    const hits = needle
+      ? all.filter((item) =>
+          [item.name, item.lin, item.district, item.state_code]
+            .filter(Boolean)
+            .some((field) => String(field).toLowerCase().includes(needle)),
+        )
+      : all;
+
+    return {
+      matches: hits.slice(0, MAX_VISIBLE_ESTABLISHMENTS),
+      truncated: Math.max(0, hits.length - MAX_VISIBLE_ESTABLISHMENTS),
+    };
+  }, [establishments.data, filter]);
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const incoming = Array.from(files);
@@ -172,13 +208,12 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
         <div>
           <h2 className="flex items-center gap-2.5 text-xl font-bold text-slate-900">
             <UploadCloud className="h-6 w-6 text-sky-600" />
-            Submit filings
+            Submit documents
           </h2>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600">
-            Drop a whole wage period at once. Each document is identified from its
-            own contents, matched to an establishment and period, then read by OCR
-            and a vision model together so every figure can be traced back to a
-            cell on the page.
+            You can select all the documents for one wage period together. You do
+            not need to say what each file is — that is taken from the document
+            itself.
           </p>
         </div>
 
@@ -189,52 +224,178 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
         </div>
       </header>
 
-      {/* Establishment selector */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <label className="block">
-          <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
-            Establishment{" "}
-            <span className="font-semibold normal-case tracking-normal text-slate-500">
-              (optional)
-            </span>
-          </span>
-          <div className="relative">
-            <Building2
-              aria-hidden="true"
-              className="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5 text-slate-400"
-            />
-            <select
-              value={establishmentId}
-              onChange={(event) => setEstablishmentId(event.target.value)}
-              className="w-full cursor-pointer appearance-none rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium text-slate-900 transition-colors focus:border-sky-600 focus:bg-white"
-            >
-              <option value="">Identify from the document header</option>
-              {(establishments.data ?? []).map((establishment) => (
-                <option key={establishment.id} value={establishment.id}>
-                  {establishment.name} · {establishment.state_code}
-                </option>
-              ))}
-            </select>
-          </div>
-          <span className="mt-1.5 block text-xs leading-relaxed text-slate-500">
-            Leave this alone unless you run several units with similar names. A
-            document that cannot be matched confidently is held for you to attach
-            rather than guessed at.
-          </span>
-        </label>
+      {/* Which workplace these documents belong to */}
+      <fieldset className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5">
+        <legend className="px-1 text-sm font-bold text-slate-900">
+          Which workplace do these documents belong to?
+        </legend>
 
-        <div className="rounded-2xl border border-sky-100 bg-sky-50/60 p-4 text-xs leading-relaxed text-sky-950">
-          <p className="flex items-center gap-1.5 font-bold">
-            <Sparkles aria-hidden="true" className="h-3.5 w-3.5" />
-            Re-uploading a corrected file is expected
-          </p>
-          <p className="mt-1">
-            Every upload is read again from scratch. Nothing is carried over from an
-            earlier copy of the same file, so a correction genuinely replaces what
-            was there before.
-          </p>
+        <p className="mt-1 text-xs leading-relaxed text-slate-600">
+          An establishment is one registered workplace — a single factory, unit,
+          site, shop or office. Compliance is assessed separately for each one, so
+          documents have to be attached to the right workplace.
+        </p>
+
+        <div className="mt-4 space-y-2.5">
+          <label
+            className={[
+              "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors",
+              bindMode === "auto"
+                ? "border-sky-500 bg-white shadow-sm"
+                : "border-slate-200 bg-white/70 hover:border-slate-300",
+            ].join(" ")}
+          >
+            <input
+              type="radio"
+              name="bind-mode"
+              checked={bindMode === "auto"}
+              onChange={() => {
+                setBindMode("auto");
+                setEstablishmentId("");
+              }}
+              className="mt-0.5 h-4 w-4 cursor-pointer border-slate-400 text-sky-600"
+            />
+            <span>
+              <span className="block text-sm font-bold text-slate-900">
+                Take it from the document
+              </span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-slate-600">
+                Most registers and challans carry the workplace name in the header.
+                If it cannot be read clearly, the document is kept aside for you to
+                attach yourself rather than filed against a guess.
+              </span>
+            </span>
+          </label>
+
+          <label
+            className={[
+              "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors",
+              bindMode === "manual"
+                ? "border-sky-500 bg-white shadow-sm"
+                : "border-slate-200 bg-white/70 hover:border-slate-300",
+            ].join(" ")}
+          >
+            <input
+              type="radio"
+              name="bind-mode"
+              checked={bindMode === "manual"}
+              onChange={() => setBindMode("manual")}
+              className="mt-0.5 h-4 w-4 cursor-pointer border-slate-400 text-sky-600"
+            />
+            <span>
+              <span className="block text-sm font-bold text-slate-900">
+                I will choose the workplace
+              </span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-slate-600">
+                Useful when you run several units with similar names.
+              </span>
+            </span>
+          </label>
         </div>
-      </div>
+
+        {bindMode === "manual" && (
+          <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+                Type a name to find the workplace
+              </span>
+              <div className="relative">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-400"
+                />
+                <input
+                  type="text"
+                  value={filter}
+                  onChange={(event) => setFilter(event.target.value)}
+                  placeholder="Name, registration number or district"
+                  autoComplete="off"
+                  className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 transition-colors focus:border-sky-600 focus:bg-white"
+                />
+              </div>
+            </label>
+
+            {establishments.isPending && (
+              <p className="text-xs text-slate-500">Loading your workplaces…</p>
+            )}
+
+            {establishments.isError && (
+              <p className="text-xs font-semibold text-rose-700">
+                Your list of workplaces could not be loaded. You can still upload —
+                choose "Take it from the document" above.
+              </p>
+            )}
+
+            {establishments.isSuccess && matches.length === 0 && (
+              <p className="text-xs text-slate-600">
+                {filter
+                  ? "No workplace matches what you typed."
+                  : "No workplaces are registered under your account yet."}
+              </p>
+            )}
+
+            {matches.length > 0 && (
+              <ul className="max-h-56 space-y-1 overflow-y-auto">
+                {matches.map((establishment) => {
+                  const chosen = establishmentId === establishment.id;
+
+                  return (
+                    <li key={establishment.id}>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEstablishmentId(chosen ? "" : establishment.id)
+                        }
+                        aria-pressed={chosen}
+                        className={[
+                          "flex w-full cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
+                          chosen
+                            ? "border-sky-600 bg-sky-50"
+                            : "border-transparent hover:bg-slate-50",
+                        ].join(" ")}
+                      >
+                        <Building2
+                          aria-hidden="true"
+                          className={[
+                            "h-4 w-4 shrink-0",
+                            chosen ? "text-sky-700" : "text-slate-400",
+                          ].join(" ")}
+                        />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-semibold text-slate-900">
+                            {establishment.name}
+                          </span>
+                          <span className="block truncate text-xs text-slate-500">
+                            {[
+                              establishment.district,
+                              establishment.state_code,
+                              establishment.lin,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </span>
+                        </span>
+                        {chosen && (
+                          <CheckCircle2
+                            aria-hidden="true"
+                            className="h-4 w-4 shrink-0 text-sky-700"
+                          />
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {truncated > 0 && (
+              <p className="text-xs text-slate-500">
+                {truncated} more not shown. Type a few letters to narrow the list.
+              </p>
+            )}
+          </div>
+        )}
+      </fieldset>
 
       {/* Dropzone */}
       <div
@@ -274,7 +435,7 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
         </div>
 
         <p className="mt-4 text-base font-bold text-slate-900">
-          Drag filings here, or{" "}
+          Drag your documents here, or{" "}
           <label
             htmlFor="filing-upload-input"
             className="cursor-pointer text-sky-700 underline decoration-sky-300 decoration-2 underline-offset-2 hover:text-sky-800"
@@ -329,7 +490,7 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
                 )}
                 {busy
                   ? "Submitting…"
-                  : `Submit ${pendingCount} filing${pendingCount === 1 ? "" : "s"}`}
+                  : `Submit ${pendingCount} document${pendingCount === 1 ? "" : "s"}`}
               </button>
             </div>
           </div>

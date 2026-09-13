@@ -60,6 +60,44 @@ class FindingKind(StrEnum):
     """Advisory only. Never scored, never presented as a legal conclusion."""
 
 
+class RuleBasis(StrEnum):
+    """What a rule's operative number rests on.
+
+    This replaces an earlier ``verified: bool``, which conflated two unrelated
+    things: whether a statutory threshold had been confirmed, and whether a rule
+    was trustworthy. An arithmetic identity has no threshold to confirm, yet the
+    boolean marked it "unverified" and scoring discounted it — so a wage register
+    that does not add up, which is certain, was weighed less than a headcount
+    rule read straight from the Act.
+
+    Only ``RULES_PENDING`` is a genuine caveat. The other three are sound.
+    """
+
+    STATUTE = "STATUTE"
+    """The operative number appears in the Act itself and is quoted in
+    ``source_ref``. Enforceable as it stands."""
+
+    RULES_PENDING = "RULES_PENDING"
+    """The Act creates the obligation but leaves the number to be notified by
+    the appropriate Government. The value used here comes from a secondary
+    source and must be confirmed against the notified Rules before enforcement.
+    """
+
+    RECONCILIATION = "RECONCILIATION"
+    """No external number. Compares two documents against each other — a
+    declared headcount against a register, a wage base against paid wages. Sound
+    without any notification, because the establishment's own papers supply both
+    sides."""
+
+    ARITHMETIC = "ARITHMETIC"
+    """No external number. Checks that figures within one document add up.
+    Sound without any notification."""
+
+    @property
+    def needs_notified_rules(self) -> bool:
+        return self is RuleBasis.RULES_PENDING
+
+
 class FindingStatus(StrEnum):
     OPEN = "OPEN"
     ACKNOWLEDGED = "ACKNOWLEDGED"

@@ -28,7 +28,22 @@ import type { TokenResponse } from "@/lib/types";
  *  Render, for instance — set VITE_API_BASE_URL to the backend's full URL and
  *  add the frontend's origin to CORS_ALLOWED_ORIGINS on the backend.
  */
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api";
+const BASE_URL = (
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "/api"
+).replace(/\/+$/, "");
+
+/** The API address this build is using.
+ *
+ *  Exposed because the commonest deployment mistake is invisible otherwise. Vite
+ *  inlines VITE_* variables at build time, so setting VITE_API_BASE_URL in a
+ *  hosting dashboard without redeploying leaves the bundle still pointing at the
+ *  `/api` fallback — and every request then fails in a way that looks like the
+ *  backend is down. Showing the address in the error tells you immediately whether
+ *  the variable actually reached the build.
+ */
+export function apiBaseUrl(): string {
+  return BASE_URL || "/api";
+}
 
 export class ApiError extends Error {
   constructor(

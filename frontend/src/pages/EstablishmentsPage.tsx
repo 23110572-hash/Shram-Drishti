@@ -343,6 +343,15 @@ function EstablishmentDrawer({
                     </div>
                   </div>
 
+                  {/* Why the number is what it is, when missing evidence rather
+                      than conduct set it. Placed above the per-Code breakdown so a
+                      capped Code is explained before it is read. */}
+                  {scorecard.evidence_note && (
+                    <Caution title="Part of this score reflects missing evidence">
+                      {scorecard.evidence_note}
+                    </Caution>
+                  )}
+
                   {!scorecard.evidence_sufficient && (
                     <Caution title="This score rests on incomplete evidence">
                       {scorecard.documents_received} of{" "}
@@ -350,6 +359,26 @@ function EstablishmentDrawer({
                       received. A low finding count here does not indicate
                       compliance — most checks could not be run at all.
                     </Caution>
+                  )}
+
+                  {/* The model's qualitative reading, kept visually distinct from
+                      the score because it did not contribute to it. */}
+                  {scorecard.review_summary && (
+                    <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-sm leading-relaxed text-sky-950">
+                      <p className="flex flex-wrap items-center gap-2 font-bold">
+                        Reading of the records
+                        {scorecard.records_quality && (
+                          <Badge tone="info">
+                            {scorecard.records_quality.replace(/_/g, " ")}
+                          </Badge>
+                        )}
+                      </p>
+                      <p className="mt-1">{scorecard.review_summary}</p>
+                      <p className="mt-2 text-xs text-sky-900/80">
+                        This is an automated reading offered for context. It did not
+                        affect the score above.
+                      </p>
+                    </div>
                   )}
 
                   <div className="grid gap-2 sm:grid-cols-2">

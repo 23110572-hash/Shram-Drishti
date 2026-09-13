@@ -1,7 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, apiBaseUrl } from "@/lib/api";
 
 /** Loading, empty and error states.
  *
@@ -160,15 +160,21 @@ function describe(
     };
   }
 
+  // Not an ApiError, so the request never completed: wrong address, or a CORS
+  // block. Naming the address this build is actually using distinguishes the two
+  // immediately — and catches the case where the API URL never reached the build.
   return {
     title: "Cannot reach the service",
     detail:
-      "The backend API did not respond. Confirm it is running on port 8000 and that the database is reachable.",
+      `No response from the API at ${apiBaseUrl()}. Either that address is ` +
+      `wrong, it is not permitting requests from ${window.location.origin}, or ` +
+      "the service is still starting up.",
   };
 }
 
 /** A caution banner. Used for the two warnings that must never be styled as
- *  ordinary text: thin evidence behind a score, and an unverified threshold. */
+ *  ordinary text: thin evidence behind a score, and a rule whose figure is still
+ *  waiting on a government notification. */
 export function Caution({
   title,
   children,

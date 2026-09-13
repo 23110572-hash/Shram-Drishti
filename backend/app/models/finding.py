@@ -34,6 +34,7 @@ from app.models.enums import (
     FindingStatus,
     LabourCode,
     RiskBand,
+    RuleBasis,
     Severity,
     WageRateSource,
 )
@@ -72,14 +73,31 @@ class Finding(IdMixin, TimestampMixin, Base):
 
     citation: Mapped[str] = mapped_column(String(255), nullable=False)
     source_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    # False when the rule's threshold has not been confirmed against primary
-    # statutory text. Surfaced in the UI so nobody enforces on an unverified rule.
-    rule_verified: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    # What the rule's operative number rests on, copied from the rule at
+    # evaluation time so a later pack revision cannot change the footing of a
+    # historical finding. Only RULES_PENDING is a caveat; see RuleBasis.
+    rule_basis: Mapped[RuleBasis] = mapped_column(
+        EnumColumn(RuleBasis, 24), nullable=False
+    )
 
     # --------------------------------------------------------- what was found
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     remediation: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # ------------------------------------------------- contextual severity
+    # The rule declares a baseline severity. It cannot see magnitude, spread or
+    # repetition: a deduction at 51% and one at 90% are the same rule. These
+    # columns hold the assessed severity and the reason for it, written once at
+    # evaluation time and read by scoring thereafter — so the score stays
+    # reproducible without freezing judgement into a constant.
+    baseline_severity: Mapped[Severity | None] = mapped_column(
+        EnumColumn(Severity, 16), nullable=True
+    )
+    severity_rationale: Mapped[str | None] = mapped_column(Text, nullable=True)
+    severity_assessed: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
 
     observed: Mapped[dict] = mapped_column(JSONColumn, default=dict, nullable=False)
     expected: Mapped[dict] = mapped_column(JSONColumn, default=dict, nullable=False)
@@ -255,3 +273,21 @@ class Scorecard(IdMixin, TimestampMixin, Base):
     recommended_inspection_months: Mapped[int | None] = mapped_column(
         Integer, nullable=True
     )
+
+    # ------------------------------------------------------ reading the number
+    # A score on its own invites the wrong reading. 58 because eleven workers were
+    # underpaid and 58 because two Codes had no document to test are the same
+    # number and completely different situations, and an employer who cannot tell
+    # them apart does not know what to fix.
+    #
+    # `evidence_note` states which Codes were held down by missing evidence rather
+    # than by a finding. It is computed, not written by a model, because it is a
+    # fact about the arithmetic and there is nothing to judge.
+    evidence_note: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    # The model's own reading of the records, carried over from the review that
+    # ran before scoring. Explicitly not part of the calculation — it is here so
+    # an inspector sees the qualitative picture next to the number instead of
+    # having to go digging in the audit trail for it.
+    review_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    records_quality: Mapped[str | None] = mapped_column(String(32), nullable=True)

@@ -14,7 +14,7 @@ import {
   User,
 } from "lucide-react";
 
-import { ApiError } from "@/lib/api";
+import { ApiError, apiBaseUrl } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { ROLE_LABELS, STATE_CODES } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
@@ -59,8 +59,15 @@ export function ProfilePage() {
       } else if (err instanceof ApiError) {
         setError(err.message);
       } else {
+        // fetch() threw rather than returning a status, so the request never
+        // completed. That is either the wrong API address or a CORS block, and
+        // naming the address actually in use is the fastest way to tell which —
+        // far more useful than the old message, which hardcoded "port 8000" and
+        // sent people hunting for a local server that was never involved.
         setError(
-          "The service did not respond. Confirm the backend is running on port 8000.",
+          `Could not reach the API at ${apiBaseUrl()}. ` +
+            "Either that address is wrong, or it is not permitting requests from " +
+            `${window.location.origin}. The browser console has the exact reason.`,
         );
       }
     } finally {
@@ -369,9 +376,11 @@ export function ProfilePage() {
                 Before you enforce
               </p>
               <p>
-                Findings flagged as having an unverified threshold rest on a value
-                read from a secondary source rather than the Act itself. Check the
-                notified Rules before acting on one.
+                A finding marked "awaiting notification" turns on a figure the Act
+                does not state — Parliament left it to the appropriate Government,
+                and that notification has not been obtained. The figure applied
+                came from a secondary source. Check the notified Rules before
+                acting on one.
               </p>
             </div>
           )}

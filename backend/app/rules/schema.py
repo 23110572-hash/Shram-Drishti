@@ -6,9 +6,9 @@ rather than by convention:
 * ``citation`` — the statutory provision. A finding without one is unusable when
   an employer disputes it.
 * ``source_ref`` — where the citation was read from, so a reviewer can check it.
-* ``verified`` — whether the threshold was confirmed against primary statutory
-  text. Defaults to False, so an unverified rule is visible rather than assumed
-  correct.
+* ``basis`` — what the rule's operative number rests on. There is no default:
+  every rule must state whether its number came from the Act, from Rules not yet
+  obtained, or whether it needs no external number at all.
 
 ``for_each`` decides evaluation shape. When set, the expression runs once per row
 of that collection with ``row`` bound, and the rule fails if any row fails. When
@@ -21,7 +21,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from app.models.enums import FindingKind, LabourCode, Severity
+from app.models.enums import FindingKind, LabourCode, RuleBasis, Severity
 
 
 class RuleMessages(BaseModel):
@@ -62,7 +62,9 @@ class Rule(BaseModel):
     title: str
     citation: str = Field(min_length=3)
     source_ref: str = Field(min_length=3)
-    verified: bool = False
+    basis: RuleBasis
+    """Required. Stating it forces the question to be answered per rule instead of
+    inherited from a default nobody revisits."""
 
     # ------------------------------------------------------------ applicability
     # Evaluated first. When it is false the rule does not apply and no finding is
@@ -118,6 +120,14 @@ class Rule(BaseModel):
     def is_advisory(self) -> bool:
         """Anomalies inform an inspector but never affect a score."""
         return self.kind is FindingKind.ANOMALY
+
+    @property
+    def needs_notified_rules(self) -> bool:
+        """True when the number used here is not in the Act and the notified
+        Rules that fix it have not been obtained. The rule still runs, but a
+        finding from it must not be enforced without checking that notification.
+        """
+        return self.basis.needs_notified_rules
 
 
 class RulePack(BaseModel):

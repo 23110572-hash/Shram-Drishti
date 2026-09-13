@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
+  Building2,
   ChevronRight,
   FileSearch,
   FolderOpen,
@@ -54,6 +55,25 @@ interface Filter {
 
 const ALL_FILTER: Filter = { key: "all", label: "All" };
 
+/** Statuses where a person has to do something before the document counts. */
+const NEEDS_ATTENTION: DocumentStatus[] = [
+  "NEEDS_REVIEW",
+  "NEEDS_BINDING",
+  "FAILED",
+  "REJECTED",
+];
+
+/** Group key for documents not yet attached to any workplace. */
+const UNATTACHED = "__unattached__";
+
+interface DocumentGroup {
+  key: string;
+  establishmentId: string | null;
+  name: string;
+  rows: DocumentSummary[];
+  attention: number;
+}
+
 const FILTERS: Filter[] = [
   ALL_FILTER,
   { key: "attention", label: "Needs attention", attention: true },
@@ -86,9 +106,42 @@ export function DocumentsPage() {
   });
 
   const rows = documents.data ?? [];
-  const attention = rows.filter((row) =>
-    ["NEEDS_REVIEW", "NEEDS_BINDING", "FAILED", "REJECTED"].includes(row.status),
-  );
+  const attention = rows.filter((row) => NEEDS_ATTENTION.includes(row.status));
+
+  // Grouped by workplace rather than shown as one flat list. An employer with ten
+  // units reading a single list interleaved by upload time cannot tell whose
+  // register is whose, and the establishment column repeating the same name down
+  // twenty rows is not a substitute for structure.
+  const groups = useMemo(() => {
+    const byEstablishment = new Map<string, DocumentGroup>();
+
+    for (const row of rows) {
+      const key = row.establishment_id ?? UNATTACHED;
+      let group = byEstablishment.get(key);
+
+      if (!group) {
+        group = {
+          key,
+          establishmentId: row.establishment_id,
+          name: row.establishment_name ?? "Not yet attached to a workplace",
+          rows: [],
+          attention: 0,
+        };
+        byEstablishment.set(key, group);
+      }
+
+      group.rows.push(row);
+      if (NEEDS_ATTENTION.includes(row.status)) group.attention += 1;
+    }
+
+    // Unattached first: those are the ones nothing will happen to until somebody
+    // acts. Then alphabetical, so a given workplace is always in the same place.
+    return [...byEstablishment.values()].sort((a, b) => {
+      if (a.key === UNATTACHED) return -1;
+      if (b.key === UNATTACHED) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [rows]);
 
   return (
     <div className="space-y-10">
@@ -102,8 +155,8 @@ export function DocumentsPage() {
             Documents
           </h1>
           <p className="mt-2 max-w-3xl text-base text-slate-700 sm:text-lg">
-            Registers, returns and challans submitted for compliance assessment,
-            with the state of each reading and what it produced.
+            Everything you have submitted, grouped by workplace. Open any document
+            to see what was read from it and anything that needs checking.
           </p>
         </div>
 
@@ -120,7 +173,7 @@ export function DocumentsPage() {
       {user && <UploadPanel onUploaded={(ids) => setOpenId(ids[0] ?? null)} />}
 
       {!user && (
-        <Caution title="Sign in to submit filings">
+        <Caution title="Sign in to submit documents">
           Uploading and reviewing documents requires an account. Open the Profile
           page to sign in.
         </Caution>
@@ -157,107 +210,193 @@ export function DocumentsPage() {
         </button>
       </div>
 
-      {/* Table */}
-      <div className="overflow-hidden rounded-3xl border border-sky-200/90 bg-white/95 shadow-sm backdrop-blur-xl">
-        {documents.isPending && <SkeletonRows rows={6} columns={6} />}
+      {/* One section per workplace */}
+      {documents.isPending && (
+        <div className="overflow-hidden rounded-3xl border border-sky-200/90 bg-white/95 shadow-sm backdrop-blur-xl">
+          <SkeletonRows rows={6} columns={6} />
+        </div>
+      )}
 
-        {documents.isError && (
+      {documents.isError && (
+        <div className="overflow-hidden rounded-3xl border border-sky-200/90 bg-white/95 shadow-sm backdrop-blur-xl">
           <ErrorState
             error={documents.error}
             context="the document list"
             onRetry={() => void documents.refetch()}
           />
-        )}
+        </div>
+      )}
 
-        {documents.isSuccess && rows.length === 0 && (
+      {documents.isSuccess && rows.length === 0 && (
+        <div className="overflow-hidden rounded-3xl border border-sky-200/90 bg-white/95 shadow-sm backdrop-blur-xl">
           <EmptyState
             icon={FolderOpen}
             title="Nothing submitted yet"
             description={
               filter === "all"
-                ? "Submit a wage register, muster roll or challan above. Each document is identified, read, and checked against the Labour Codes automatically."
+                ? "Submit a wage register, muster roll or challan above. Each document is identified, read, and checked against the Labour Codes."
                 : "No documents match this filter."
             }
           />
-        )}
+        </div>
+      )}
 
-        {documents.isSuccess && rows.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50/90 text-xs uppercase tracking-wider text-slate-600">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-bold">File</th>
-                  <th scope="col" className="px-6 py-4 font-bold">Identified as</th>
-                  <th scope="col" className="px-6 py-4 font-bold">Establishment</th>
-                  <th scope="col" className="px-6 py-4 font-bold">Period</th>
-                  <th scope="col" className="px-6 py-4 font-bold">State</th>
-                  <th scope="col" className="px-6 py-4 font-bold">Submitted</th>
-                  <th scope="col" className="px-6 py-4"><span className="sr-only">Open</span></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {rows.map((row) => (
-                  <tr
-                    key={row.id}
-                    onClick={() => setOpenId(row.id)}
-                    className="cursor-pointer transition-colors hover:bg-sky-50/50"
-                  >
-                    <td className="px-6 py-4">
-                      <p className="font-bold text-slate-900">{row.original_filename}</p>
-                      <p className="mt-0.5 font-mono text-xs text-slate-500">
-                        {bytes(row.byte_size)} · {row.page_count} page
-                        {row.page_count === 1 ? "" : "s"}
-                      </p>
-                    </td>
+      {documents.isSuccess && groups.length > 0 && (
+        <div className="space-y-6">
+          {groups.map((group) => {
+            const unattached = group.key === UNATTACHED;
 
-                    <td className="px-6 py-4">
-                      <span className="font-semibold text-slate-800">
-                        {DOCUMENT_TYPE_LABELS[row.doc_type]}
-                      </span>
-                      {row.doc_type_confidence !== null &&
-                        row.doc_type !== "UNKNOWN" && (
-                          <p className="mt-0.5 text-xs text-slate-500">
-                            {Math.round(row.doc_type_confidence * 100)}% confidence
-                          </p>
-                        )}
-                    </td>
-
-                    <td className="px-6 py-4 text-slate-700">
-                      {row.establishment_name ?? (
-                        <span className="text-amber-800">Not yet attached</span>
+            return (
+              <section
+                key={group.key}
+                className={[
+                  "overflow-hidden rounded-3xl border bg-white/95 shadow-sm backdrop-blur-xl",
+                  unattached ? "border-amber-300" : "border-sky-200/90",
+                ].join(" ")}
+              >
+                <header
+                  className={[
+                    "flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4",
+                    unattached
+                      ? "border-amber-200 bg-amber-50/80"
+                      : "border-slate-200 bg-slate-50/90",
+                  ].join(" ")}
+                >
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div
+                      className={[
+                        "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
+                        unattached
+                          ? "border-amber-300 bg-white text-amber-700"
+                          : "border-sky-200 bg-white text-sky-700",
+                      ].join(" ")}
+                    >
+                      {unattached ? (
+                        <AlertTriangle className="h-4.5 w-4.5" />
+                      ) : (
+                        <Building2 className="h-4.5 w-4.5" />
                       )}
-                    </td>
+                    </div>
 
-                    <td className="px-6 py-4 text-slate-700">
-                      {row.period_start ? period(row.period_start, row.period_end) : "—"}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col items-start gap-1.5">
-                        <DocumentStatusBadge status={row.status} />
-                        {row.review_reason_count > 0 && (
-                          <span className="text-xs font-semibold text-amber-800">
-                            {row.review_reason_count} point
-                            {row.review_reason_count === 1 ? "" : "s"} to check
+                    <div className="min-w-0">
+                      <h2 className="truncate text-base font-bold text-slate-900">
+                        {group.name}
+                      </h2>
+                      <p className="text-xs text-slate-600">
+                        {group.rows.length} document
+                        {group.rows.length === 1 ? "" : "s"}
+                        {group.attention > 0 && (
+                          <span className="font-semibold text-amber-800">
+                            {" "}
+                            · {group.attention} need
+                            {group.attention === 1 ? "s" : ""} attention
                           </span>
                         )}
-                      </div>
-                    </td>
+                      </p>
+                    </div>
+                  </div>
 
-                    <td className="px-6 py-4 text-xs text-slate-500">
-                      {relative(row.uploaded_at)}
-                    </td>
+                  {group.establishmentId && (
+                    <a
+                      href={`/findings?establishment_id=${group.establishmentId}`}
+                      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-300 bg-white px-4 py-1.5 text-xs font-bold text-slate-700 transition-colors hover:bg-slate-50"
+                    >
+                      <FileSearch className="h-3.5 w-3.5" />
+                      Findings
+                    </a>
+                  )}
+                </header>
 
-                    <td className="px-6 py-4 text-right">
-                      <ChevronRight className="ml-auto h-4 w-4 text-slate-400" />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                {unattached && (
+                  <p className="border-b border-amber-200 bg-amber-50/40 px-6 py-3 text-xs leading-relaxed text-amber-950">
+                    The workplace name on these documents could not be read clearly
+                    enough to attach them. Nothing is assessed until they are
+                    attached. Open one to attach it, or upload it again choosing the
+                    workplace yourself.
+                  </p>
+                )}
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm">
+                    <thead className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-600">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 font-bold">File</th>
+                        <th scope="col" className="px-6 py-3 font-bold">
+                          Identified as
+                        </th>
+                        <th scope="col" className="px-6 py-3 font-bold">Period</th>
+                        <th scope="col" className="px-6 py-3 font-bold">State</th>
+                        <th scope="col" className="px-6 py-3 font-bold">Submitted</th>
+                        <th scope="col" className="px-6 py-3">
+                          <span className="sr-only">Open</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {group.rows.map((row) => (
+                        <tr
+                          key={row.id}
+                          onClick={() => setOpenId(row.id)}
+                          className="cursor-pointer transition-colors hover:bg-sky-50/50"
+                        >
+                          <td className="px-6 py-4">
+                            <p className="font-bold text-slate-900">
+                              {row.original_filename}
+                            </p>
+                            <p className="mt-0.5 font-mono text-xs text-slate-500">
+                              {bytes(row.byte_size)} · {row.page_count} page
+                              {row.page_count === 1 ? "" : "s"}
+                            </p>
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <span className="font-semibold text-slate-800">
+                              {DOCUMENT_TYPE_LABELS[row.doc_type]}
+                            </span>
+                            {row.doc_type_confidence !== null &&
+                              row.doc_type !== "UNKNOWN" && (
+                                <p className="mt-0.5 text-xs text-slate-500">
+                                  {Math.round(row.doc_type_confidence * 100)}%
+                                  confidence
+                                </p>
+                              )}
+                          </td>
+
+                          <td className="px-6 py-4 text-slate-700">
+                            {row.period_start
+                              ? period(row.period_start, row.period_end)
+                              : "—"}
+                          </td>
+
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col items-start gap-1.5">
+                              <DocumentStatusBadge status={row.status} />
+                              {row.review_reason_count > 0 && (
+                                <span className="text-xs font-semibold text-amber-800">
+                                  {row.review_reason_count} point
+                                  {row.review_reason_count === 1 ? "" : "s"} to check
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          <td className="px-6 py-4 text-xs text-slate-500">
+                            {relative(row.uploaded_at)}
+                          </td>
+
+                          <td className="px-6 py-4 text-right">
+                            <ChevronRight className="ml-auto h-4 w-4 text-slate-400" />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            );
+          })}
+        </div>
+      )}
 
       {openId && (
         <DocumentDrawer documentId={openId} onClose={() => setOpenId(null)} />

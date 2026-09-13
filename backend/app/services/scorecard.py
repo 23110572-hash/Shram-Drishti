@@ -52,7 +52,13 @@ from app.services.rule_engine import EvaluationReport, is_scored, severity_weigh
 
 logger = logging.getLogger(__name__)
 
-SCORING_VERSION = "1.0"
+#: Recorded on every scorecard. Two scores are only comparable when this matches,
+#: so it has to change whenever the arithmetic does.
+#:
+#: 1.1 — a Code that could not be assessed is now capped at UNTESTED_CEILING
+#:       instead of scoring 100 by absence, and only rules awaiting a notification
+#:       are discounted rather than everything the old `verified` flag caught.
+SCORING_VERSION = "1.1"
 
 #: Relative importance of each Code in the overall score. Wages and social
 #: security are weighted highest because their breaches take money directly out
@@ -100,6 +106,25 @@ CORE_EXPECTED_DOCUMENTS: tuple[DocumentType, ...] = (
 #: hundred affected workers weigh roughly three times one.
 MAX_SCALE_MULTIPLIER = 3.0
 
+#: How each Code is named in text meant for an employer. The enum values are
+#: shouted constants and reading "SOCIAL_SECURITY scored 50" in a notice is worse
+#: than reading "social security".
+_CODE_LABELS: dict[LabourCode, str] = {
+    LabourCode.WAGES: "Wages",
+    LabourCode.SOCIAL_SECURITY: "Social security",
+    LabourCode.OSH: "Occupational safety and health",
+    LabourCode.INDUSTRIAL_RELATIONS: "Industrial relations",
+}
+
+#: The highest a Code may score when none of its rules could be assessed.
+#:
+#: Set at the top of the HIGH-risk band, which is the honest position for "we do
+#: not know": not an accusation, since no breach was found, but not a clean bill
+#: either, since nothing was testable. Scoring untested Codes at 100 let an
+#: establishment earn a low-risk rating by submitting almost nothing; scoring them
+#: at 0 would assert breaches that were never found. Neither is defensible.
+UNTESTED_CEILING = 50.0
+
 
 @dataclass
 class CodeScore:
@@ -110,6 +135,21 @@ class CodeScore:
     critical_count: int = 0
     weight: float = 0.0
 
+    #: Share of this Code's binding rules that produced a verdict. 1.0 means every
+    #: applicable rule was testable against the documents submitted.
+    coverage: float = 0.0
+    #: How many of this Code's rules bind this establishment at all. Zero means the
+    #: Code imposes nothing here, which is different from untested.
+    relevant_rule_count: int = 0
+    #: The score before the evidence ceiling was applied. Kept so the difference is
+    #: visible: an employer is entitled to see that their number was limited by
+    #: missing evidence rather than by a finding against them.
+    uncapped_score: float = 0.0
+
+    @property
+    def limited_by_evidence(self) -> bool:
+        return self.uncapped_score - self.score > 0.05
+
     def as_dict(self) -> dict[str, Any]:
         return {
             "score": round(self.score, 1),
@@ -117,6 +157,10 @@ class CodeScore:
             "findings": self.finding_count,
             "critical": self.critical_count,
             "weight": self.weight,
+            "coverage": self.coverage,
+            "relevant_rules": self.relevant_rule_count,
+            "uncapped_score": self.uncapped_score,
+            "limited_by_evidence": self.limited_by_evidence,
         }
 
 
@@ -165,8 +209,58 @@ class ScoreResult:
     inspection_interval_months: int = 24
 
     @property
+    def codes_limited_by_evidence(self) -> list[LabourCode]:
+        """Codes whose score was held down by missing evidence, not by a finding.
+
+        Worth separating in every summary. "You scored 58" and "you scored 58
+        because two Codes had nothing to test" call for completely different
+        responses from an employer.
+        """
+        return [
+            code for code, cs in self.code_scores.items() if cs.limited_by_evidence
+        ]
+
+    @property
+    def evidence_note(self) -> str | None:
+        """Why the number is what it is, when evidence rather than conduct set it.
+
+        Computed rather than written by a model: which Codes were capped, and by
+        how much, is a fact about the arithmetic above. There is nothing here to
+        judge, so asking a model would only add latency and a chance of error.
+        """
+        limited = self.codes_limited_by_evidence
+        if not limited:
+            return None
+
+        parts: list[str] = []
+        for code in limited:
+            cs = self.code_scores[code]
+            assessed = round(cs.coverage * cs.relevant_rule_count)
+            parts.append(
+                f"{_CODE_LABELS[code]} scored {cs.score:.0f} rather than "
+                f"{cs.uncapped_score:.0f} because only {assessed} of "
+                f"{cs.relevant_rule_count} applicable checks could be carried out "
+                f"on the documents provided"
+            )
+
+        return (
+            "Part of this score reflects missing evidence rather than anything "
+            "found against the establishment. "
+            + "; ".join(parts)
+            + ". Submitting the outstanding documents may raise the score without "
+            "any change to how the establishment operates."
+        )
+
+    @property
     def headline(self) -> str:
         """One line for a list view, honest about confidence."""
+        limited = self.codes_limited_by_evidence
+        if limited:
+            names = ", ".join(code.value.replace("_", " ").lower() for code in limited)
+            return (
+                f"{self.overall_score:.0f} / 100 — {self.risk_band.value.lower()} "
+                f"risk, limited by missing evidence for {names}"
+            )
         if not self.completeness.is_sufficient:
             return (
                 f"{self.overall_score:.0f} / 100 — {self.risk_band.value.lower()} "
@@ -182,9 +276,15 @@ def compute_score(
     establishment: Establishment,
     period_start: date | None,
     period_end: date | None,
-    report: EvaluationReport | None = None,
+    report: EvaluationReport,
 ) -> ScoreResult:
-    """Score one establishment for one period from its current findings."""
+    """Score one establishment for one period from its current findings.
+
+    ``report`` is required. The score depends on what could be assessed, not only
+    on what was found, and that is knowable only from the evaluation that produced
+    the findings. Scoring without it would have to assume full coverage, which is
+    the assumption that made untested Codes look compliant.
+    """
     findings = _findings(session, establishment.id, period_start, period_end)
 
     scored = [f for f in findings if is_scored(f)]
@@ -212,12 +312,14 @@ def compute_score(
             confidence = finding.extraction_confidence
             discount = 1.0 if confidence is None else 0.6 + 0.4 * confidence
 
-            # A rule whose threshold is not yet confirmed against primary
-            # statutory text is shown to inspectors but weighed lightly, because
-            # enforcing on an unverified number is not defensible.
-            verification = 1.0 if finding.rule_verified else 0.4
+            # Only a rule waiting on a notification is discounted, and only
+            # because the number it compares against came from a secondary
+            # source. An arithmetic identity or a cross-document reconciliation
+            # needs no notification to be true, so it carries full weight: a
+            # register that does not add up is a certainty, not a maybe.
+            basis = 0.4 if finding.rule_basis.needs_notified_rules else 1.0
 
-            penalty += weight * scale * discount * verification
+            penalty += weight * scale * discount * basis
             if finding.severity is Severity.CRITICAL:
                 critical += 1
 
@@ -226,13 +328,37 @@ def compute_score(
         # the worst cases indistinguishable from each other.
         score = 100.0 * math.exp(-penalty / 120.0)
 
+        # ------------------------------------------------ evidence ceiling
+        # A Code with no findings scored a full 100 whether it was genuinely
+        # compliant or whether nothing was ever submitted to test it. That made
+        # the headline number most generous exactly when it was least earned: an
+        # establishment could file one clean wage register, submit nothing else,
+        # and average its way into the low-risk band.
+        #
+        # So a Code's score is capped by how much of that Code could actually be
+        # assessed. At full coverage the ceiling is 100 and this does nothing. At
+        # no coverage it is UNTESTED_CEILING — deliberately mid-range, because
+        # absent evidence is not proof of a breach and must not be scored as one.
+        coverage = report.coverage_for(code)
+        relevant_rules = report.relevant_rule_count(code)
+        if relevant_rules == 0:
+            # No rule of this Code binds this establishment. Nothing was withheld
+            # and nothing is unknown, so a full score is honest here.
+            ceiling = 100.0
+        else:
+            ceiling = UNTESTED_CEILING + (100.0 - UNTESTED_CEILING) * coverage
+        capped = min(score, ceiling)
+
         code_scores[code] = CodeScore(
             code=code,
-            score=round(max(0.0, min(100.0, score)), 1),
+            score=round(max(0.0, min(100.0, capped)), 1),
             penalty=round(penalty, 2),
             finding_count=len(relevant),
             critical_count=critical,
             weight=CODE_WEIGHTS[code],
+            coverage=coverage,
+            relevant_rule_count=relevant_rules,
+            uncapped_score=round(max(0.0, min(100.0, score)), 1),
         )
         contributing[code.value] = [f.id for f in relevant]
 
@@ -273,6 +399,11 @@ def compute_score(
         "decay_constant": 120.0,
         "max_scale_multiplier": MAX_SCALE_MULTIPLIER,
         "critical_score_cap": 45.0 if critical_total else None,
+        "untested_ceiling": UNTESTED_CEILING,
+        "pending_notification_multiplier": 0.4,
+        "codes_limited_by_evidence": [
+            code.value for code, cs in code_scores.items() if cs.limited_by_evidence
+        ],
         "per_code": {
             code.value: score.as_dict() for code, score in code_scores.items()
         },
@@ -307,11 +438,18 @@ def persist_score(
     period_end: date | None,
     result: ScoreResult,
     actor_id: str | None = None,
+    review_summary: str | None = None,
+    records_quality: str | None = None,
 ) -> Scorecard:
     """Write a new scorecard row.
 
     Always an insert. Scorecards are never updated in place, so an establishment's
     trajectory over time is preserved and a past score cannot be quietly restated.
+
+    ``review_summary`` and ``records_quality`` come from the model review that ran
+    before scoring. They are stored alongside the number, not inside it: nothing
+    the model said moved the score, but an inspector reading a 58 deserves the
+    qualitative picture in the same place rather than in the audit log.
     """
     scorecard = Scorecard(
         establishment_id=establishment.id,
@@ -335,6 +473,9 @@ def persist_score(
         computation=result.computation,
         recommended_inspection_priority=result.inspection_priority,
         recommended_inspection_months=result.inspection_interval_months,
+        evidence_note=result.evidence_note,
+        review_summary=review_summary,
+        records_quality=records_quality,
     )
     session.add(scorecard)
     session.flush()
@@ -442,7 +583,7 @@ def _completeness(
     establishment: Establishment,
     period_start: date | None,
     period_end: date | None,
-    report: EvaluationReport | None,
+    report: EvaluationReport,
 ) -> Completeness:
     from app.models.document import Document
     from app.models.enums import DocumentStatus
@@ -486,8 +627,8 @@ def _completeness(
     return Completeness(
         documents_expected=len(expected),
         documents_received=received,
-        rule_coverage=report.coverage if report is not None else 0.0,
-        unassessable_rules=report.rules_unassessable if report is not None else 0,
+        rule_coverage=report.coverage,
+        unassessable_rules=report.rules_unassessable,
         documents_needing_review=sum(
             1 for d in documents if d.status is DocumentStatus.NEEDS_REVIEW
         ),

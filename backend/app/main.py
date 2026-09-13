@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
             extra={
                 "packs": len(loaded.packs),
                 "rules": len(loaded.all_rules),
-                "unverified": len(loaded.unverified_rules),
+                "pending_notification": len(loaded.rules_pending_notification),
                 "errors": len(errors),
             },
         )
@@ -60,15 +60,15 @@ async def lifespan(app: FastAPI):
                 "rule pack error",
                 extra={"rule_id": issue.rule_id, "detail": issue.message},
             )
-        if loaded.unverified_rules:
-            # Said plainly at startup. An operator should know that some
-            # thresholds have not been confirmed against primary statutory text
-            # before anyone enforces on them.
+        if loaded.rules_pending_notification:
+            # Said plainly at startup. An operator should know which obligations
+            # rest on a number the Act left to a notification nobody has obtained
+            # yet, before anyone enforces on one.
             logger.warning(
-                "%d rule(s) have thresholds not yet confirmed against primary "
-                "statutory text; findings from these are flagged and weighted "
-                "lightly",
-                len(loaded.unverified_rules),
+                "%d rule(s) rely on a number the Act leaves to the appropriate "
+                "Government, where that notification has not been obtained; "
+                "findings from these are flagged and weighted lightly",
+                len(loaded.rules_pending_notification),
             )
     except Exception:
         logger.exception("rule packs could not be loaded")

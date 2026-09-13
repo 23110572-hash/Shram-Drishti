@@ -2,10 +2,13 @@ pack: wages
 version: "2026.01"
 jurisdiction: IN
 description: >
-  Code on Wages, 2019 (Act 29 of 2019). Every rule marked verified: true was read
-  directly from the Gazette text held at code on wage 2019.md. Rules whose
-  operative number lives in the Central or State Rules rather than the Act remain
-  verified: false until those Rules are obtained.
+  Code on Wages, 2019 (Act 29 of 2019). Each rule states what its operative number
+  rests on. basis: STATUTE means the figure was read directly from the Gazette text
+  held at code on wage 2019.md and is quoted in source_ref. basis: ARITHMETIC means
+  the rule compares no statutory figure at all — it checks that the register's own
+  columns add up. Only basis: RULES_PENDING is a caveat, and here it applies to the
+  minimum wage floor alone, whose rates are notified by each State and reissued
+  roughly twice a year.
 
 rules:
   # ---------------------------------------------------------------- s.14
@@ -17,7 +20,7 @@ rules:
     title: Overtime paid below twice the ordinary rate
     citation: "Code on Wages, 2019 — s.14"
     source_ref: "code on wage 2019.md, s.14: 'at the overtime rate which shall not be less than twice the normal rate of wages'"
-    verified: true
+    basis: STATUTE
     requires: [wage_register]
     for_each: wage_register
     # Rows with no overtime cannot breach an overtime rule. Where overtime was
@@ -79,7 +82,7 @@ rules:
     title: Wage period longer than one month
     citation: "Code on Wages, 2019 — s.16"
     source_ref: "code on wage 2019.md, s.16: 'no wage period in respect of any employee shall be more than a month'"
-    verified: true
+    basis: STATUTE
     requires: [period]
     expression: >
       is_missing(period.days) or period.days <= 31
@@ -112,7 +115,7 @@ rules:
     title: Monthly wages paid after the seventh of the following month
     citation: "Code on Wages, 2019 — s.17(1)(iv)"
     source_ref: "code on wage 2019.md, s.17(1)(iv): 'monthly basis, before the expiry of the seventh day of the succeeding month'"
-    verified: true
+    basis: STATUTE
     requires: [wage_register]
     applicability: "period.basis == 'monthly'"
     for_each: wage_register
@@ -153,7 +156,7 @@ rules:
     title: Final settlement not paid within two working days of exit
     citation: "Code on Wages, 2019 — s.17(2)"
     source_ref: "code on wage 2019.md, s.17(2): wages payable 'within two working days of his removal, dismissal, retrenchment or, as the case may be, his resignation'"
-    verified: true
+    basis: STATUTE
     requires: [wage_register]
     for_each: wage_register
     expression: >
@@ -192,7 +195,7 @@ rules:
     title: Total deductions exceed half of wages
     citation: "Code on Wages, 2019 — s.18(3)"
     source_ref: "code on wage 2019.md, s.18(3): 'the total amount of deductions ... shall not exceed fifty per cent. of such wages'"
-    verified: true
+    basis: STATUTE
     requires: [wage_register]
     for_each: wage_register
     expression: >
@@ -234,7 +237,7 @@ rules:
     title: No day of rest in a period of seven days
     citation: "Code on Wages, 2019 — s.13(1)(b)"
     source_ref: "code on wage 2019.md, s.13(1)(b): 'provide for a day of rest in every period of seven days'"
-    verified: true
+    basis: STATUTE
     requires: [attendance]
     for_each: attendance
     expression: >
@@ -269,8 +272,8 @@ rules:
     weight: 8
     title: Excluded allowances exceed half of total remuneration
     citation: "Code on Wages, 2019 — s.2(y) proviso"
-    source_ref: "code on wage 2019.md, s.2(y): excluded components exceeding one-half of all remuneration are deemed to be wages"
-    verified: false
+    source_ref: "code on wage 2019.md, s.2(y) proviso: components excluded from wages that exceed one-half of all remuneration are deemed to be wages — the one-half is stated in the Act"
+    basis: STATUTE
     requires: [wage_register]
     for_each: wage_register
     # The commonest structural avoidance: inflate allowances so the wage base for
@@ -311,8 +314,8 @@ rules:
     weight: 10
     title: Wage below the applicable minimum for the state and skill category
     citation: "Code on Wages, 2019 — s.5 and s.8"
-    source_ref: "Act requires payment of not less than the minimum rate fixed by the appropriate Government; rate values from state wise minimum wages.md (reference table)"
-    verified: false
+    source_ref: "s.5 and s.8 require payment of not less than the minimum rate fixed by the appropriate Government, but the rates themselves are notified per State and revised roughly twice a year. The values used here come from state wise minimum wages.md, a reference table, not from a notification. NEEDS: current minimum wage notification for each State assessed"
+    basis: RULES_PENDING
     requires: [wage_register, wage_floor]
     for_each: wage_register
     # wage_floor.daily_paise is resolved per establishment from the state table.
@@ -367,8 +370,8 @@ rules:
     weight: 5
     title: Gross pay does not equal the sum of its components
     citation: "Code on Wages, 2019 — s.50 read with the prescribed wage register"
-    source_ref: "Internal consistency of the wage register maintained under the Code"
-    verified: false
+    source_ref: "Internal consistency of the wage register maintained under s.50. No statutory figure is compared: the components must sum to the stated gross"
+    basis: ARITHMETIC
     requires: [wage_register]
     for_each: wage_register
     # One rupee tolerance: registers routinely round, and exact equality would
@@ -411,8 +414,8 @@ rules:
     weight: 5
     title: Net paid does not equal gross less deductions
     citation: "Code on Wages, 2019 — s.50 read with the prescribed wage register"
-    source_ref: "Internal consistency of the wage register maintained under the Code"
-    verified: false
+    source_ref: "Internal consistency of the wage register maintained under s.50. No statutory figure is compared: gross plus overtime less deductions must equal the stated net"
+    basis: ARITHMETIC
     requires: [wage_register]
     for_each: wage_register
     # Overtime is paid on top of gross, so it belongs in this identity. Omitting it
@@ -468,7 +471,7 @@ rules:
     title: Wage slips not issued
     citation: "Code on Wages, 2019 — s.50(3)"
     source_ref: "code on wage 2019.md: 'Every employer shall issue wage slips to the employees in such form and manner'"
-    verified: true
+    basis: STATUTE
     requires: [docs]
     expression: "docs.wage_slip_count > 0"
     observe:

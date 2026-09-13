@@ -17,6 +17,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
+from app.models.enums import RuleBasis
 from app.rules.evaluator import Evaluator, RuleSyntaxError
 from app.rules.functions import FACT_ROOTS, RULE_FUNCTIONS
 from app.rules.schema import Rule, RuleIssue, RulePack
@@ -44,9 +45,20 @@ class LoadedRules:
         return [rule for pack in self.packs for rule in pack.rules]
 
     @property
-    def unverified_rules(self) -> list[Rule]:
-        """Rules whose threshold has not been confirmed against primary text."""
-        return [rule for rule in self.all_rules if not rule.verified]
+    def rules_pending_notification(self) -> list[Rule]:
+        """Rules whose operative number the Act leaves to the appropriate
+        Government, where that notification has not been obtained yet.
+
+        These still run. What they must not do is drive enforcement, because the
+        number they compare against came from a secondary source.
+        """
+        return [rule for rule in self.all_rules if rule.needs_notified_rules]
+
+    def by_basis(self) -> dict[RuleBasis, list[Rule]]:
+        grouped: dict[RuleBasis, list[Rule]] = {basis: [] for basis in RuleBasis}
+        for rule in self.all_rules:
+            grouped[rule.basis].append(rule)
+        return grouped
 
     def version_for(self, rule_id: str) -> str:
         for pack in self.packs:
@@ -153,10 +165,16 @@ def validate_pack(pack: RulePack, evaluator: Evaluator | None = None) -> list[Ru
             except RuleSyntaxError as exc:
                 error(rule.id, f"{label}: {exc}")
 
-        if not rule.verified:
+        if rule.needs_notified_rules:
+            # Only a pending notification earns a warning. An arithmetic identity
+            # or a cross-document reconciliation has no external number to
+            # confirm, so warning about it would train reviewers to ignore the
+            # warnings that matter.
             warn(
                 rule.id,
-                f"threshold not verified against primary text (source_ref: {rule.source_ref})",
+                "operative number is left by the Act to the appropriate "
+                f"Government and the notification has not been obtained "
+                f"(source_ref: {rule.source_ref})",
             )
 
         if not rule.fixtures:
@@ -273,7 +291,7 @@ def load_rules(directory: Path, *, run_fixtures_too: bool = True) -> LoadedRules
         extra={
             "packs": len(result.packs),
             "rules": len(result.all_rules),
-            "unverified": len(result.unverified_rules),
+            "rules_pending_notification": len(result.rules_pending_notification),
             "errors": sum(1 for i in result.issues if i.level == "error"),
         },
     )

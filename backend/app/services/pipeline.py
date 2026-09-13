@@ -47,6 +47,7 @@ from app.models.enums import (
     FindingKind,
     FindingStatus,
     JobStatus,
+    RuleBasis,
     Severity,
 )
 from app.models.establishment import Establishment, Registration
@@ -81,7 +82,7 @@ from app.services.identity import (
 )
 from app.services.llm import BudgetTracker, LlmError, get_llm_client
 from app.services.ocr import OcrError, get_ocr_provider
-from app.services.rule_engine import RuleEngine
+from app.services.rule_engine import RuleEngine, resolve_assessed_severity
 from app.services.storage import get_store
 
 logger = logging.getLogger(__name__)
@@ -1138,15 +1139,19 @@ async def _evaluate_establishment(
             _store_anomalies(session, context, anomalies)
             session.flush()
 
-            # 3. The model's review. Annotates rule findings and raises what the
-            #    rules could not anticipate. Also advisory.
+            # 3. The model's review. Explains each finding, sets severity in
+            #    context within the bounds its rule allows, and raises what the
+            #    rules could not anticipate. It creates no finding and reverses
+            #    none.
             analyst_notes = await _run_analyst(
                 session, establishment, context, report.findings, settings
             )
             session.flush()
 
             # 4. Score. Anomalies and model observations are excluded by
-            #    construction, so nothing advisory can move this number.
+            #    construction, so nothing advisory can move this number. The
+            #    severities the review set are read from the findings, not
+            #    recomputed, which is what keeps the score reproducible.
             score = score_service.compute_score(
                 session,
                 establishment=establishment,
@@ -1161,6 +1166,8 @@ async def _evaluate_establishment(
                 period_end=period_end,
                 result=score,
                 actor_id=actor_id,
+                review_summary=analyst_notes.overall_assessment,
+                records_quality=analyst_notes.records_quality,
             )
 
             # 5. Tell the employer and the inspector.
@@ -1186,7 +1193,8 @@ async def _evaluate_establishment(
                 unassessable=report.rules_unassessable,
                 coverage=report.coverage,
                 anomalies=len(anomalies),
-                model_observations=analyst_notes,
+                model_observations=analyst_notes.observations_stored,
+                severities_adjusted=analyst_notes.severities_adjusted,
                 score=score.overall_score,
                 risk_band=str(score.risk_band),
                 completeness=score.completeness.overall,
@@ -1205,21 +1213,38 @@ async def _evaluate_establishment(
             raise
 
 
+@dataclass
+class AnalystOutcome:
+    """What the model review produced, for the caller to record.
+
+    The review runs before scoring and none of this enters the calculation. It is
+    returned rather than only logged so the narrative can be stored next to the
+    number instead of buried in the audit trail, where nobody reading a score
+    would find it.
+    """
+
+    observations_stored: int = 0
+    severities_adjusted: int = 0
+    overall_assessment: str | None = None
+    records_quality: str | None = None
+    consistency_notes: str | None = None
+
+
 async def _run_analyst(
     session: Session,
     establishment: Establishment,
     context: facts_service.FactContext,
     findings: list[Finding],
     settings: Any,
-) -> int:
+) -> AnalystOutcome:
     """Run the model review and store what it produced.
 
     Failure here is logged and swallowed. The rule findings and the score are
-    already correct without it: this pass adds explanation and extra leads, and
-    losing those must not lose an evaluation.
+    already correct without it: this pass adds explanation, contextual severity and
+    extra leads, and losing those must not lose an evaluation.
     """
     if not context.documents:
-        return 0
+        return AnalystOutcome()
 
     try:
         client = get_llm_client()
@@ -1227,7 +1252,7 @@ async def _run_analyst(
             await client.load_capabilities()
     except LlmError as exc:
         logger.warning("analyst unavailable", extra={"error": str(exc)})
-        return 0
+        return AnalystOutcome()
 
     budget = BudgetTracker(limit_usd=settings.llm_budget_per_doc_usd * 2)
     analyst = Analyst(client, budget)
@@ -1247,11 +1272,21 @@ async def _run_analyst(
         )
     except LlmError as exc:
         logger.warning("analyst review failed", extra={"error": str(exc)})
-        return 0
+        return AnalystOutcome()
 
-    # Annotate the rule findings. Advisory only: the verdict and the score are
-    # untouched, and a finding is never deleted on a model's say-so.
+    # Annotate the rule findings. The verdict itself is never touched — a finding
+    # is not deleted, and no non-compliance is created, on a model's say-so.
+    #
+    # Severity is different, and deliberately so. A rule declares one severity for
+    # its whole class of breach and cannot see magnitude, spread or repetition, so
+    # a 51% deduction for one worker and a 90% deduction across the workforce for
+    # three months arrive scored identically. The review does see that. Its opinion
+    # is therefore allowed to move severity by one step, with the reason recorded
+    # against the finding, and scoring reads the stored value rather than calling
+    # the model again — so the score stays reproducible while ceasing to pretend
+    # every breach of a kind is equally grave.
     by_id = {f.id: f for f in findings}
+    adjusted = 0
     for assessment in report.assessments:
         finding = by_id.get(assessment.finding_id)
         if finding is None:
@@ -1260,6 +1295,31 @@ async def _run_analyst(
         if assessment.is_possible_false_positive:
             finding.possible_false_positive = True
             finding.false_positive_reason = assessment.reason
+            # A finding the review doubts is not one whose gravity it should be
+            # arguing about. The doubt is the message; the flag carries it.
+            continue
+
+        severity, rationale = resolve_assessed_severity(
+            baseline=finding.baseline_severity or finding.severity,
+            opinion=assessment.severity_opinion,
+            verdict_is_sound=assessment.verdict == "sound",
+            rationale=assessment.plain_explanation or assessment.reason,
+        )
+        if severity is not finding.severity:
+            finding.severity = severity
+            finding.severity_rationale = rationale
+            finding.severity_assessed = True
+            adjusted += 1
+
+    if adjusted:
+        logger.info(
+            "finding severities adjusted in context",
+            extra={
+                "establishment_id": context.establishment.id,
+                "adjusted": adjusted,
+                "of": len(report.assessments),
+            },
+        )
 
     observations = [*report.observations, *cross.observations]
     stored = _store_observations(session, context, observations)
@@ -1277,11 +1337,18 @@ async def _run_analyst(
                 "records_quality": report.records_quality,
                 "consistency_notes": (cross.consistency_notes or "")[:2000],
                 "observations_stored": stored,
+                "severities_adjusted": adjusted,
                 "llm_cost_usd": round(budget.spent_usd, 6),
             },
         )
 
-    return stored
+    return AnalystOutcome(
+        observations_stored=stored,
+        severities_adjusted=adjusted,
+        overall_assessment=report.overall_assessment,
+        records_quality=report.records_quality,
+        consistency_notes=cross.consistency_notes,
+    )
 
 
 def _store_anomalies(
@@ -1324,7 +1391,11 @@ def _store_anomalies(
             rule_pack_version="anomaly@1.0",
             jurisdiction=context.establishment.jurisdiction_code,
             citation="Statistical observation — not a statutory provision",
-            rule_verified=False,
+            # An anomaly compares records against the spread of other records, so
+            # it rests on no statutory number at all. It is never scored either
+            # way, so this is a label for the reader rather than an input to the
+            # arithmetic.
+            rule_basis=RuleBasis.RECONCILIATION,
             title=anomaly.title,
             message=anomaly.detail,
             remediation=anomaly.suggested_check,
@@ -1390,7 +1461,9 @@ def _store_observations(
                 "Observation from automated review — no statutory provision is "
                 "asserted and this does not affect the compliance score"
             ),
-            rule_verified=False,
+            # Same as an anomaly: derived from the documents themselves, asserts
+            # no statutory number, and never scored.
+            rule_basis=RuleBasis.RECONCILIATION,
             title=observation.title[:255],
             message=observation.detail,
             remediation=getattr(observation, "suggested_check", None),
@@ -1565,7 +1638,7 @@ def _finding_brief(finding: Finding) -> FindingBrief:
             )
             for e in finding.evidence
         ],
-        rule_verified=finding.rule_verified,
+        awaiting_notification=finding.rule_basis.needs_notified_rules,
     )
 
 

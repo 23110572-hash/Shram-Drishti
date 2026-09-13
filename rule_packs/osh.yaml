@@ -3,11 +3,18 @@ version: "2026.01"
 jurisdiction: IN
 description: >
   Occupational Safety, Health and Working Conditions Code, 2020 (Act 37 of 2020).
-  Welfare-facility headcount thresholds and daily hour limits are largely fixed by
-  the Central and State Rules rather than the Act, so those rules remain
-  verified: false pending those Rules. Registration validity, appointment letters,
-  contractor licensing and accident notification are structural obligations under
-  the Act and are usable now.
+  Registration validity, appointment letters, contractor licensing, accident
+  notification and the canteen threshold are stated in the Act itself and carry
+  basis: STATUTE. Attendance and overtime checks compare the muster roll against
+  the wage register and need no external figure, so they carry
+  basis: RECONCILIATION.
+
+  The Code deliberately leaves several numbers to be notified. s.24(3) says only
+  that the Central Government "may make rules" for creches, with no headcount at
+  all; s.25 fixes eight hours of normal work but leaves intervals and spreadover
+  to notification, so the twelve-hour ceiling tested here comes from the Rules;
+  s.10 leaves the accident notification period to be prescribed. Those rules carry
+  basis: RULES_PENDING and must not be enforced until the notified Rules are held.
 
 rules:
   # ----------------------------------------------------- registration validity
@@ -19,7 +26,7 @@ rules:
     title: Establishment registration missing or expired
     citation: "OSH & Working Conditions Code, 2020 — Chapter II"
     source_ref: "Act requires every establishment covered by the Code to be registered"
-    verified: true
+    basis: STATUTE
     requires: [registrations, period]
     expression: >
       registrations.has_establishment_registration == True
@@ -67,7 +74,7 @@ rules:
     title: Appointment letters not issued to all employees
     citation: "OSH & Working Conditions Code, 2020 — s.6"
     source_ref: "Act obliges every employer to issue an appointment letter to every employee"
-    verified: true
+    basis: STATUTE
     requires: [estab, docs]
     applicability: "estab.worker_count > 0"
     expression: "docs.appointment_letter_count >= estab.worker_count"
@@ -104,7 +111,7 @@ rules:
     title: Contract labour engaged through an unlicensed or lapsed contractor
     citation: "OSH & Working Conditions Code, 2020 — Chapter XI"
     source_ref: "Act requires a licence for contractors supplying contract labour"
-    verified: true
+    basis: STATUTE
     requires: [estab, contractors]
     applicability: "estab.engages_contract_labour == True"
     expression: >
@@ -140,8 +147,8 @@ rules:
     weight: 5
     title: More contract workers deployed than the licence permits
     citation: "OSH & Working Conditions Code, 2020 — Chapter XI"
-    source_ref: "A contractor licence states the maximum number of workers that may be engaged"
-    verified: false
+    source_ref: "Cross-document reconciliation: contract workers deployed against the maximum the contractor licence itself states"
+    basis: RECONCILIATION
     requires: [estab, contractors]
     applicability: "estab.engages_contract_labour == True"
     expression: >
@@ -177,7 +184,7 @@ rules:
     title: Recorded accidents were not notified
     citation: "OSH & Working Conditions Code, 2020 — s.10"
     source_ref: "Act requires notice of accidents causing death or bodily injury to the prescribed authority"
-    verified: true
+    basis: STATUTE
     requires: [incidents]
     # Comparing the establishment's own accident register against the
     # notifications it filed. Under-reporting is visible only by this comparison.
@@ -217,8 +224,8 @@ rules:
     weight: 6
     title: Accident notified later than the prescribed time
     citation: "OSH & Working Conditions Code, 2020 — s.10"
-    source_ref: "Notification period is prescribed by the Rules; the day count is not yet verified"
-    verified: false
+    source_ref: "s.10 requires notice but leaves the period to be prescribed. NEEDS: OSH Code (Central) Rules, 2020 — notification period under s.10"
+    basis: RULES_PENDING
     requires: [incidents]
     for_each: incidents
     expression: >
@@ -256,8 +263,8 @@ rules:
     weight: 7
     title: Daily working hours exceed the permitted maximum
     citation: "OSH & Working Conditions Code, 2020 — s.25"
-    source_ref: "Daily hour limit is fixed by the appropriate Government under s.25; the value used here is not yet verified against the Rules"
-    verified: false
+    source_ref: "s.25(1)(a) fixes eight hours in a day for normal work, but this rule tests the total including overtime against twelve, and that ceiling is not in the Act. NEEDS: OSH Code (Central) Rules, 2020 — intervals and spreadover under s.25(1)(b)"
+    basis: RULES_PENDING
     requires: [attendance]
     for_each: attendance
     expression: >
@@ -291,8 +298,8 @@ rules:
     weight: 5
     title: Weekly working hours exceed the permitted maximum
     citation: "OSH & Working Conditions Code, 2020 — s.25"
-    source_ref: "Weekly hour limit is fixed under s.25; the value used here is not yet verified against the Rules"
-    verified: false
+    source_ref: "s.25 states no weekly figure; the forty-eight hours used here is the conventional value. NEEDS: OSH Code (Central) Rules, 2020 — hours notified under s.25"
+    basis: RULES_PENDING
     requires: [attendance]
     for_each: attendance
     expression: >
@@ -328,7 +335,7 @@ rules:
     title: Days paid are fewer than days recorded as present
     citation: "OSH & Working Conditions Code, 2020 — s.25 read with the Code on Wages"
     source_ref: "Cross-document reconciliation: muster roll against the wage register"
-    verified: true
+    basis: RECONCILIATION
     requires: [wage_register]
     for_each: wage_register
     # Unpaid attendance. Each document is internally consistent; the shortfall
@@ -373,7 +380,7 @@ rules:
     title: Overtime hours recorded but no overtime paid
     citation: "OSH & Working Conditions Code, 2020 — s.25 read with Code on Wages s.14"
     source_ref: "Cross-document reconciliation: attendance overtime hours against wage register overtime payment"
-    verified: true
+    basis: RECONCILIATION
     requires: [wage_register]
     for_each: wage_register
     expression: >
@@ -413,8 +420,8 @@ rules:
     weight: 5
     title: Creche facility not provided
     citation: "OSH & Working Conditions Code, 2020 — s.24"
-    source_ref: "Creche obligation applies above a headcount fixed by the Rules; the threshold used here is not yet verified"
-    verified: false
+    source_ref: "s.24(3) says only that the Central Government 'may make rules to provide for the facility of creche' — the Act states no headcount at all. The fifty used here is carried over from the Factories Act, 1948. NEEDS: OSH Code (Central) Rules, 2020 — creche threshold under s.24(3)"
+    basis: RULES_PENDING
     requires: [estab, docs]
     applicability: "estab.worker_count >= 50"
     expression: "docs.creche_record_count > 0"
@@ -447,9 +454,9 @@ rules:
     severity: LOW
     weight: 3
     title: Canteen facility not provided
-    citation: "OSH & Working Conditions Code, 2020 — s.23"
-    source_ref: "Canteen obligation applies above a headcount fixed by the Rules; the threshold used here is not yet verified"
-    verified: false
+    citation: "OSH & Working Conditions Code, 2020 — s.24(2)(v)"
+    source_ref: "Occupational Safety, Health and Working Conditions Code, 2020.md, s.24(2)(v): facilities of canteen where one hundred or more workers including contract labourers are ordinarily employed"
+    basis: STATUTE
     requires: [estab, docs]
     applicability: "estab.worker_count >= 100"
     expression: "docs.canteen_record_count > 0"
@@ -484,8 +491,8 @@ rules:
     weight: 6
     title: Annual health check-ups not recorded for hazardous work
     citation: "OSH & Working Conditions Code, 2020 — s.18"
-    source_ref: "Act requires free annual health examinations for classes of employees prescribed by the Rules"
-    verified: false
+    source_ref: "s.18 requires free annual health examinations, but for classes of employees left to be prescribed. NEEDS: OSH Code (Central) Rules, 2020 — prescribed classes under s.18"
+    basis: RULES_PENDING
     requires: [estab, docs]
     applicability: "estab.has_hazardous_process == True and estab.worker_count > 0"
     expression: "docs.health_checkup_count > 0"

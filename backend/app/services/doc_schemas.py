@@ -808,9 +808,19 @@ ANALYST_SCHEMA = _object(
                         "type": ["string", "null"],
                         "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO", None],
                         "description": (
-                            "How serious this looks in context. Advisory only: "
-                            "it is recorded beside the rule's severity, never "
-                            "instead of it."
+                            "How serious this breach is in context, given what "
+                            "you can see that the rule cannot: how far past the "
+                            "limit it went, how many workers it touched, and "
+                            "whether it looks like a one-off or a habit. "
+                            "This carries weight — it can move the recorded "
+                            "severity one step up or down from the rule's own, "
+                            "and that changes the establishment's score. So "
+                            "return null unless you have a specific reason from "
+                            "the documents, and put that reason in "
+                            "plain_explanation, because an adjustment with no "
+                            "stated reason is discarded. Do not use it to "
+                            "express doubt that the finding is real: say that "
+                            "through verdict instead."
                         ),
                     },
                 }

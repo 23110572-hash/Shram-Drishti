@@ -99,6 +99,14 @@ class ScorecardOut(BaseModel):
     #: True when the score rests on enough evidence to mean anything. A clean
     #: score on thin evidence is not compliance and must not be presented as such.
     evidence_sufficient: bool
+    #: Set when part of the score reflects Codes that could not be assessed rather
+    #: than anything found. Without this an employer cannot tell a low score earned
+    #: by breaches from one caused by documents they never sent.
+    evidence_note: str | None
+    #: The model's reading of the records, from the review that ran before scoring.
+    #: Never part of the calculation.
+    review_summary: str | None
+    records_quality: str | None
     computation: dict[str, Any] | None = None
 
 
@@ -582,6 +590,9 @@ def _scorecard_out(
         recommended_inspection_priority=scorecard.recommended_inspection_priority,
         recommended_inspection_months=scorecard.recommended_inspection_months,
         evidence_sufficient=sufficient,
+        evidence_note=scorecard.evidence_note,
+        review_summary=scorecard.review_summary,
+        records_quality=scorecard.records_quality,
         # The full computation is large. Returned only on the detail view, where
         # somebody is actually inspecting how a score was produced.
         computation=dict(scorecard.computation or {}) if include_computation else None,

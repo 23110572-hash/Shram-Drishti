@@ -13,15 +13,18 @@ import { api } from "@/lib/api";
 import { count } from "@/lib/format";
 import {
   CODE_SHORT_LABELS,
+  RULE_BASIS_EXPLANATIONS,
+  RULE_BASIS_LABELS,
   type LabourCode,
+  type RuleBasis,
   type RuleOut,
   type RulesOverview,
 } from "@/lib/types";
 import {
+  AwaitingNotificationBadge,
   Badge,
   KindBadge,
   SeverityBadge,
-  UnverifiedRuleBadge,
 } from "@/components/ui/Badge";
 import {
   Caution,
@@ -33,17 +36,50 @@ import {
 /** Rule packs, shown openly.
  *
  *  An employer accused of a breach is entitled to see the exact test that was
- *  applied, the section it comes from, and whether that threshold has been
- *  confirmed against the primary statutory text. A compliance system that will
- *  not show its own rules cannot expect to be trusted by the people it judges.
+ *  applied, the section it comes from, and what the figure it applies rests on.
+ *  A compliance system that will not show its own rules cannot expect to be
+ *  trusted by the people it judges.
  *
- *  Unverified rules are listed first rather than buried, because those are the
- *  ones a reviewer needs to look at.
+ *  Each rule states its basis rather than a pass/fail "verified" flag. That flag
+ *  conflated two unrelated things — whether a statutory figure had been
+ *  confirmed, and whether the rule could be trusted — so a check that a register
+ *  adds up, which involves no statutory figure at all, was labelled unverified
+ *  and quietly discounted in scoring. Only RULES_PENDING is a real caveat, and it
+ *  is the only basis that carries a warning here.
  */
+
+/** What has to be obtained to clear each pending rule, grouped by instrument.
+ *
+ *  Listed on the page rather than in a comment because "eleven rules await a
+ *  notification" is not actionable and "these five documents would clear them"
+ *  is. */
+const PENDING_DOCUMENTS: { instrument: string; clears: string }[] = [
+  {
+    instrument: "Code on Wages (Central) Rules, 2020",
+    clears: "overtime hours threshold",
+  },
+  {
+    instrument: "OSH Code (Central) Rules, 2020",
+    clears:
+      "creche headcount, daily and weekly hour ceilings, accident notification period, health examination classes",
+  },
+  {
+    instrument: "Employees' Provident Funds Scheme, 1952 (para 38) and EPF Act s.6",
+    clears: "deposit deadline and the 12% contribution rate",
+  },
+  {
+    instrument: "ESI (Central) Rules, r.50",
+    clears: "the wage ceiling for ESIC coverage",
+  },
+  {
+    instrument: "State minimum wage notifications",
+    clears: "the wage floor for each State assessed",
+  },
+];
 
 export function RulesPage() {
   const [code, setCode] = useState<LabourCode | "">("");
-  const [onlyUnverified, setOnlyUnverified] = useState(false);
+  const [onlyPending, setOnlyPending] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const overview = useQuery({
@@ -53,10 +89,10 @@ export function RulesPage() {
 
   const params = new URLSearchParams();
   if (code) params.set("code", code);
-  if (onlyUnverified) params.set("verified", "false");
+  if (onlyPending) params.set("awaiting_notification", "true");
 
   const rules = useQuery({
-    queryKey: ["rules-list", code, onlyUnverified],
+    queryKey: ["rules-list", code, onlyPending],
     queryFn: () => api.get<RuleOut[]>(`/rules/list?${params.toString()}`),
   });
 
@@ -92,16 +128,60 @@ export function RulesPage() {
               </span>
             </div>
             <div className="rounded-3xl border border-emerald-300 bg-emerald-50/90 px-6 py-3.5 text-center shadow-sm">
-              <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                Verified
+              <span
+                className="block text-xs font-bold uppercase tracking-wider text-slate-500"
+                title="Rules that need nothing further to be applied: the figure is in the Act, or the rule applies no outside figure at all."
+              >
+                Sound as they stand
               </span>
               <span className="text-xl font-extrabold text-emerald-900">
-                {count(summary.verified_rules)}
+                {count(summary.sound_rules)}
               </span>
             </div>
           </div>
         )}
       </header>
+
+      {/* What each rule's figure rests on. Shown before the caution, so the
+          caution reads as one category out of four rather than as a verdict on
+          the rule set. */}
+      {summary && (
+        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {(Object.keys(RULE_BASIS_LABELS) as RuleBasis[]).map((basis) => {
+            const total = summary.by_basis[basis] ?? 0;
+            const pending = basis === "RULES_PENDING";
+
+            return (
+              <article
+                key={basis}
+                className={[
+                  "space-y-1.5 rounded-3xl border p-5 shadow-sm",
+                  pending
+                    ? "border-amber-300 bg-amber-50/80"
+                    : "border-emerald-200 bg-emerald-50/50",
+                ].join(" ")}
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <h2 className="text-sm font-bold text-slate-900">
+                    {RULE_BASIS_LABELS[basis]}
+                  </h2>
+                  <span
+                    className={[
+                      "text-2xl font-extrabold",
+                      pending ? "text-amber-900" : "text-emerald-900",
+                    ].join(" ")}
+                  >
+                    {total}
+                  </span>
+                </div>
+                <p className="text-xs leading-relaxed text-slate-700">
+                  {RULE_BASIS_EXPLANATIONS[basis]}
+                </p>
+              </article>
+            );
+          })}
+        </section>
+      )}
 
       {overview.isError && (
         <ErrorState
@@ -111,13 +191,37 @@ export function RulesPage() {
         />
       )}
 
-      {summary && summary.unverified_rules > 0 && (
-        <Caution title={`${summary.unverified_rules} thresholds not yet confirmed`}>
-          These rules are usable and are shown to inspectors, but their operative
-          number was read from a secondary source rather than the primary
-          statutory text — typically because the value lives in the Central or
-          State Rules rather than in the Act. Findings from them are flagged,
-          weighted lightly in scoring, and should not be enforced as they stand.
+      {summary && summary.awaiting_notification > 0 && (
+        <Caution
+          title={`${summary.awaiting_notification} rules are waiting on a government notification`}
+        >
+          <p>
+            The four Codes create these obligations but do not state the figure
+            each one turns on. Parliament left those figures to be notified by the
+            appropriate Government. For example, s.24(3) of the OSH Code says only
+            that the Central Government "may make rules" for creche facilities —
+            no headcount appears in the Act at all, so no reading of the Act can
+            supply one.
+          </p>
+          <p className="mt-2">
+            These rules still run and are shown to inspectors, but the figure
+            compared against comes from a secondary source. Findings from them are
+            weighted lightly and should not be enforced until the notification is
+            checked.
+          </p>
+          <div className="mt-3">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              What would clear them
+            </p>
+            <ul className="mt-1.5 space-y-1">
+              {PENDING_DOCUMENTS.map((item) => (
+                <li key={item.instrument} className="text-sm leading-relaxed">
+                  <span className="font-semibold">{item.instrument}</span>
+                  <span className="text-slate-600"> — {item.clears}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </Caution>
       )}
 
@@ -149,9 +253,11 @@ export function RulesPage() {
 
               <div className="flex items-center gap-2">
                 <Badge tone="neutral">{pack.rule_count} rules</Badge>
-                <Badge tone="good">{pack.verified_count} verified</Badge>
-                {pack.unverified_count > 0 && (
-                  <Badge tone="medium">{pack.unverified_count} unverified</Badge>
+                <Badge tone="good">{pack.sound_count} sound</Badge>
+                {pack.awaiting_notification_count > 0 && (
+                  <Badge tone="medium">
+                    {pack.awaiting_notification_count} awaiting notification
+                  </Badge>
                 )}
               </div>
             </article>
@@ -219,11 +325,11 @@ export function RulesPage() {
         <label className="ml-auto flex cursor-pointer items-center gap-2.5 rounded-full border border-slate-300 bg-white/90 px-4 py-2 text-sm font-bold text-slate-700">
           <input
             type="checkbox"
-            checked={onlyUnverified}
-            onChange={(event) => setOnlyUnverified(event.target.checked)}
+            checked={onlyPending}
+            onChange={(event) => setOnlyPending(event.target.checked)}
             className="h-4 w-4 cursor-pointer rounded border-slate-400 text-sky-600"
           />
-          Unverified only
+          Awaiting a notification only
         </label>
       </div>
 
@@ -259,13 +365,16 @@ export function RulesPage() {
                         <SeverityBadge severity={rule.severity} />
                         <KindBadge kind={rule.kind} />
                         <Badge tone="info">{CODE_SHORT_LABELS[rule.code]}</Badge>
-                        {rule.verified ? (
-                          <Badge tone="good">
-                            <CheckCircle2 aria-hidden="true" className="h-3 w-3" />
-                            Verified against primary text
-                          </Badge>
+                        {rule.awaiting_notification ? (
+                          <AwaitingNotificationBadge />
                         ) : (
-                          <UnverifiedRuleBadge />
+                          <Badge
+                            tone="good"
+                            title={RULE_BASIS_EXPLANATIONS[rule.basis]}
+                          >
+                            <CheckCircle2 aria-hidden="true" className="h-3 w-3" />
+                            {RULE_BASIS_LABELS[rule.basis]}
+                          </Badge>
                         )}
                         {rule.fixture_count > 0 && (
                           <Badge
@@ -298,6 +407,27 @@ export function RulesPage() {
                       <Detail label="Rule identifier" mono>
                         {rule.id} · {rule.pack}@{rule.pack_version}
                       </Detail>
+
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
+                          What the figure in this rule rests on
+                        </p>
+                        <div
+                          className={[
+                            "mt-1 rounded-xl border px-3 py-2.5",
+                            rule.awaiting_notification
+                              ? "border-amber-300 bg-amber-50/70"
+                              : "border-emerald-200 bg-emerald-50/50",
+                          ].join(" ")}
+                        >
+                          <p className="text-sm font-bold text-slate-900">
+                            {RULE_BASIS_LABELS[rule.basis]}
+                          </p>
+                          <p className="mt-0.5 text-sm leading-relaxed text-slate-700">
+                            {RULE_BASIS_EXPLANATIONS[rule.basis]}
+                          </p>
+                        </div>
+                      </div>
 
                       <Detail label="Where the provision was read from">
                         {rule.source_ref}

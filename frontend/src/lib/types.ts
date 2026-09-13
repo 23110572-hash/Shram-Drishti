@@ -213,7 +213,12 @@ export interface FindingSummary {
   title: string;
   citation: string;
   rule_id: string;
-  rule_verified: boolean;
+  rule_basis: RuleBasis;
+  /** True only for RULES_PENDING. The other three bases need no caveat. */
+  awaiting_notification: boolean;
+  /** Why this severity, when context moved it off the rule's declared value. */
+  severity_rationale: string | null;
+  baseline_severity: Severity | null;
   period_start: string | null;
   period_end: string | null;
   affected_worker_count: number | null;
@@ -248,7 +253,7 @@ export interface FindingCounts {
   total: number;
   scored_total: number;
   advisory_total: number;
-  unverified_rule_total: number;
+  awaiting_notification_total: number;
   total_exposure_paise: number;
 }
 
@@ -309,6 +314,12 @@ export interface ScorecardOut {
   recommended_inspection_priority: number | null;
   recommended_inspection_months: number | null;
   evidence_sufficient: boolean;
+  /** Set when part of the score reflects Codes that could not be assessed rather
+   *  than anything found against the establishment. */
+  evidence_note: string | null;
+  /** The model's reading of the records. Never part of the calculation. */
+  review_summary: string | null;
+  records_quality: string | null;
   computation?: Record<string, unknown> | null;
 }
 
@@ -393,14 +404,47 @@ export interface EstablishmentInput {
 }
 
 // --------------------------------------------------------------------- rules
+
+/** What a rule's operative number rests on.
+ *
+ *  Replaces an earlier true/false "verified" flag, which lumped together two
+ *  unrelated things: whether a statutory threshold had been confirmed, and
+ *  whether the rule could be trusted. A check that a register adds up has no
+ *  threshold to confirm, yet the old flag marked it unverified and scoring
+ *  discounted it. Only RULES_PENDING is a genuine caveat.
+ */
+export type RuleBasis =
+  | "STATUTE"
+  | "RULES_PENDING"
+  | "RECONCILIATION"
+  | "ARITHMETIC";
+
+export const RULE_BASIS_LABELS: Record<RuleBasis, string> = {
+  STATUTE: "Stated in the Act",
+  RULES_PENDING: "Awaiting a notification",
+  RECONCILIATION: "Compares your documents",
+  ARITHMETIC: "Checks the totals add up",
+};
+
+export const RULE_BASIS_EXPLANATIONS: Record<RuleBasis, string> = {
+  STATUTE:
+    "The figure this rule applies is written in the Act itself and is quoted in the source reference.",
+  RULES_PENDING:
+    "The Act creates this obligation but leaves the figure to be notified by the appropriate Government. That notification has not been obtained, so the figure used here comes from a secondary source. Check the notified Rules before acting on it.",
+  RECONCILIATION:
+    "This rule compares two of your own documents against each other. It applies no outside figure, so it needs no notification to be sound.",
+  ARITHMETIC:
+    "This rule checks that the figures within one document add up. It applies no outside figure, so it needs no notification to be sound.",
+};
+
 export interface PackOut {
   pack: string;
   version: string;
   jurisdiction: string;
   description: string | null;
   rule_count: number;
-  verified_count: number;
-  unverified_count: number;
+  sound_count: number;
+  awaiting_notification_count: number;
   is_overlay: boolean;
 }
 
@@ -414,9 +458,10 @@ export interface RuleIssueOut {
 export interface RulesOverview {
   packs: PackOut[];
   total_rules: number;
-  verified_rules: number;
-  unverified_rules: number;
-  unverified_rule_ids: string[];
+  sound_rules: number;
+  awaiting_notification: number;
+  awaiting_notification_ids: string[];
+  by_basis: Record<string, number>;
   by_code: Record<string, number>;
   by_severity: Record<string, number>;
   by_kind: Record<string, number>;
@@ -438,7 +483,8 @@ export interface RuleOut {
   title: string;
   citation: string;
   source_ref: string;
-  verified: boolean;
+  basis: RuleBasis;
+  awaiting_notification: boolean;
   applicability: string | null;
   requires: string[];
   for_each: string | null;

@@ -184,15 +184,46 @@ export function DocumentStatusBadge({ status }: { status: DocumentStatus }) {
   );
 }
 
-/** Flags a finding whose rule threshold has not been confirmed against primary
- *  statutory text. Shown prominently on purpose: nobody should enforce on it. */
-export function UnverifiedRuleBadge() {
+/** Flags a finding whose figure the Act leaves to a government notification that
+ *  has not been obtained. Shown prominently on purpose: nobody should enforce on
+ *  it as it stands.
+ *
+ *  Deliberately the only basis that gets a badge. Marking the other three would
+ *  put a warning on rules that were never in doubt, and a warning that appears
+ *  everywhere is read nowhere. */
+export function AwaitingNotificationBadge() {
   return (
     <Badge
       tone="medium"
-      title="This rule's threshold has not been confirmed against the primary statutory text. It is shown for information and weighted lightly in scoring."
+      title="The Act creates this obligation but leaves the figure to be notified by the appropriate Government, and that notification has not been obtained. The figure used comes from a secondary source, so this is shown for information and weighted lightly in scoring."
     >
-      Threshold unverified
+      Awaiting notification
+    </Badge>
+  );
+}
+
+/** Shown when context moved a finding's severity off the value its rule declared.
+ *  The reason is the point: a severity nobody can account for is worse than a
+ *  fixed one. */
+export function AssessedSeverityBadge({
+  from,
+  reason,
+}: {
+  from: string | null;
+  reason: string | null;
+}) {
+  if (!reason) return null;
+
+  return (
+    <Badge
+      tone="info"
+      title={
+        from
+          ? `The rule for this breach declares ${from}. It was recorded differently because: ${reason}`
+          : reason
+      }
+    >
+      Severity set in context
     </Badge>
   );
 }

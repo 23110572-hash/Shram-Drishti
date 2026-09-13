@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
-  AlertTriangle,
   Building2,
   ClipboardList,
   FileText,
@@ -40,12 +39,6 @@ const NAV: NavItem[] = [
     to: "/establishments",
     label: "Establishments",
     icon: Building2,
-    roles: ["EMPLOYER", "INSPECTOR", "ADMIN", "ANALYST"],
-  },
-  {
-    to: "/findings",
-    label: "Findings",
-    icon: AlertTriangle,
     roles: ["EMPLOYER", "INSPECTOR", "ADMIN", "ANALYST"],
   },
   {

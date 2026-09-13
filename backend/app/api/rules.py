@@ -16,7 +16,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from app.deps import CurrentUser
-from app.models.enums import FindingKind, LabourCode, Severity
+from app.models.enums import FindingKind, LabourCode, RuleBasis, Severity
 from app.rules.loader import get_rules, reset_rules
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,10 @@ class RuleOut(BaseModel):
     title: str
     citation: str
     source_ref: str
-    verified: bool
+    basis: RuleBasis
+    #: Convenience for the UI, which needs the caveat far more often than the
+    #: basis itself. True only for RULES_PENDING.
+    awaiting_notification: bool
     applicability: str | None
     requires: list[str]
     for_each: str | None
@@ -61,20 +64,25 @@ class PackOut(BaseModel):
     jurisdiction: str
     description: str | None
     rule_count: int
-    verified_count: int
-    unverified_count: int
+    #: Rules that need no further document to stand: the number is in the Act, or
+    #: there is no external number at all.
+    sound_count: int
+    awaiting_notification_count: int
     is_overlay: bool
 
 
 class RulesOverview(BaseModel):
     packs: list[PackOut]
     total_rules: int
-    verified_rules: int
-    unverified_rules: int
-    #: Rules whose threshold has not been confirmed against primary statutory
-    #: text. Surfaced prominently rather than buried, because these must not be
-    #: enforced without checking the notified Rules.
-    unverified_rule_ids: list[str]
+    sound_rules: int
+    awaiting_notification: int
+    #: Rules whose operative number the Act leaves to the appropriate Government,
+    #: where that notification has not been obtained. Surfaced prominently rather
+    #: than buried, because these must not be enforced as they stand.
+    awaiting_notification_ids: list[str]
+    #: Counts per basis, so the Rules page can explain the split rather than
+    #: reducing it to a pass/fail figure.
+    by_basis: dict[str, int]
     by_code: dict[str, int]
     by_severity: dict[str, int]
     by_kind: dict[str, int]
@@ -95,6 +103,8 @@ def overview(user: CurrentUser) -> RulesOverview:
         by_severity[rule.severity.value] = by_severity.get(rule.severity.value, 0) + 1
         by_kind[rule.kind.value] = by_kind.get(rule.kind.value, 0) + 1
 
+    pending = loaded.rules_pending_notification
+
     return RulesOverview(
         packs=[
             PackOut(
@@ -103,16 +113,23 @@ def overview(user: CurrentUser) -> RulesOverview:
                 jurisdiction=pack.jurisdiction,
                 description=pack.description,
                 rule_count=len(pack.rules),
-                verified_count=sum(1 for r in pack.rules if r.verified),
-                unverified_count=sum(1 for r in pack.rules if not r.verified),
+                sound_count=sum(
+                    1 for r in pack.rules if not r.needs_notified_rules
+                ),
+                awaiting_notification_count=sum(
+                    1 for r in pack.rules if r.needs_notified_rules
+                ),
                 is_overlay=pack.is_overlay,
             )
             for pack in loaded.packs
         ],
         total_rules=len(rules),
-        verified_rules=sum(1 for r in rules if r.verified),
-        unverified_rules=len(loaded.unverified_rules),
-        unverified_rule_ids=[r.id for r in loaded.unverified_rules],
+        sound_rules=len(rules) - len(pending),
+        awaiting_notification=len(pending),
+        awaiting_notification_ids=[r.id for r in pending],
+        by_basis={
+            basis.value: len(group) for basis, group in loaded.by_basis().items()
+        },
         by_code=by_code,
         by_severity=by_severity,
         by_kind=by_kind,
@@ -124,7 +141,8 @@ def overview(user: CurrentUser) -> RulesOverview:
 def list_rules(
     user: CurrentUser,
     code: Annotated[LabourCode | None, Query()] = None,
-    verified: Annotated[bool | None, Query()] = None,
+    basis: Annotated[RuleBasis | None, Query()] = None,
+    awaiting_notification: Annotated[bool | None, Query()] = None,
     jurisdiction: Annotated[str | None, Query()] = None,
 ) -> list[RuleOut]:
     loaded = get_rules()
@@ -136,13 +154,18 @@ def list_rules(
         for rule in pack.rules:
             if code and rule.code is not code:
                 continue
-            if verified is not None and rule.verified is not verified:
+            if basis is not None and rule.basis is not basis:
+                continue
+            if (
+                awaiting_notification is not None
+                and rule.needs_notified_rules is not awaiting_notification
+            ):
                 continue
             out.append(_render(rule, pack))
 
-    # Unverified first. These are the rules a reviewer needs to look at, so
-    # burying them below eighty verified ones would defeat the purpose.
-    out.sort(key=lambda r: (r.verified, r.code.value, r.id))
+    # Rules awaiting a notification first. Those are the ones a reviewer needs to
+    # look at, so burying them below thirty sound ones would defeat the purpose.
+    out.sort(key=lambda r: (not r.awaiting_notification, r.code.value, r.id))
     return out
 
 
@@ -182,7 +205,8 @@ def _render(rule: Any, pack: Any) -> RuleOut:
         title=rule.title,
         citation=rule.citation,
         source_ref=rule.source_ref,
-        verified=rule.verified,
+        basis=rule.basis,
+        awaiting_notification=rule.needs_notified_rules,
         applicability=rule.applicability,
         requires=list(rule.requires),
         for_each=rule.for_each,

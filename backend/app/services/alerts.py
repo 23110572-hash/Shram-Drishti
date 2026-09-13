@@ -231,12 +231,13 @@ def _employer_notice(
             lines_en.append(
                 f"  Amount involved: ₹{finding.exposure_paise / 100:,.2f}"
             )
-        if not finding.rule_verified:
-            # Said plainly. An employer must not be pressed on a threshold we
-            # have not confirmed against the primary text.
+        if finding.rule_basis.needs_notified_rules:
+            # Said plainly. An employer must not be pressed on a number the Act
+            # left to a notification that nobody has produced.
             lines_en.append(
-                "  Note: the threshold applied here is drawn from a secondary "
-                "source and has not been confirmed against the notified Rules. "
+                "  Note: the Act leaves the figure applied here to be notified by "
+                "the appropriate Government, and that notification has not been "
+                "obtained. The figure used is drawn from a secondary source. "
                 "Raise this if you believe it does not apply."
             )
 
@@ -344,15 +345,15 @@ def _inspector_notices(
     if exposure:
         lines.extend(["", f"Quantified amount at stake: ₹{exposure / 100:,.2f}"])
 
-    unverified = [f for f in scored if not f.rule_verified]
-    if unverified:
+    pending = [f for f in scored if f.rule_basis.needs_notified_rules]
+    if pending:
         lines.extend(
             [
                 "",
-                f"{len(unverified)} of these findings rest on thresholds not yet "
-                "confirmed against primary statutory text. They are shown for "
-                "information and should not be enforced without checking the "
-                "notified Rules.",
+                f"{len(pending)} of these findings rest on a figure the Act leaves "
+                "to the appropriate Government to notify, where that notification "
+                "has not been obtained. They are shown for information and should "
+                "not be enforced without checking the notified Rules.",
             ]
         )
 

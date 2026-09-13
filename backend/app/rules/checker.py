@@ -17,9 +17,11 @@ pass a rule pack unless every rule can prove itself:
   the evaluator's allow-list here, so a syntax error surfaces now rather than
   halfway through an inspection.
 
-It also reports, without failing, every rule whose threshold is not yet confirmed
-against primary statutory text. Those rules are usable — they are shown to
-inspectors and weighted lightly — but somebody has to know they exist.
+It also reports, without failing, every rule whose operative number the Act leaves
+to a government notification that has not been obtained. Those rules are usable —
+they are shown to inspectors and weighted lightly — but somebody has to know they
+exist. Rules that need no external number at all are reported separately, because
+they are not in the same position and lumping them together told nobody anything.
 
 Exit codes: 0 clean, 1 errors found, 2 the packs could not be read at all.
 """
@@ -31,10 +33,20 @@ import sys
 from pathlib import Path
 
 from app.config import PROJECT_ROOT
+from app.models.enums import RuleBasis
 from app.rules.evaluator import Evaluator, RuleSyntaxError
 from app.rules.functions import FACT_ROOTS, RULE_FUNCTIONS
 from app.rules.loader import load_rules
 from app.rules.schema import Rule, RulePack
+
+#: One line per basis, printed in the summary so the counts are self-explanatory
+#: to somebody reading the output without the source to hand.
+_BASIS_BLURB: dict[RuleBasis, str] = {
+    RuleBasis.STATUTE: "number is in the Act and quoted in source_ref",
+    RuleBasis.RULES_PENDING: "number left to a notification not yet obtained",
+    RuleBasis.RECONCILIATION: "compares documents to each other, no external number",
+    RuleBasis.ARITHMETIC: "checks one document adds up, no external number",
+}
 
 # Reported when a rule's own fixtures never exercise the boundary. A rule for a
 # fifty per cent cap whose fixtures test ten per cent and ninety per cent has not
@@ -50,6 +62,15 @@ def _line(char: str = "-", width: int = 78) -> str:
 
 
 def check(directory: Path, *, strict: bool) -> int:
+    # Windows consoles default to cp1252, which cannot encode the rupee sign or
+    # Devanagari — both of which appear throughout the packs, in citations and in
+    # every Hindi message. Without this the checker dies with a UnicodeEncodeError
+    # while printing a rule it has just validated successfully, which looks like a
+    # rule pack failure and is not one.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
+
     print(f"reading rule packs from {directory}")
     print(_line())
 
@@ -65,13 +86,25 @@ def check(directory: Path, *, strict: bool) -> int:
     # ------------------------------------------------------------ pack summary
     print("PACKS")
     for pack in loaded.packs:
-        verified = sum(1 for rule in pack.rules if rule.verified)
+        pending = sum(1 for rule in pack.rules if rule.needs_notified_rules)
         overlay = " (state overlay)" if pack.is_overlay else ""
         print(
             f"  {pack.pack}@{pack.version} [{pack.jurisdiction}]{overlay}: "
-            f"{len(pack.rules)} rules, {verified} verified, "
-            f"{len(pack.rules) - verified} unverified"
+            f"{len(pack.rules)} rules, {len(pack.rules) - pending} sound, "
+            f"{pending} awaiting a notification"
         )
+    print()
+
+    # ---------------------------------------------------------------- by basis
+    # Printed as its own block because the distinction is the whole point: a rule
+    # with no external number to confirm is not in the same position as one whose
+    # number is still unnotified, and one count for both told nobody anything.
+    print("BASIS")
+    grouped = loaded.by_basis()
+    for basis, rules in grouped.items():
+        if not rules:
+            continue
+        print(f"  {basis.value:<16} {len(rules):>3}  {_BASIS_BLURB[basis]}")
     print()
 
     # -------------------------------------------------------- extra structural
@@ -100,20 +133,21 @@ def check(directory: Path, *, strict: bool) -> int:
             print(f"  [{rule_id}] {message}")
         print()
 
-    unverified = loaded.unverified_rules
-    if unverified:
-        print(f"UNVERIFIED THRESHOLDS ({len(unverified)})")
+    pending = loaded.rules_pending_notification
+    if pending:
+        print(f"AWAITING A NOTIFICATION ({len(pending)})")
         print(
-            "  These rules are usable but their operative number has not been "
-            "confirmed"
+            "  The Act creates each of these obligations but leaves the operative"
         )
         print(
-            "  against primary statutory text. Findings from them are flagged in "
-            "the UI,"
+            "  number to the appropriate Government. The value used here came from"
         )
-        print("  weighted lightly in scoring, and must not be enforced as they stand.")
+        print(
+            "  a secondary source. These rules run and are shown to inspectors, but"
+        )
+        print("  they are weighted lightly and must not be enforced as they stand.")
         print()
-        for rule in unverified:
+        for rule in pending:
             print(f"  {rule.id}")
             print(f"      citation: {rule.citation}")
             print(f"      source:   {rule.source_ref}")
@@ -127,8 +161,8 @@ def check(directory: Path, *, strict: bool) -> int:
         f"{fixtures} fixtures executed"
     )
     print(
-        f"{len(loaded.all_rules) - len(unverified)} verified, "
-        f"{len(unverified)} unverified"
+        f"{len(loaded.all_rules) - len(pending)} sound as they stand, "
+        f"{len(pending)} awaiting a notification"
     )
     print(f"{len(errors)} errors, {len(warnings)} warnings, {len(hints)} coverage hints")
 
@@ -137,9 +171,12 @@ def check(directory: Path, *, strict: bool) -> int:
         print("FAILED: the rule packs must not be used until these errors are fixed.")
         return 1
 
-    if strict and (warnings or unverified):
+    if strict and (warnings or pending):
         print()
-        print("FAILED under --strict: warnings and unverified thresholds present.")
+        print(
+            "FAILED under --strict: warnings or rules awaiting a notification "
+            "present."
+        )
         return 1
 
     print()

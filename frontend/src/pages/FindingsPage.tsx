@@ -27,11 +27,12 @@ import {
 } from "@/lib/types";
 import { EvidenceViewer } from "@/components/EvidenceViewer";
 import {
+  AssessedSeverityBadge,
+  AwaitingNotificationBadge,
   Badge,
   FindingStatusBadge,
   KindBadge,
   SeverityBadge,
-  UnverifiedRuleBadge,
 } from "@/components/ui/Badge";
 import {
   Caution,
@@ -132,20 +133,21 @@ export function FindingsPage() {
             tone="calm"
           />
           <SummaryCard
-            label="Unverified thresholds"
-            value={count(summary.unverified_rule_total)}
-            hint="Not yet confirmed against primary text"
-            tone={summary.unverified_rule_total > 0 ? "warn" : "calm"}
+            label="Awaiting a notification"
+            value={count(summary.awaiting_notification_total)}
+            hint="Figure not stated in the Act"
+            tone={summary.awaiting_notification_total > 0 ? "warn" : "calm"}
           />
         </div>
       )}
 
-      {summary && summary.unverified_rule_total > 0 && (
-        <Caution title="Some thresholds are not yet confirmed">
-          {summary.unverified_rule_total} of these findings rest on a threshold read
-          from a secondary source rather than the primary statutory text. They are
-          flagged individually, weighted lightly in scoring, and should not be
-          enforced without checking the notified Rules.
+      {summary && summary.awaiting_notification_total > 0 && (
+        <Caution title="Some of these rest on a figure the Act does not state">
+          {summary.awaiting_notification_total} of these findings turn on a figure
+          Parliament left to be notified by the appropriate Government, where that
+          notification has not been obtained. The figure used comes from a
+          secondary source. Each one is flagged individually, weighted lightly in
+          scoring, and should not be enforced without checking the notified Rules.
         </Caution>
       )}
 
@@ -223,7 +225,11 @@ export function FindingsPage() {
                       {finding.code && (
                         <Badge tone="info">{CODE_SHORT_LABELS[finding.code]}</Badge>
                       )}
-                      {!finding.rule_verified && <UnverifiedRuleBadge />}
+                      {finding.awaiting_notification && <AwaitingNotificationBadge />}
+                      <AssessedSeverityBadge
+                        from={finding.baseline_severity}
+                        reason={finding.severity_rationale}
+                      />
                       {finding.possible_false_positive && (
                         <Badge
                           tone="medium"
@@ -433,8 +439,28 @@ function FindingDrawer({
                 <SeverityBadge severity={finding.severity} />
                 <KindBadge kind={finding.kind} />
                 <FindingStatusBadge status={finding.status} />
-                {!finding.rule_verified && <UnverifiedRuleBadge />}
+                {finding.awaiting_notification && <AwaitingNotificationBadge />}
               </div>
+
+              {/* Why this severity, when context moved it off the rule's own
+                  value. Stated in the detail rather than only as a tooltip: a
+                  severity that changed the score has to be accountable. */}
+              {finding.severity_rationale && (
+                <div className="rounded-2xl border border-sky-200 bg-sky-50/80 p-4 text-sm leading-relaxed text-sky-950">
+                  <p className="font-bold">Why this severity</p>
+                  <p className="mt-1">
+                    The rule for this breach declares{" "}
+                    <span className="font-semibold">
+                      {finding.baseline_severity?.toLowerCase() ?? "a fixed severity"}
+                    </span>{" "}
+                    for every case of its kind. It was recorded as{" "}
+                    <span className="font-semibold">
+                      {finding.severity.toLowerCase()}
+                    </span>{" "}
+                    here because: {finding.severity_rationale}
+                  </p>
+                </div>
+              )}
 
               {/* An advisory signal must say what it is not, prominently. */}
               {finding.kind === "ANOMALY" && (

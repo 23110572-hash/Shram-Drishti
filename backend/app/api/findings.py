@@ -19,6 +19,7 @@ from app.models.enums import (
     FindingStatus,
     LabourCode,
     Role,
+    RuleBasis,
     Severity,
     WageRateSource,
 )
@@ -66,7 +67,12 @@ class FindingSummary(BaseModel):
     title: str
     citation: str
     rule_id: str
-    rule_verified: bool
+    rule_basis: RuleBasis
+    awaiting_notification: bool
+    #: Why this severity, when the model assessed it rather than taking the rule's
+    #: declared value. Null when nothing beyond the rule's baseline was applied.
+    severity_rationale: str | None
+    baseline_severity: Severity | None
     period_start: date | None
     period_end: date | None
     affected_worker_count: int | None
@@ -106,7 +112,7 @@ class FindingCounts(BaseModel):
     total: int
     scored_total: int
     advisory_total: int
-    unverified_rule_total: int
+    awaiting_notification_total: int
     total_exposure_paise: int
 
 
@@ -235,7 +241,9 @@ def count_findings(
         total=len(findings),
         scored_total=sum(1 for f in findings if f.is_scored),
         advisory_total=advisory,
-        unverified_rule_total=sum(1 for f in findings if not f.rule_verified),
+        awaiting_notification_total=sum(
+            1 for f in findings if f.rule_basis.needs_notified_rules
+        ),
         total_exposure_paise=exposure,
     )
 
@@ -529,7 +537,10 @@ def _summary(finding: Finding, names: dict[str, str]) -> FindingSummary:
         title=finding.title,
         citation=finding.citation,
         rule_id=finding.rule_id,
-        rule_verified=finding.rule_verified,
+        rule_basis=finding.rule_basis,
+        awaiting_notification=finding.rule_basis.needs_notified_rules,
+        severity_rationale=finding.severity_rationale,
+        baseline_severity=finding.baseline_severity,
         period_start=finding.period_start,
         period_end=finding.period_end,
         affected_worker_count=finding.affected_worker_count,

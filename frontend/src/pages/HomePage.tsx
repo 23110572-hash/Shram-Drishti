@@ -189,7 +189,7 @@ export function HomePage() {
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
               {rules.data
-                ? `${rules.data.verified_rules} verified against primary text`
+                ? `${rules.data.sound_rules} applicable as they stand`
                 : "across four Codes"}
             </p>
           </Link>
@@ -345,8 +345,9 @@ export function HomePage() {
           </h2>
           <p className="text-base text-slate-600 sm:text-lg">
             Rule packs are built from the Gazette and IndiaCode text of each Act.
-            Where a threshold lives in the Rules rather than the Act, it is marked
-            unverified until those Rules are obtained.
+            Where an Act leaves a figure to be notified by the appropriate
+            Government, the rule says so and is weighted lightly until that
+            notification is obtained.
           </p>
         </div>
 

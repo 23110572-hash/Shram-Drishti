@@ -85,6 +85,17 @@ class RuleOutcome:
     error: str | None = None
     skipped_reason: str | None = None
 
+    #: Which Code this rule belongs to. Set once when the outcome is recorded, so
+    #: coverage can be reported per Code rather than only in aggregate. Without
+    #: it, a Code no document spoke to is indistinguishable from a compliant one.
+    code: LabourCode | None = None
+
+    #: True only when the rule's own applicability test said this establishment is
+    #: not bound by the obligation — a 50-worker unit against a 300-worker duty.
+    #: Kept distinct from every other kind of skip, because this one is not a gap
+    #: in the evidence and must not count against coverage.
+    not_applicable: bool = False
+
     #: Rows excluded because they failed verification when the document was read.
     #: Reported so a clean result on a badly-read document cannot be mistaken for
     #: compliance.
@@ -93,6 +104,11 @@ class RuleOutcome:
     @property
     def is_violation(self) -> bool:
         return self.applied and self.passed is False
+
+    @property
+    def is_assessed(self) -> bool:
+        """The rule applied and produced a verdict either way."""
+        return self.applied and self.passed is not None
 
 
 @dataclass
@@ -130,6 +146,36 @@ class EvaluationReport:
             return 0.0
         assessed = self.rules_applied - self.rules_unassessable
         return round(assessed / self.rules_applied, 3)
+
+    def coverage_for(self, code: LabourCode) -> float:
+        """Share of this Code's *relevant* rules that produced a verdict.
+
+        Rules the establishment is too small to be bound by are excluded from the
+        denominator entirely. Counting them would mean a fifteen-worker shop
+        scored badly on coverage for not answering a three-hundred-worker
+        obligation, which is not a gap in its evidence.
+
+        What does count against coverage is a rule skipped for want of data. That
+        is the case this measure exists for: no wage register was submitted, so
+        nothing about wages was tested, and the resulting silence must not be
+        read as compliance.
+
+        Returns 0.0 when no rule of this Code was relevant — the caller decides
+        what that means, since an empty denominator is not evidence of anything.
+        """
+        relevant = [
+            o for o in self.outcomes if o.code is code and not o.not_applicable
+        ]
+        if not relevant:
+            return 0.0
+        assessed = sum(1 for o in relevant if o.is_assessed)
+        return round(assessed / len(relevant), 3)
+
+    def relevant_rule_count(self, code: LabourCode) -> int:
+        """How many of this Code's rules bind this establishment at all."""
+        return sum(
+            1 for o in self.outcomes if o.code is code and not o.not_applicable
+        )
 
 
 class RuleEngine:
@@ -172,6 +218,7 @@ class RuleEngine:
 
         for rule, pack_version in applicable:
             outcome = self._run_rule(rule, facts, context)
+            outcome.code = rule.code
             report.outcomes.append(outcome)
 
             if outcome.error:
@@ -261,6 +308,7 @@ class RuleEngine:
                     rule_id=rule.id,
                     applied=False,
                     passed=None,
+                    not_applicable=True,
                     skipped_reason="the rule does not apply to this establishment",
                 )
 
@@ -445,10 +493,17 @@ class RuleEngine:
         if existing is not None:
             # Same issue, seen again. Update in place so history and any
             # inspector decision on it survive.
+            # The rule's declared severity is the baseline. Any contextual
+            # assessment made later overwrites `severity`, so re-evaluation must
+            # reset both together or a stale assessment would outlive the facts
+            # it was made from.
             existing.severity = rule.severity
+            existing.baseline_severity = rule.severity
+            existing.severity_rationale = None
+            existing.severity_assessed = False
             existing.rule_pack_version = pack_version
             existing.citation = rule.citation
-            existing.rule_verified = rule.verified
+            existing.rule_basis = rule.basis
             existing.title = rule.title
             existing.message = message
             existing.remediation = remediation
@@ -478,11 +533,12 @@ class RuleEngine:
             kind=rule.kind,
             code=rule.code,
             severity=rule.severity,
+            baseline_severity=rule.severity,
             rule_id=rule.id,
             rule_pack_version=pack_version,
             jurisdiction=establishment.jurisdiction_code,
             citation=rule.citation,
-            rule_verified=rule.verified,
+            rule_basis=rule.basis,
             title=rule.title,
             message=message,
             remediation=remediation,
@@ -787,6 +843,73 @@ def severity_weight(severity: Severity) -> int:
         Severity.LOW: 3,
         Severity.INFO: 0,
     }[severity]
+
+
+#: Severity in order of gravity. Used to bound how far a contextual assessment may
+#: move a finding from the severity its rule declared.
+SEVERITY_LADDER: tuple[Severity, ...] = (
+    Severity.INFO,
+    Severity.LOW,
+    Severity.MEDIUM,
+    Severity.HIGH,
+    Severity.CRITICAL,
+)
+
+
+def resolve_assessed_severity(
+    *,
+    baseline: Severity,
+    opinion: Severity | None,
+    verdict_is_sound: bool,
+    rationale: str | None,
+) -> tuple[Severity, str | None]:
+    """Reconcile a rule's declared severity with what the review saw in context.
+
+    A rule cannot see magnitude, spread or repetition. ``WAGES.DEDUCTIONS.HALF_CAP``
+    is HIGH whether the deduction was 51% for one worker in one month or 90% for
+    every worker three months running. Those are not the same thing, and scoring
+    them identically is the flaw this exists to correct.
+
+    What it must not become is a model rewriting the statute's own view of gravity,
+    so the adjustment is bounded hard:
+
+    * **One step, either way.** A HIGH may become CRITICAL or MEDIUM, never LOW.
+      The rule's severity carries a legislative judgement about the class of
+      breach; context can sharpen it, not replace it.
+    * **Never INFO.** INFO carries zero scoring weight, so allowing it would let a
+      single model call erase a real breach from the score entirely.
+    * **Escalation only on a sound verdict.** If the review is itself unsure the
+      finding holds, it has no business arguing the finding is graver.
+    * **A reason is required.** An adjustment with no stated reason is not an
+      assessment, and it would be indefensible if an employer asked why. Without
+      one the baseline stands.
+
+    Returns the severity to record and the rationale to store with it. The
+    rationale is None when nothing moved, so ``severity_rationale`` stays empty
+    unless there is something to justify.
+    """
+    if opinion is None or opinion is baseline:
+        return baseline, None
+
+    reason = (rationale or "").strip()
+    if not reason:
+        return baseline, None
+
+    try:
+        base_index = SEVERITY_LADDER.index(baseline)
+        want_index = SEVERITY_LADDER.index(opinion)
+    except ValueError:  # pragma: no cover - both come from the same enum
+        return baseline, None
+
+    direction = 1 if want_index > base_index else -1
+    if direction > 0 and not verdict_is_sound:
+        return baseline, None
+
+    target = SEVERITY_LADDER[base_index + direction]
+    if target is Severity.INFO:
+        return baseline, None
+
+    return target, reason
 
 
 def code_of(finding: Finding) -> LabourCode | None:
