@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  FileCheck,
   HelpCircle,
   Lightbulb,
   Scale,
@@ -118,35 +117,13 @@ export function RulesPage() {
     <div className="space-y-8 pb-16">
       {/* Clean Hero Header */}
       <header className="rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50/40 to-blue-50/30 p-8 shadow-sm md:p-10">
-        <div className="max-w-4xl space-y-4">
-          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-100/70 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-sky-900">
-            <BookOpen className="h-3.5 w-3.5 text-sky-700" />
-            Statutory Compliance Guide
-          </div>
+        <div className="max-w-4xl space-y-3">
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
             Labour Law Compliance Rules
           </h1>
           <p className="text-base leading-relaxed text-slate-700 sm:text-lg">
-            Every mandatory rule under the four Labour Codes, explained step-by-step in{" "}
-            <span className="font-semibold text-slate-900">simple English</span> with{" "}
-            <span className="font-semibold text-slate-900">real-world practical examples</span>{" "}
-            and actionable steps to stay compliant.
+            Every mandatory rule under the four Labour Codes, explained in simple English with real world practical examples and actionable steps to stay compliant.
           </p>
-
-          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-semibold text-slate-600">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-slate-200/80">
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-              {allRules.length || 40} Codified Rules
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-slate-200/80">
-              <Scale className="h-4 w-4 text-indigo-600" />
-              4 Labour Codes
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-slate-200/80">
-              <FileCheck className="h-4 w-4 text-sky-600" />
-              Click any rule to see examples
-            </span>
-          </div>
         </div>
       </header>
 
@@ -427,16 +404,6 @@ export function RulesPage() {
                           )}
                         </div>
 
-                        {/* 4. Statutory Citation Reference */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-100/70 px-4 py-3 text-xs text-slate-600">
-                          <div>
-                            <span className="font-bold text-slate-800">Statutory Provision: </span>
-                            <span>{rule.citation}</span>
-                          </div>
-                          <div className="font-mono text-[11px] text-slate-500">
-                            Rule Code: {rule.id}
-                          </div>
-                        </div>
                       </div>
                     </div>
                   )}
