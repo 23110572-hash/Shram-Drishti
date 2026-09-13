@@ -5,6 +5,7 @@ import {
   ClipboardList,
   FileText,
   Home,
+  Lock,
   Menu,
   Scale,
   User,
@@ -120,6 +121,9 @@ export function Navbar() {
               >
                 <Icon className="h-4 w-4" />
                 <span>{item.label}</span>
+                {item.to === "/documents" && !user && (
+                  <Lock className="h-3 w-3 text-amber-500 shrink-0 ml-0.5" />
+                )}
               </NavLink>
             );
           })}
@@ -163,6 +167,12 @@ export function Navbar() {
                 >
                   <Icon className="h-5 w-5 text-sky-600" />
                   <span>{item.label}</span>
+                  {item.to === "/documents" && !user && (
+                    <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                      <Lock className="h-3 w-3" />
+                      Locked
+                    </span>
+                  )}
                 </NavLink>
               );
             })}

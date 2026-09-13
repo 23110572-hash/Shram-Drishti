@@ -1,13 +1,16 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
+  ArrowRight,
   Building2,
   ChevronRight,
   FileSearch,
   FolderOpen,
   Layers,
   Link2,
+  Lock,
   RefreshCw,
   ScanLine,
   ShieldAlert,
@@ -96,6 +99,7 @@ export function DocumentsPage() {
   const documents = useQuery({
     queryKey: ["documents", filter],
     queryFn: () => api.get<DocumentSummary[]>(`/documents?${params.toString()}`),
+    enabled: Boolean(user),
     // Poll only while something is mid-flight. A settled list does not need to
     // hammer the API, and the pipeline is background work with no push channel.
     refetchInterval: (query) => {
@@ -143,6 +147,104 @@ export function DocumentsPage() {
     });
   }, [rows]);
 
+  if (!user) {
+    return (
+      <div className="space-y-10">
+        <header className="flex flex-col gap-4 border-b border-sky-100/80 pb-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-amber-300 bg-amber-50 px-4 py-1.5 text-sm font-bold text-amber-900">
+              <Lock className="h-4 w-4 text-amber-600" />
+              Document Section Locked &middot; Authentication Required
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">
+              Documents &amp; Filings
+            </h1>
+            <p className="mt-2 max-w-3xl text-base font-medium text-slate-700 sm:text-lg">
+              Statutory muster rolls, wage registers (Form B/D), inspection orders, and challans under the Labour Codes.
+            </p>
+          </div>
+        </header>
+
+        {/* Locked Portal Banner */}
+        <div className="relative overflow-hidden rounded-3xl border border-sky-200/90 bg-white/95 p-8 sm:p-12 shadow-[0_12px_40px_rgba(56,189,248,0.12)] backdrop-blur-2xl text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border border-amber-200 bg-amber-100/80 text-amber-700 shadow-md">
+            <Lock className="h-10 w-10" />
+          </div>
+
+          <div className="mx-auto mt-6 max-w-2xl space-y-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-amber-900">
+              Access Restricted
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">
+              Document Upload is Locked
+            </h2>
+            <p className="text-base font-medium leading-relaxed text-slate-700">
+              Uploading compliance documents and viewing establishment filings requires an authenticated session. Please sign in to submit wage registers, muster rolls, or view extracted findings.
+            </p>
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              to="/profile"
+              state={{ from: "/documents" }}
+              className="inline-flex items-center gap-2.5 rounded-2xl bg-slate-950 px-8 py-4 text-base font-bold text-white shadow-xl transition-all hover:bg-slate-800 hover:scale-[1.01]"
+            >
+              <Lock className="h-5 w-5 text-amber-400" />
+              <span>Sign in to unlock document upload</span>
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          </div>
+
+          {/* Locked Dropzone Mockup */}
+          <div className="mx-auto mt-10 max-w-3xl rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50/70 p-8 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 text-slate-500">
+              <Lock className="h-6 w-6" />
+            </div>
+            <p className="mt-3 text-sm font-bold text-slate-700">
+              Upload dropzone locked
+            </p>
+            <p className="mt-1 text-xs font-medium text-slate-500">
+              Accepts PDF, scanned images (PNG, JPEG), and tabular wage extracts (CSV, XLSX) once signed in.
+            </p>
+          </div>
+        </div>
+
+        {/* Feature Overview Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+          <div className="rounded-3xl border border-sky-100 bg-white/90 p-6 shadow-sm backdrop-blur-xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+              <FileSearch className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-lg font-bold text-slate-950">OCR &amp; Extraction</h3>
+            <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600">
+              Automatically reads registers, extracts worker pay records, overtime, and deductions with exact cell coordinates.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-indigo-100 bg-white/90 p-6 shadow-sm backdrop-blur-xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-700">
+              <ShieldAlert className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-lg font-bold text-slate-950">Labour Code Rules</h3>
+            <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600">
+              Tests extracted data against the Code on Wages, OSH, Social Security, and Industrial Relations rules.
+            </p>
+          </div>
+
+          <div className="rounded-3xl border border-purple-100 bg-white/90 p-6 shadow-sm backdrop-blur-xl">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-100 text-purple-700">
+              <Building2 className="h-6 w-6" />
+            </div>
+            <h3 className="mt-4 text-lg font-bold text-slate-950">Establishment Scoping</h3>
+            <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600">
+              Binds uploaded files directly to your registered establishments with provable, hash-chained audit trails.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10">
       <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -170,14 +272,7 @@ export function DocumentsPage() {
         </div>
       </header>
 
-      {user && <UploadPanel onUploaded={(ids) => setOpenId(ids[0] ?? null)} />}
-
-      {!user && (
-        <Caution title="Sign in to submit documents">
-          Uploading and reviewing documents requires an account. Open the Profile
-          page to sign in.
-        </Caution>
-      )}
+      <UploadPanel onUploaded={(ids) => setOpenId(ids[0] ?? null)} />
 
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-2">

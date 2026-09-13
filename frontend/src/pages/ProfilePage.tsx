@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
+  BarChart3,
   Building2,
   CheckCircle2,
   Key,
@@ -82,16 +83,17 @@ export function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="mx-auto grid max-w-5xl items-start gap-8 lg:grid-cols-12">
-        <div className="space-y-6 rounded-3xl border border-sky-200/90 bg-white/95 p-8 shadow-[0_12px_40px_rgba(56,189,248,0.12)] backdrop-blur-2xl lg:col-span-7">
-          <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-200 bg-sky-100 text-sky-700">
-              <User className="h-6 w-6" />
+      <div className="mx-auto grid max-w-6xl items-start gap-8 lg:grid-cols-12">
+        {/* Left Column: Sign In Card */}
+        <div className="space-y-6 rounded-3xl border border-sky-200/90 bg-white/95 p-8 sm:p-10 shadow-[0_12px_40px_rgba(56,189,248,0.12)] backdrop-blur-2xl lg:col-span-6">
+          <div className="flex items-center gap-4 border-b border-slate-100 pb-5">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-sky-200 bg-sky-100 text-sky-700 shadow-sm">
+              <User className="h-7 w-7" />
             </div>
             <div>
-              <h1 className="text-xl font-extrabold text-slate-900">Sign in</h1>
-              <p className="text-xs font-medium text-slate-500">
-                For employers, Inspector-cum-Facilitators and administrators
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-950">Sign in</h1>
+              <p className="mt-1 text-sm font-semibold text-slate-600">
+                Ministry of Labour &amp; Employment Portal
               </p>
             </div>
           </div>
@@ -99,49 +101,51 @@ export function ProfilePage() {
           {error && (
             <div
               role="alert"
-              className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-medium text-rose-800"
+              className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-800 shadow-sm"
             >
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSignIn} noValidate className="space-y-4">
+          <form onSubmit={handleSignIn} noValidate className="space-y-5">
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+              <span className="mb-2 block text-sm font-bold uppercase tracking-wider text-slate-800">
                 Email address
               </span>
               <div className="relative">
                 <Mail
                   aria-hidden="true"
-                  className="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5 text-slate-400"
+                  className="pointer-events-none absolute left-4 top-4 h-5 w-5 text-slate-400"
                 />
                 <input
                   type="email"
                   required
                   autoComplete="username"
                   value={email}
+                  placeholder="name@organisation.gov.in"
                   onChange={(event) => setEmail(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-sky-600 focus:bg-white focus:outline-none"
+                  className="w-full rounded-2xl border border-slate-300 bg-slate-50/90 py-3.5 pl-12 pr-4 text-base font-medium text-slate-900 transition-colors placeholder:text-slate-400 focus:border-sky-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-100"
                 />
               </div>
             </label>
 
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
+              <span className="mb-2 block text-sm font-bold uppercase tracking-wider text-slate-800">
                 Password
               </span>
               <div className="relative">
                 <Lock
                   aria-hidden="true"
-                  className="pointer-events-none absolute left-3.5 top-3.5 h-5 w-5 text-slate-400"
+                  className="pointer-events-none absolute left-4 top-4 h-5 w-5 text-slate-400"
                 />
                 <input
                   type="password"
                   required
                   autoComplete="current-password"
                   value={password}
+                  placeholder="Enter your password"
                   onChange={(event) => setPassword(event.target.value)}
-                  className="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pl-11 pr-4 text-sm text-slate-900 transition-colors placeholder:text-slate-400 focus:border-sky-600 focus:bg-white focus:outline-none"
+                  className="w-full rounded-2xl border border-slate-300 bg-slate-50/90 py-3.5 pl-12 pr-4 text-base font-medium text-slate-900 transition-colors placeholder:text-slate-400 focus:border-sky-600 focus:bg-white focus:outline-none focus:ring-4 focus:ring-sky-100"
                 />
               </div>
             </label>
@@ -149,63 +153,92 @@ export function ProfilePage() {
             <button
               type="submit"
               disabled={submitting || !email || !password}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl bg-slate-900 py-3.5 text-sm font-bold text-white shadow-md transition-all hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+              className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-2xl bg-slate-950 py-4 text-base font-bold text-white shadow-xl transition-all hover:bg-slate-800 hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-40"
             >
               {submitting ? "Signing in…" : "Sign in"}
-              {!submitting && <ArrowRight className="h-4 w-4" />}
+              {!submitting && <ArrowRight className="h-5 w-5" />}
             </button>
           </form>
-
-          <p className="border-t border-slate-100 pt-4 text-xs leading-relaxed text-slate-500">
-            Accounts are created by an administrator using the{" "}
-            <code className="rounded bg-slate-100 px-1 py-0.5 font-mono">
-              create-admin
-            </code>{" "}
-            command. Repeated failed attempts lock an account temporarily.
-          </p>
         </div>
 
-        <div className="space-y-6 lg:col-span-5">
-          <div className="space-y-3 rounded-3xl border border-sky-100 bg-white/90 p-6 shadow-sm backdrop-blur-xl">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-900">
+        {/* Right Column: What each role can do (Enlarged & Easy to Read) */}
+        <div className="space-y-4 rounded-3xl border border-sky-200/90 bg-white/95 p-8 sm:p-10 shadow-[0_12px_40px_rgba(56,189,248,0.12)] backdrop-blur-2xl lg:col-span-6">
+          <div className="border-b border-slate-100 pb-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-sky-800">
+              Role Permissions
+            </span>
+            <h2 className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-slate-950">
               What each role can do
             </h2>
-            <dl className="space-y-3 text-xs leading-relaxed text-slate-700">
-              <div>
-                <dt className="font-bold text-slate-900">Employer</dt>
-                <dd>
-                  Submits filings for their own establishments, sees their own
-                  findings, and can acknowledge or dispute them.
-                </dd>
-              </div>
-              <div>
-                <dt className="font-bold text-slate-900">
-                  Inspector-cum-Facilitator
-                </dt>
-                <dd>
-                  Reads everything within an assigned jurisdiction, works the
-                  risk-ranked worklist, and decides whether a finding is resolved,
-                  waived or incorrect.
-                </dd>
-              </div>
-              <div>
-                <dt className="font-bold text-slate-900">Administrator</dt>
-                <dd>Manages rule packs and accounts, and has full read access.</dd>
-              </div>
-              <div>
-                <dt className="font-bold text-slate-900">Analyst</dt>
-                <dd>Read-only aggregate view. No access to individual findings.</dd>
-              </div>
-            </dl>
+            <p className="mt-1 text-sm font-medium text-slate-600">
+              Authorized capabilities and access scopes across the platform
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white/80 p-5 text-xs leading-relaxed text-slate-600">
-            <p className="mb-1 font-bold text-slate-900">Session handling</p>
-            <p>
-              The access token is held in memory only and the refresh token rotates
-              on every use. Reusing an old refresh token is treated as theft and
-              revokes every session on the account.
-            </p>
+          <div className="space-y-4 pt-2">
+            {/* Employer */}
+            <div className="rounded-2xl border border-sky-100 bg-sky-50/50 p-4 sm:p-5 transition-all hover:border-sky-300 hover:bg-sky-50/80">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-sky-700">
+                  <Building2 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-950">Employer</h3>
+                  <span className="text-xs font-semibold text-sky-700">Establishment &amp; Self-Compliance</span>
+                </div>
+              </div>
+              <p className="mt-2.5 text-sm sm:text-base font-medium leading-relaxed text-slate-700">
+                Submits filings for their own establishments, sees their own findings, and can acknowledge or dispute them.
+              </p>
+            </div>
+
+            {/* Inspector-cum-Facilitator */}
+            <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 sm:p-5 transition-all hover:border-indigo-300 hover:bg-indigo-50/80">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-950">Inspector-cum-Facilitator</h3>
+                  <span className="text-xs font-semibold text-indigo-700">Enforcement &amp; Jurisdictional Review</span>
+                </div>
+              </div>
+              <p className="mt-2.5 text-sm sm:text-base font-medium leading-relaxed text-slate-700">
+                Reads everything within an assigned jurisdiction, works the risk-ranked worklist, and decides whether a finding is resolved, waived or incorrect.
+              </p>
+            </div>
+
+            {/* Administrator */}
+            <div className="rounded-2xl border border-purple-100 bg-purple-50/50 p-4 sm:p-5 transition-all hover:border-purple-300 hover:bg-purple-50/80">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-700">
+                  <Key className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-950">Administrator</h3>
+                  <span className="text-xs font-semibold text-purple-700">Governance &amp; System Configuration</span>
+                </div>
+              </div>
+              <p className="mt-2.5 text-sm sm:text-base font-medium leading-relaxed text-slate-700">
+                Manages rule packs and accounts, and has full read access.
+              </p>
+            </div>
+
+            {/* Analyst */}
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-4 sm:p-5 transition-all hover:border-emerald-300 hover:bg-emerald-50/80">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                  <BarChart3 className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-950">Analyst</h3>
+                  <span className="text-xs font-semibold text-emerald-700">Aggregate Compliance Analytics</span>
+                </div>
+              </div>
+              <p className="mt-2.5 text-sm sm:text-base font-medium leading-relaxed text-slate-700">
+                Read-only aggregate view. No access to individual findings.
+              </p>
+            </div>
           </div>
         </div>
       </div>
