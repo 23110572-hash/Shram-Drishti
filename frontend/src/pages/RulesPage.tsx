@@ -1,538 +1,451 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
   CheckCircle2,
   ChevronDown,
-  FlaskConical,
+  ChevronUp,
+  FileCheck,
+  HelpCircle,
+  Lightbulb,
   Scale,
-  ShieldQuestion,
+  Search,
+  ShieldAlert,
+  ShieldCheck,
+  X,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
-import { count } from "@/lib/format";
 import {
+  CODE_LABELS,
   CODE_SHORT_LABELS,
-  RULE_BASIS_EXPLANATIONS,
-  RULE_BASIS_LABELS,
   type LabourCode,
-  type RuleBasis,
   type RuleOut,
-  type RulesOverview,
 } from "@/lib/types";
-import {
-  AwaitingNotificationBadge,
-  Badge,
-  KindBadge,
-  SeverityBadge,
-} from "@/components/ui/Badge";
-import {
-  Caution,
-  EmptyState,
-  ErrorState,
-  SkeletonRows,
-} from "@/components/ui/State";
+import { RULE_GUIDE_DATA, type RuleGuideItem } from "@/lib/ruleGuideData";
+import { EmptyState, ErrorState, SkeletonRows } from "@/components/ui/State";
 
-/** Rule packs, shown openly.
- *
- *  An employer accused of a breach is entitled to see the exact test that was
- *  applied, the section it comes from, and what the figure it applies rests on.
- *  A compliance system that will not show its own rules cannot expect to be
- *  trusted by the people it judges.
- *
- *  Each rule states its basis rather than a pass/fail "verified" flag. That flag
- *  conflated two unrelated things — whether a statutory figure had been
- *  confirmed, and whether the rule could be trusted — so a check that a register
- *  adds up, which involves no statutory figure at all, was labelled unverified
- *  and quietly discounted in scoring. Only RULES_PENDING is a real caveat, and it
- *  is the only basis that carries a warning here.
- */
-
-/** What has to be obtained to clear each pending rule, grouped by instrument.
- *
- *  Listed on the page rather than in a comment because "eleven rules await a
- *  notification" is not actionable and "these five documents would clear them"
- *  is. */
-const PENDING_DOCUMENTS: { instrument: string; clears: string }[] = [
-  {
-    instrument: "Code on Wages (Central) Rules, 2020",
-    clears: "overtime hours threshold",
+const CODE_COLORS: Record<LabourCode, { badgeBg: string; badgeText: string; border: string; stepBg: string }> = {
+  WAGES: {
+    badgeBg: "bg-emerald-50",
+    badgeText: "text-emerald-800",
+    border: "border-emerald-200",
+    stepBg: "bg-emerald-600 text-white",
   },
-  {
-    instrument: "OSH Code (Central) Rules, 2020",
-    clears:
-      "creche headcount, daily and weekly hour ceilings, accident notification period, health examination classes",
+  INDUSTRIAL_RELATIONS: {
+    badgeBg: "bg-indigo-50",
+    badgeText: "text-indigo-800",
+    border: "border-indigo-200",
+    stepBg: "bg-indigo-600 text-white",
   },
-  {
-    instrument: "Employees' Provident Funds Scheme, 1952 (para 38) and EPF Act s.6",
-    clears: "deposit deadline and the 12% contribution rate",
+  SOCIAL_SECURITY: {
+    badgeBg: "bg-sky-50",
+    badgeText: "text-sky-800",
+    border: "border-sky-200",
+    stepBg: "bg-sky-600 text-white",
   },
-  {
-    instrument: "ESI (Central) Rules, r.50",
-    clears: "the wage ceiling for ESIC coverage",
+  OSH: {
+    badgeBg: "bg-amber-50",
+    badgeText: "text-amber-900",
+    border: "border-amber-200",
+    stepBg: "bg-amber-600 text-white",
   },
-  {
-    instrument: "State minimum wage notifications",
-    clears: "the wage floor for each State assessed",
-  },
-];
+};
 
 export function RulesPage() {
-  const [code, setCode] = useState<LabourCode | "">("");
-  const [onlyPending, setOnlyPending] = useState(false);
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [selectedCode, setSelectedCode] = useState<LabourCode | "">("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
-  const overview = useQuery({
-    queryKey: ["rules-overview"],
-    queryFn: () => api.get<RulesOverview>("/rules"),
+  const rulesQuery = useQuery({
+    queryKey: ["rules-list"],
+    queryFn: () => api.get<RuleOut[]>("/rules/list"),
   });
 
-  const params = new URLSearchParams();
-  if (code) params.set("code", code);
-  if (onlyPending) params.set("awaiting_notification", "true");
+  const allRules = rulesQuery.data ?? [];
 
-  const rules = useQuery({
-    queryKey: ["rules-list", code, onlyPending],
-    queryFn: () => api.get<RuleOut[]>(`/rules/list?${params.toString()}`),
-  });
+  // Filter rules by selected code tab and search query
+  const filteredRules = useMemo(() => {
+    return allRules.filter((rule) => {
+      if (selectedCode && rule.code !== selectedCode) {
+        return false;
+      }
+      if (!searchQuery.trim()) {
+        return true;
+      }
+      const q = searchQuery.toLowerCase();
+      const guide = RULE_GUIDE_DATA[rule.id];
+      const matchTitle = rule.title.toLowerCase().includes(q);
+      const matchCitation = rule.citation.toLowerCase().includes(q);
+      const matchCode = (CODE_SHORT_LABELS[rule.code] ?? "").toLowerCase().includes(q);
+      const matchExplanation = guide?.simpleExplanation.toLowerCase().includes(q) || false;
+      const matchExample = guide?.exampleScenario.toLowerCase().includes(q) || false;
 
-  const summary = overview.data;
-  const list = rules.data ?? [];
+      return matchTitle || matchCitation || matchCode || matchExplanation || matchExample;
+    });
+  }, [allRules, selectedCode, searchQuery]);
+
+  const toggleExpand = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const expandAll = () => {
+    setExpandedIds(new Set(filteredRules.map((r) => r.id)));
+  };
+
+  const collapseAll = () => {
+    setExpandedIds(new Set());
+  };
+
+  // Quick count per code
+  const codeCounts = useMemo(() => {
+    const counts: Record<string, number> = { "": allRules.length };
+    for (const r of allRules) {
+      counts[r.code] = (counts[r.code] ?? 0) + 1;
+    }
+    return counts;
+  }, [allRules]);
 
   return (
-    <div className="space-y-10">
-      <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <div className="mb-3 inline-flex items-center gap-2.5 rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-bold text-amber-900">
-            <BookOpen className="h-4 w-4" />
-            Codified statute
+    <div className="space-y-8 pb-16">
+      {/* Clean Hero Header */}
+      <header className="rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50/40 to-blue-50/30 p-8 shadow-sm md:p-10">
+        <div className="max-w-4xl space-y-4">
+          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-100/70 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-sky-900">
+            <BookOpen className="h-3.5 w-3.5 text-sky-700" />
+            Statutory Compliance Guide
           </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">
-            Rules
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+            Labour Law Compliance Rules
           </h1>
-          <p className="mt-2 max-w-3xl text-base text-slate-700 sm:text-lg">
-            Every compliance test the system applies, the statutory provision it
-            rests on, and where that provision was read from. Nothing is hidden:
-            a finding you cannot audit is a finding you cannot defend.
+          <p className="text-base leading-relaxed text-slate-700 sm:text-lg">
+            Every mandatory rule under the four Labour Codes, explained step-by-step in{" "}
+            <span className="font-semibold text-slate-900">simple English</span> with{" "}
+            <span className="font-semibold text-slate-900">real-world practical examples</span>{" "}
+            and actionable steps to stay compliant.
           </p>
-        </div>
 
-        {summary && (
-          <div className="flex items-center gap-3">
-            <div className="rounded-3xl border border-slate-200 bg-white/85 px-6 py-3.5 text-center shadow-sm">
-              <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-                Rules
-              </span>
-              <span className="text-xl font-extrabold text-slate-900">
-                {count(summary.total_rules)}
-              </span>
-            </div>
-            <div className="rounded-3xl border border-emerald-300 bg-emerald-50/90 px-6 py-3.5 text-center shadow-sm">
-              <span
-                className="block text-xs font-bold uppercase tracking-wider text-slate-500"
-                title="Rules that need nothing further to be applied: the figure is in the Act, or the rule applies no outside figure at all."
-              >
-                Sound as they stand
-              </span>
-              <span className="text-xl font-extrabold text-emerald-900">
-                {count(summary.sound_rules)}
-              </span>
-            </div>
+          <div className="flex flex-wrap items-center gap-3 pt-2 text-xs font-semibold text-slate-600">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-slate-200/80">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              {allRules.length || 40} Codified Rules
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-slate-200/80">
+              <Scale className="h-4 w-4 text-indigo-600" />
+              4 Labour Codes
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-slate-200/80">
+              <FileCheck className="h-4 w-4 text-sky-600" />
+              Click any rule to see examples
+            </span>
           </div>
-        )}
+        </div>
       </header>
 
-      {/* What each rule's figure rests on. Shown before the caution, so the
-          caution reads as one category out of four rather than as a verdict on
-          the rule set. */}
-      {summary && (
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {(Object.keys(RULE_BASIS_LABELS) as RuleBasis[]).map((basis) => {
-            const total = summary.by_basis[basis] ?? 0;
-            const pending = basis === "RULES_PENDING";
-
-            return (
-              <article
-                key={basis}
-                className={[
-                  "space-y-1.5 rounded-3xl border p-5 shadow-sm",
-                  pending
-                    ? "border-amber-300 bg-amber-50/80"
-                    : "border-emerald-200 bg-emerald-50/50",
-                ].join(" ")}
-              >
-                <div className="flex items-baseline justify-between gap-2">
-                  <h2 className="text-sm font-bold text-slate-900">
-                    {RULE_BASIS_LABELS[basis]}
-                  </h2>
-                  <span
-                    className={[
-                      "text-2xl font-extrabold",
-                      pending ? "text-amber-900" : "text-emerald-900",
-                    ].join(" ")}
-                  >
-                    {total}
-                  </span>
-                </div>
-                <p className="text-xs leading-relaxed text-slate-700">
-                  {RULE_BASIS_EXPLANATIONS[basis]}
-                </p>
-              </article>
-            );
-          })}
-        </section>
-      )}
-
-      {overview.isError && (
-        <ErrorState
-          error={overview.error}
-          context="the rule packs"
-          onRetry={() => void overview.refetch()}
-        />
-      )}
-
-      {summary && summary.awaiting_notification > 0 && (
-        <Caution
-          title={`${summary.awaiting_notification} rules are waiting on a government notification`}
-        >
-          <p>
-            The four Codes create these obligations but do not state the figure
-            each one turns on. Parliament left those figures to be notified by the
-            appropriate Government. For example, s.24(3) of the OSH Code says only
-            that the Central Government "may make rules" for creche facilities —
-            no headcount appears in the Act at all, so no reading of the Act can
-            supply one.
-          </p>
-          <p className="mt-2">
-            These rules still run and are shown to inspectors, but the figure
-            compared against comes from a secondary source. Findings from them are
-            weighted lightly and should not be enforced until the notification is
-            checked.
-          </p>
-          <div className="mt-3">
-            <p className="text-xs font-bold uppercase tracking-wider text-slate-700">
-              What would clear them
-            </p>
-            <ul className="mt-1.5 space-y-1">
-              {PENDING_DOCUMENTS.map((item) => (
-                <li key={item.instrument} className="text-sm leading-relaxed">
-                  <span className="font-semibold">{item.instrument}</span>
-                  <span className="text-slate-600"> — {item.clears}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Caution>
-      )}
-
-      {/* Packs */}
-      {summary && (
-        <section className="grid gap-4 sm:grid-cols-2">
-          {summary.packs.map((pack) => (
-            <article
-              key={`${pack.pack}@${pack.version}`}
-              className="space-y-3 rounded-3xl border border-sky-200/90 bg-white/95 p-6 shadow-sm backdrop-blur-xl"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">
-                    {pack.pack.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase())}
-                  </h2>
-                  <p className="font-mono text-xs text-slate-500">
-                    {pack.version} · {pack.jurisdiction}
-                  </p>
-                </div>
-                {pack.is_overlay && <Badge tone="pending">State overlay</Badge>}
-              </div>
-
-              {pack.description && (
-                <p className="text-xs leading-relaxed text-slate-600">
-                  {pack.description}
-                </p>
-              )}
-
-              <div className="flex items-center gap-2">
-                <Badge tone="neutral">{pack.rule_count} rules</Badge>
-                <Badge tone="good">{pack.sound_count} sound</Badge>
-                {pack.awaiting_notification_count > 0 && (
-                  <Badge tone="medium">
-                    {pack.awaiting_notification_count} awaiting notification
-                  </Badge>
-                )}
-              </div>
-            </article>
-          ))}
-        </section>
-      )}
-
-      {/* Load errors, if any. These would mean a rule is not running at all. */}
-      {summary && summary.issues.some((issue) => issue.level === "error") && (
-        <section className="space-y-2 rounded-3xl border border-rose-300 bg-rose-50/80 p-6">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-rose-900">
-            Rule pack errors
-          </h2>
-          <p className="text-xs text-rose-950">
-            These rules failed validation and are not being applied.
-          </p>
-          <ul className="space-y-1 text-sm text-rose-950">
-            {summary.issues
-              .filter((issue) => issue.level === "error")
-              .map((issue, index) => (
-                <li key={index} className="font-mono text-xs">
-                  <span className="font-bold">{issue.rule_id}</span> — {issue.message}
-                </li>
-              ))}
-          </ul>
-        </section>
-      )}
-
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setCode("")}
-          aria-pressed={code === ""}
-          className={[
-            "cursor-pointer rounded-full border px-4 py-2 text-sm font-bold transition-colors",
-            code === ""
-              ? "border-slate-900 bg-slate-900 text-white"
-              : "border-slate-300 bg-white/90 text-slate-700 hover:bg-slate-50",
-          ].join(" ")}
-        >
-          All Codes
-        </button>
-
-        {(Object.keys(CODE_SHORT_LABELS) as LabourCode[]).map((item) => (
+      {/* Filter and Search Bar */}
+      <section className="space-y-4">
+        {/* Code Filter Pills */}
+        <div className="flex flex-wrap items-center gap-2">
           <button
-            key={item}
             type="button"
-            onClick={() => setCode(item)}
-            aria-pressed={code === item}
+            onClick={() => setSelectedCode("")}
             className={[
-              "cursor-pointer rounded-full border px-4 py-2 text-sm font-bold transition-colors",
-              code === item
-                ? "border-slate-900 bg-slate-900 text-white"
-                : "border-slate-300 bg-white/90 text-slate-700 hover:bg-slate-50",
+              "cursor-pointer rounded-full px-4 py-2 text-sm font-bold transition-all",
+              selectedCode === ""
+                ? "bg-slate-900 text-white shadow-sm"
+                : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
             ].join(" ")}
           >
-            {CODE_SHORT_LABELS[item]}
-            {summary?.by_code[item] !== undefined && (
-              <span className="ml-1.5 opacity-70">{summary.by_code[item]}</span>
-            )}
+            All Rules ({codeCounts[""] ?? 40})
           </button>
-        ))}
 
-        <label className="ml-auto flex cursor-pointer items-center gap-2.5 rounded-full border border-slate-300 bg-white/90 px-4 py-2 text-sm font-bold text-slate-700">
-          <input
-            type="checkbox"
-            checked={onlyPending}
-            onChange={(event) => setOnlyPending(event.target.checked)}
-            className="h-4 w-4 cursor-pointer rounded border-slate-400 text-sky-600"
-          />
-          Awaiting a notification only
-        </label>
-      </div>
+          {(["WAGES", "INDUSTRIAL_RELATIONS", "SOCIAL_SECURITY", "OSH"] as LabourCode[]).map((code) => {
+            const countVal = codeCounts[code] ?? 0;
+            const isSelected = selectedCode === code;
+            return (
+              <button
+                key={code}
+                type="button"
+                onClick={() => setSelectedCode(code)}
+                className={[
+                  "cursor-pointer rounded-full px-4 py-2 text-sm font-bold transition-all",
+                  isSelected
+                    ? "bg-slate-900 text-white shadow-sm"
+                    : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
+                ].join(" ")}
+              >
+                {CODE_SHORT_LABELS[code]}
+                <span className="ml-1.5 text-xs opacity-75">({countVal})</span>
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Rules */}
-      <div className="overflow-hidden rounded-3xl border border-sky-200/90 bg-white/95 shadow-sm backdrop-blur-xl">
-        {rules.isPending && <SkeletonRows rows={8} columns={3} />}
+        {/* Search Bar & Expand/Collapse Controls */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search rules by keyword (e.g. overtime, gratuity, creche, minimum wage, notice)..."
+              className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pl-11 pr-10 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                title="Clear search"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
 
-        {rules.isError && <ErrorState error={rules.error} context="the rules" />}
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={expandAll}
+              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+            >
+              Expand All
+            </button>
+            <button
+              type="button"
+              onClick={collapseAll}
+              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+            >
+              Collapse All
+            </button>
+          </div>
+        </div>
+      </section>
 
-        {rules.isSuccess && list.length === 0 && (
-          <EmptyState
-            icon={ShieldQuestion}
-            title="No rules match"
-            description="Clear the filters to see the full rule set."
+      {/* Rules List (Step-Wise) */}
+      <section className="space-y-4">
+        {rulesQuery.isPending && <SkeletonRows rows={8} columns={2} />}
+
+        {rulesQuery.isError && (
+          <ErrorState
+            error={rulesQuery.error}
+            context="the compliance rules"
+            onRetry={() => void rulesQuery.refetch()}
           />
         )}
 
-        {rules.isSuccess && list.length > 0 && (
-          <ul className="divide-y divide-slate-100">
-            {list.map((rule) => {
-              const open = expanded === rule.id;
+        {rulesQuery.isSuccess && filteredRules.length === 0 && (
+          <EmptyState
+            icon={HelpCircle}
+            title="No rules matched your search"
+            description="Try searching with a different term, or reset the filters above to see all rules."
+          />
+        )}
+
+        {rulesQuery.isSuccess && filteredRules.length > 0 && (
+          <div className="space-y-3.5">
+            {filteredRules.map((rule, idx) => {
+              const isExpanded = expandedIds.has(rule.id);
+              const stepNumber = String(idx + 1).padStart(2, "0");
+              const guide = RULE_GUIDE_DATA[rule.id] as RuleGuideItem | undefined;
+              const colorConfig = CODE_COLORS[rule.code] || CODE_COLORS.WAGES;
+
+              // Fallback simple explanation if not in dictionary
+              const simpleText =
+                guide?.simpleExplanation ||
+                rule.message_en ||
+                "This statutory rule establishes mandatory compliance criteria under Indian labour codes.";
 
               return (
-                <li key={rule.id}>
+                <article
+                  key={rule.id}
+                  className={[
+                    "overflow-hidden rounded-3xl border transition-all duration-200",
+                    isExpanded
+                      ? "border-sky-300 bg-white shadow-md ring-1 ring-sky-200"
+                      : "border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-sm",
+                  ].join(" ")}
+                >
+                  {/* Clickable Header */}
                   <button
                     type="button"
-                    onClick={() => setExpanded(open ? null : rule.id)}
-                    aria-expanded={open}
-                    className="flex w-full cursor-pointer items-start gap-4 px-6 py-4 text-left transition-colors hover:bg-sky-50/50"
+                    onClick={() => toggleExpand(rule.id)}
+                    aria-expanded={isExpanded}
+                    className="flex w-full cursor-pointer items-start justify-between gap-4 p-5 text-left sm:p-6"
                   >
-                    <div className="min-w-0 flex-1 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <SeverityBadge severity={rule.severity} />
-                        <KindBadge kind={rule.kind} />
-                        <Badge tone="info">{CODE_SHORT_LABELS[rule.code]}</Badge>
-                        {rule.awaiting_notification ? (
-                          <AwaitingNotificationBadge />
-                        ) : (
-                          <Badge
-                            tone="good"
-                            title={RULE_BASIS_EXPLANATIONS[rule.basis]}
-                          >
-                            <CheckCircle2 aria-hidden="true" className="h-3 w-3" />
-                            {RULE_BASIS_LABELS[rule.basis]}
-                          </Badge>
-                        )}
-                        {rule.fixture_count > 0 && (
-                          <Badge
-                            tone="neutral"
-                            title="Worked examples proving the rule behaves as intended, including a case that must fail"
-                          >
-                            <FlaskConical aria-hidden="true" className="h-3 w-3" />
-                            {rule.fixture_count} test cases
-                          </Badge>
-                        )}
-                      </div>
-
-                      <p className="text-base font-bold text-slate-900">
-                        {rule.title}
-                      </p>
-
-                      <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-600">
-                        <Scale aria-hidden="true" className="h-3.5 w-3.5" />
-                        {rule.citation}
-                      </p>
-                    </div>
-
-                    <ChevronDown
-                      className={`mt-1 h-4 w-4 shrink-0 text-slate-400 transition-transform ${open ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
-                  {open && (
-                    <div className="space-y-4 border-t border-slate-100 bg-slate-50/60 px-6 py-5">
-                      <Detail label="Rule identifier" mono>
-                        {rule.id} · {rule.pack}@{rule.pack_version}
-                      </Detail>
-
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                          What the figure in this rule rests on
-                        </p>
-                        <div
+                    <div className="flex items-start gap-3.5 sm:gap-5">
+                      {/* Step Badge */}
+                      <div className="flex flex-col items-center">
+                        <span
                           className={[
-                            "mt-1 rounded-xl border px-3 py-2.5",
-                            rule.awaiting_notification
-                              ? "border-amber-300 bg-amber-50/70"
-                              : "border-emerald-200 bg-emerald-50/50",
+                            "flex h-10 w-10 items-center justify-center rounded-2xl text-xs font-black sm:h-11 sm:w-11 sm:text-sm",
+                            colorConfig.stepBg,
                           ].join(" ")}
                         >
-                          <p className="text-sm font-bold text-slate-900">
-                            {RULE_BASIS_LABELS[rule.basis]}
-                          </p>
-                          <p className="mt-0.5 text-sm leading-relaxed text-slate-700">
-                            {RULE_BASIS_EXPLANATIONS[rule.basis]}
-                          </p>
-                        </div>
+                          {stepNumber}
+                        </span>
+                        <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Step
+                        </span>
                       </div>
 
-                      <Detail label="Where the provision was read from">
-                        {rule.source_ref}
-                      </Detail>
-
-                      <Detail label="Message to the employer">
-                        {rule.message_en}
-                        {rule.message_hi && (
-                          <span className="mt-1.5 block text-slate-600">
-                            {rule.message_hi}
+                      {/* Rule Title & Citation */}
+                      <div className="space-y-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={[
+                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold",
+                              colorConfig.badgeBg,
+                              colorConfig.badgeText,
+                            ].join(" ")}
+                          >
+                            {CODE_LABELS[rule.code]}
                           </span>
-                        )}
-                      </Detail>
-
-                      {rule.remediation_en && (
-                        <Detail label="Remedy offered">
-                          {rule.remediation_en}
-                        </Detail>
-                      )}
-
-                      {rule.applicability && (
-                        <Detail label="Applies only when" mono>
-                          {rule.applicability}
-                        </Detail>
-                      )}
-
-                      {/* The test itself. Published deliberately: the expression is
-                          the whole basis of any finding it produces. */}
-                      <Detail label="Compliance test (true means compliant)" mono>
-                        {rule.expression}
-                      </Detail>
-
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        {rule.for_each && (
-                          <Badge tone="neutral">Checked per {rule.for_each} row</Badge>
-                        )}
-                        {rule.requires.map((requirement) => (
-                          <Badge key={requirement} tone="info">
-                            needs {requirement}
-                          </Badge>
-                        ))}
-                        <Badge tone="neutral">weight {rule.weight}</Badge>
-                      </div>
-
-                      {rule.fixtures.length > 0 && (
-                        <div className="space-y-1.5">
-                          <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                            Test cases
-                          </p>
-                          <ul className="space-y-1">
-                            {rule.fixtures.map((fixture) => (
-                              <li
-                                key={fixture.name}
-                                className="flex items-center gap-2 text-xs"
-                              >
-                                <Badge tone={fixture.should_pass ? "good" : "critical"}>
-                                  {fixture.should_pass ? "must pass" : "must fail"}
-                                </Badge>
-                                <span className="font-mono text-slate-700">
-                                  {fixture.name}
-                                </span>
-                                {fixture.note && (
-                                  <span className="text-slate-500">— {fixture.note}</span>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
+                          <span className="flex items-center gap-1 text-xs font-medium text-slate-500">
+                            <Scale className="h-3 w-3 text-slate-400" />
+                            {rule.citation}
+                          </span>
                         </div>
-                      )}
+
+                        <h2 className="text-base font-bold text-slate-900 sm:text-lg">
+                          {rule.title}
+                        </h2>
+
+                        {!isExpanded && (
+                          <p className="line-clamp-2 text-xs leading-relaxed text-slate-600 sm:text-sm">
+                            {simpleText}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Toggle Indicator Button */}
+                    <div className="flex shrink-0 items-center gap-2 pt-1">
+                      <span className="hidden text-xs font-bold text-sky-700 sm:inline-block">
+                        {isExpanded ? "Hide Details" : "View Example & Guide"}
+                      </span>
+                      <div
+                        className={[
+                          "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                          isExpanded ? "bg-sky-100 text-sky-800" : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+                        ].join(" ")}
+                      >
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </div>
+                  </button>
+
+                  {/* Expanded Step Details */}
+                  {isExpanded && (
+                    <div className="border-t border-slate-100 bg-slate-50/50 p-6 pt-5 sm:p-8 sm:pt-6">
+                      <div className="space-y-6">
+                        {/* 1. Plain English Explanation */}
+                        <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
+                          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-900">
+                            <BookOpen className="h-4 w-4 text-blue-700" />
+                            Plain English Explanation
+                          </div>
+                          <p className="mt-2 text-sm leading-relaxed text-slate-800 sm:text-base">
+                            {simpleText}
+                          </p>
+                        </div>
+
+                        {/* 2. Real-World Practical Example */}
+                        {guide && (
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
+                              <Lightbulb className="h-4 w-4 text-amber-600" />
+                              Real-World Practical Example
+                            </div>
+
+                            {/* Example Context Scenario */}
+                            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-xs font-semibold text-slate-700 sm:text-sm">
+                              <span className="font-bold text-slate-900">Scenario: </span>
+                              {guide.exampleScenario}
+                            </div>
+
+                            {/* Compliant vs Violation Comparison */}
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              {/* Compliant Case */}
+                              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+                                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-900">
+                                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                  Compliant Example (Pass)
+                                </div>
+                                <p className="mt-2 text-xs leading-relaxed text-emerald-950 sm:text-sm">
+                                  {guide.compliantExample}
+                                </p>
+                              </div>
+
+                              {/* Violation Case */}
+                              <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-4">
+                                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-900">
+                                  <ShieldAlert className="h-4 w-4 text-rose-600" />
+                                  Violation Example (Breach)
+                                </div>
+                                <p className="mt-2 text-xs leading-relaxed text-rose-950 sm:text-sm">
+                                  {guide.violationExample}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 3. Action Required / How to Comply */}
+                        <div className="rounded-2xl border border-slate-200 bg-white p-5">
+                          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
+                            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                            How to Comply (Action Required)
+                          </div>
+                          {guide?.actionToComply && guide.actionToComply.length > 0 ? (
+                            <ul className="mt-3 space-y-2 text-xs text-slate-700 sm:text-sm">
+                              {guide.actionToComply.map((step, sIdx) => (
+                                <li key={sIdx} className="flex items-start gap-2">
+                                  <span className="mt-1 block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                                  <span>{step}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="mt-2 text-xs text-slate-700 sm:text-sm">
+                              {rule.remediation_en ||
+                                "Ensure payroll records, registers, and statutory returns reflect this requirement."}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* 4. Statutory Citation Reference */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-100/70 px-4 py-3 text-xs text-slate-600">
+                          <div>
+                            <span className="font-bold text-slate-800">Statutory Provision: </span>
+                            <span>{rule.citation}</span>
+                          </div>
+                          <div className="font-mono text-[11px] text-slate-500">
+                            Rule Code: {rule.id}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
-                </li>
+                </article>
               );
             })}
-          </ul>
+          </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function Detail({
-  label,
-  children,
-  mono = false,
-}: {
-  label: string;
-  children: React.ReactNode;
-  mono?: boolean;
-}) {
-  return (
-    <div>
-      <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
-        {label}
-      </p>
-      <p
-        className={[
-          "mt-1 leading-relaxed text-slate-800",
-          mono
-            ? "break-words rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-xs"
-            : "text-sm",
-        ].join(" ")}
-      >
-        {children}
-      </p>
+      </section>
     </div>
   );
 }

@@ -162,9 +162,13 @@ def list_rules(
                 continue
             out.append(_render(rule, pack))
 
-    # Rules awaiting a notification first. Those are the ones a reviewer needs to
-    # look at, so burying them below thirty sound ones would defeat the purpose.
-    out.sort(key=lambda r: (not r.awaiting_notification, r.code.value, r.id))
+    code_order = {
+        LabourCode.WAGES: 1,
+        LabourCode.INDUSTRIAL_RELATIONS: 2,
+        LabourCode.SOCIAL_SECURITY: 3,
+        LabourCode.OSH: 4,
+    }
+    out.sort(key=lambda r: (code_order.get(r.code, 99), r.citation, r.id))
     return out
 
 
