@@ -116,26 +116,26 @@ export function RulesPage() {
   return (
     <div className="space-y-8 pb-16">
       {/* Clean Hero Header */}
-      <header className="rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50/40 to-blue-50/30 p-8 shadow-sm md:p-10">
-        <div className="max-w-4xl space-y-3">
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+      <header className="rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50/40 to-blue-50/30 p-8 shadow-sm md:p-12">
+        <div className="max-w-4xl space-y-4">
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-6xl">
             Labour Law Compliance Rules
           </h1>
-          <p className="text-base leading-relaxed text-slate-700 sm:text-lg">
+          <p className="text-lg leading-relaxed text-slate-800 sm:text-xl">
             Every mandatory rule under the four Labour Codes, explained in simple English with real world practical examples and actionable steps to stay compliant.
           </p>
         </div>
       </header>
 
       {/* Filter and Search Bar */}
-      <section className="space-y-4">
+      <section className="space-y-5">
         {/* Code Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={() => setSelectedCode("")}
             className={[
-              "cursor-pointer rounded-full px-4 py-2 text-sm font-bold transition-all",
+              "cursor-pointer rounded-full px-5 py-2.5 text-base font-bold transition-all",
               selectedCode === ""
                 ? "bg-slate-900 text-white shadow-sm"
                 : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
@@ -153,29 +153,29 @@ export function RulesPage() {
                 type="button"
                 onClick={() => setSelectedCode(code)}
                 className={[
-                  "cursor-pointer rounded-full px-4 py-2 text-sm font-bold transition-all",
+                  "cursor-pointer rounded-full px-5 py-2.5 text-base font-bold transition-all",
                   isSelected
                     ? "bg-slate-900 text-white shadow-sm"
                     : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50",
                 ].join(" ")}
               >
                 {CODE_SHORT_LABELS[code]}
-                <span className="ml-1.5 text-xs opacity-75">({countVal})</span>
+                <span className="ml-1.5 text-sm opacity-80">({countVal})</span>
               </button>
             );
           })}
         </div>
 
         {/* Search Bar & Expand/Collapse Controls */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3.5 sm:flex-row sm:items-center sm:justify-between">
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search rules by keyword (e.g. overtime, gratuity, creche, minimum wage, notice)..."
-              className="w-full rounded-2xl border border-slate-200 bg-white py-2.5 pl-11 pr-10 text-sm text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
+              className="w-full rounded-2xl border border-slate-200 bg-white py-3.5 pl-12 pr-11 text-base text-slate-900 placeholder-slate-400 shadow-sm transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-100"
             />
             {searchQuery && (
               <button
@@ -184,23 +184,23 @@ export function RulesPage() {
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                 title="Clear search"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="flex items-center gap-2.5 self-end sm:self-auto">
             <button
               type="button"
               onClick={expandAll}
-              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50"
             >
               Expand All
             </button>
             <button
               type="button"
               onClick={collapseAll}
-              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+              className="cursor-pointer rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:bg-slate-50"
             >
               Collapse All
             </button>
@@ -229,7 +229,7 @@ export function RulesPage() {
         )}
 
         {rulesQuery.isSuccess && filteredRules.length > 0 && (
-          <div className="space-y-3.5">
+          <div className="space-y-4">
             {filteredRules.map((rule, idx) => {
               const isExpanded = expandedIds.has(rule.id);
               const stepNumber = String(idx + 1).padStart(2, "0");
@@ -257,48 +257,48 @@ export function RulesPage() {
                     type="button"
                     onClick={() => toggleExpand(rule.id)}
                     aria-expanded={isExpanded}
-                    className="flex w-full cursor-pointer items-start justify-between gap-4 p-5 text-left sm:p-6"
+                    className="flex w-full cursor-pointer items-start justify-between gap-4 p-5 text-left sm:p-7"
                   >
-                    <div className="flex items-start gap-3.5 sm:gap-5">
+                    <div className="flex items-start gap-4 sm:gap-5">
                       {/* Step Badge */}
                       <div className="flex flex-col items-center">
                         <span
                           className={[
-                            "flex h-10 w-10 items-center justify-center rounded-2xl text-xs font-black sm:h-11 sm:w-11 sm:text-sm",
+                            "flex h-12 w-12 items-center justify-center rounded-2xl text-sm font-black sm:h-14 sm:w-14 sm:text-base",
                             colorConfig.stepBg,
                           ].join(" ")}
                         >
                           {stepNumber}
                         </span>
-                        <span className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <span className="mt-1 text-xs font-bold uppercase tracking-wider text-slate-400">
                           Step
                         </span>
                       </div>
 
                       {/* Rule Title & Citation */}
-                      <div className="space-y-1.5">
-                        <div className="flex flex-wrap items-center gap-2">
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap items-center gap-2.5">
                           <span
                             className={[
-                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-bold",
+                              "inline-flex items-center rounded-full px-3 py-1 text-xs font-bold sm:text-sm",
                               colorConfig.badgeBg,
                               colorConfig.badgeText,
                             ].join(" ")}
                           >
                             {CODE_LABELS[rule.code]}
                           </span>
-                          <span className="flex items-center gap-1 text-xs font-medium text-slate-500">
-                            <Scale className="h-3 w-3 text-slate-400" />
+                          <span className="flex items-center gap-1.5 text-xs font-medium text-slate-600 sm:text-sm">
+                            <Scale className="h-4 w-4 text-slate-400" />
                             {rule.citation}
                           </span>
                         </div>
 
-                        <h2 className="text-base font-bold text-slate-900 sm:text-lg">
+                        <h2 className="text-lg font-bold text-slate-900 sm:text-2xl">
                           {rule.title}
                         </h2>
 
                         {!isExpanded && (
-                          <p className="line-clamp-2 text-xs leading-relaxed text-slate-600 sm:text-sm">
+                          <p className="line-clamp-2 text-sm leading-relaxed text-slate-700 sm:text-base">
                             {simpleText}
                           </p>
                         )}
@@ -306,20 +306,20 @@ export function RulesPage() {
                     </div>
 
                     {/* Toggle Indicator Button */}
-                    <div className="flex shrink-0 items-center gap-2 pt-1">
-                      <span className="hidden text-xs font-bold text-sky-700 sm:inline-block">
+                    <div className="flex shrink-0 items-center gap-2 pt-1.5">
+                      <span className="hidden text-sm font-bold text-sky-700 sm:inline-block">
                         {isExpanded ? "Hide Details" : "View Example & Guide"}
                       </span>
                       <div
                         className={[
-                          "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                          "flex h-9 w-9 items-center justify-center rounded-full transition-colors",
                           isExpanded ? "bg-sky-100 text-sky-800" : "bg-slate-100 text-slate-600 hover:bg-slate-200",
                         ].join(" ")}
                       >
                         {isExpanded ? (
-                          <ChevronUp className="h-4 w-4" />
+                          <ChevronUp className="h-5 w-5" />
                         ) : (
-                          <ChevronDown className="h-4 w-4" />
+                          <ChevronDown className="h-5 w-5" />
                         )}
                       </div>
                     </div>
@@ -330,50 +330,50 @@ export function RulesPage() {
                     <div className="border-t border-slate-100 bg-slate-50/50 p-6 pt-5 sm:p-8 sm:pt-6">
                       <div className="space-y-6">
                         {/* 1. Plain English Explanation */}
-                        <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-5">
-                          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-900">
-                            <BookOpen className="h-4 w-4 text-blue-700" />
+                        <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-6">
+                          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-blue-900">
+                            <BookOpen className="h-4.5 w-4.5 text-blue-700" />
                             Plain English Explanation
                           </div>
-                          <p className="mt-2 text-sm leading-relaxed text-slate-800 sm:text-base">
+                          <p className="mt-2.5 text-base leading-relaxed text-slate-800 sm:text-lg">
                             {simpleText}
                           </p>
                         </div>
 
                         {/* 2. Real-World Practical Example */}
                         {guide && (
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-700">
-                              <Lightbulb className="h-4 w-4 text-amber-600" />
+                          <div className="space-y-3.5">
+                            <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-800">
+                              <Lightbulb className="h-4.5 w-4.5 text-amber-600" />
                               Real-World Practical Example
                             </div>
 
                             {/* Example Context Scenario */}
-                            <div className="rounded-2xl border border-slate-200 bg-white p-4 text-xs font-semibold text-slate-700 sm:text-sm">
+                            <div className="rounded-2xl border border-slate-200 bg-white p-5 text-sm font-medium text-slate-800 sm:text-base">
                               <span className="font-bold text-slate-900">Scenario: </span>
                               {guide.exampleScenario}
                             </div>
 
                             {/* Compliant vs Violation Comparison */}
-                            <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="grid gap-3.5 sm:grid-cols-2">
                               {/* Compliant Case */}
-                              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
-                                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-900">
-                                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                              <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
+                                <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-900">
+                                  <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600" />
                                   Compliant Example (Pass)
                                 </div>
-                                <p className="mt-2 text-xs leading-relaxed text-emerald-950 sm:text-sm">
+                                <p className="mt-2.5 text-sm leading-relaxed text-emerald-950 sm:text-base">
                                   {guide.compliantExample}
                                 </p>
                               </div>
 
                               {/* Violation Case */}
-                              <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-4">
-                                <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-rose-900">
-                                  <ShieldAlert className="h-4 w-4 text-rose-600" />
+                              <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-5">
+                                <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-rose-900">
+                                  <ShieldAlert className="h-4.5 w-4.5 text-rose-600" />
                                   Violation Example (Breach)
                                 </div>
-                                <p className="mt-2 text-xs leading-relaxed text-rose-950 sm:text-sm">
+                                <p className="mt-2.5 text-sm leading-relaxed text-rose-950 sm:text-base">
                                   {guide.violationExample}
                                 </p>
                               </div>
@@ -382,22 +382,22 @@ export function RulesPage() {
                         )}
 
                         {/* 3. Action Required / How to Comply */}
-                        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-                          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-800">
-                            <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                        <div className="rounded-2xl border border-slate-200 bg-white p-6">
+                          <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-900">
+                            <ShieldCheck className="h-4.5 w-4.5 text-emerald-600" />
                             How to Comply (Action Required)
                           </div>
                           {guide?.actionToComply && guide.actionToComply.length > 0 ? (
-                            <ul className="mt-3 space-y-2 text-xs text-slate-700 sm:text-sm">
+                            <ul className="mt-3.5 space-y-2.5 text-sm text-slate-800 sm:text-base">
                               {guide.actionToComply.map((step, sIdx) => (
-                                <li key={sIdx} className="flex items-start gap-2">
-                                  <span className="mt-1 block h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-500" />
+                                <li key={sIdx} className="flex items-start gap-2.5">
+                                  <span className="mt-2 block h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
                                   <span>{step}</span>
                                 </li>
                               ))}
                             </ul>
                           ) : (
-                            <p className="mt-2 text-xs text-slate-700 sm:text-sm">
+                            <p className="mt-2.5 text-sm text-slate-800 sm:text-base">
                               {rule.remediation_en ||
                                 "Ensure payroll records, registers, and statutory returns reflect this requirement."}
                             </p>
