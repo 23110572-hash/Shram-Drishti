@@ -47,9 +47,14 @@ export function App() {
               <Route path="rules" element={<RulesPage />} />
               <Route path="profile" element={<ProfilePage />} />
 
-              {/* Documents renders its own signed-out prompt rather than
-                  redirecting, so a visitor can see what the screen is for. */}
-              <Route path="documents" element={<DocumentsPage />} />
+              <Route
+                path="documents"
+                element={
+                  <RequireAuth>
+                    <DocumentsPage />
+                  </RequireAuth>
+                }
+              />
 
               <Route
                 path="establishments"

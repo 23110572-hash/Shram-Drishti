@@ -90,7 +90,7 @@ class RulesOverview(BaseModel):
 
 
 @router.get("", response_model=RulesOverview)
-def overview(user: CurrentUser) -> RulesOverview:
+def overview() -> RulesOverview:
     loaded = get_rules()
     rules = loaded.all_rules
 
@@ -139,7 +139,6 @@ def overview(user: CurrentUser) -> RulesOverview:
 
 @router.get("/list", response_model=list[RuleOut])
 def list_rules(
-    user: CurrentUser,
     code: Annotated[LabourCode | None, Query()] = None,
     basis: Annotated[RuleBasis | None, Query()] = None,
     awaiting_notification: Annotated[bool | None, Query()] = None,
@@ -170,7 +169,7 @@ def list_rules(
 
 
 @router.get("/{rule_id}", response_model=RuleOut)
-def get_rule(rule_id: str, user: CurrentUser) -> RuleOut:
+def get_rule(rule_id: str) -> RuleOut:
     loaded = get_rules()
     for pack in loaded.packs:
         for rule in pack.rules:
@@ -192,7 +191,7 @@ def reload_rules(user: CurrentUser) -> RulesOverview:
         raise HTTPException(status_code=403, detail="administrators only")
 
     reset_rules()
-    return overview(user)
+    return overview()
 
 
 def _render(rule: Any, pack: Any) -> RuleOut:

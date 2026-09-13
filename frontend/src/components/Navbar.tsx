@@ -106,6 +106,20 @@ export function Navbar() {
             const active = isActive(item);
             const Icon = item.icon;
 
+            if (item.to === "/documents" && !user) {
+              return (
+                <span
+                  key={item.to}
+                  title="Document section is locked. Sign in required to access."
+                  className="flex cursor-not-allowed select-none items-center gap-2 rounded-full px-4 py-2.5 text-sm font-bold tracking-tight text-slate-400 opacity-60 transition-all lg:text-[15px]"
+                >
+                  <Icon className="h-4 w-4 text-slate-400" />
+                  <span>{item.label}</span>
+                  <Lock className="h-3.5 w-3.5 text-amber-500 shrink-0 ml-0.5" />
+                </span>
+              );
+            }
+
             return (
               <NavLink
                 key={item.to}
@@ -121,9 +135,6 @@ export function Navbar() {
               >
                 <Icon className="h-4 w-4" />
                 <span>{item.label}</span>
-                {item.to === "/documents" && !user && (
-                  <Lock className="h-3 w-3 text-amber-500 shrink-0 ml-0.5" />
-                )}
               </NavLink>
             );
           })}
@@ -151,6 +162,23 @@ export function Navbar() {
               const active = isActive(item);
               const Icon = item.icon;
 
+              if (item.to === "/documents" && !user) {
+                return (
+                  <div
+                    key={item.to}
+                    title="Document section is locked. Sign in required to access."
+                    className="flex cursor-not-allowed select-none items-center gap-3.5 rounded-2xl px-5 py-3 text-base font-bold text-slate-400 opacity-60"
+                  >
+                    <Icon className="h-5 w-5 text-slate-400" />
+                    <span>{item.label}</span>
+                    <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                      <Lock className="h-3 w-3" />
+                      Locked
+                    </span>
+                  </div>
+                );
+              }
+
               return (
                 <NavLink
                   key={item.to}
@@ -167,12 +195,6 @@ export function Navbar() {
                 >
                   <Icon className="h-5 w-5 text-sky-600" />
                   <span>{item.label}</span>
-                  {item.to === "/documents" && !user && (
-                    <span className="ml-auto inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
-                      <Lock className="h-3 w-3" />
-                      Locked
-                    </span>
-                  )}
                 </NavLink>
               );
             })}

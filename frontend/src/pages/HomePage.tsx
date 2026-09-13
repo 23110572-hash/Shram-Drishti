@@ -5,24 +5,23 @@ import {
   BookOpen,
   Building2,
   ClipboardList,
-  Database,
+  Coins,
   Eye,
   FileSearch,
+  HardHat,
+  Lock,
   Scale,
-  Server,
   Shield,
+  ShieldCheck,
   Upload,
+  Users,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { count, paise } from "@/lib/format";
 import {
-  CODE_LABELS,
   type FindingCounts,
-  type HealthResponse,
-  type LabourCode,
-  type ReadinessResponse,
   type RulesOverview,
 } from "@/lib/types";
 import { Badge } from "@/components/ui/Badge";
@@ -40,23 +39,9 @@ import { Badge } from "@/components/ui/Badge";
 export function HomePage() {
   const { user } = useAuth();
 
-  const health = useQuery({
-    queryKey: ["health"],
-    queryFn: () => api.get<HealthResponse>("/healthz"),
-    refetchInterval: 60_000,
-  });
-
-  const readiness = useQuery({
-    queryKey: ["readiness"],
-    queryFn: () => api.get<ReadinessResponse>("/readyz"),
-    refetchInterval: 60_000,
-    retry: false,
-  });
-
   const rules = useQuery({
     queryKey: ["rules-overview"],
     queryFn: () => api.get<RulesOverview>("/rules"),
-    enabled: Boolean(user),
     retry: false,
   });
 
@@ -66,8 +51,6 @@ export function HomePage() {
     enabled: Boolean(user),
     retry: false,
   });
-
-  const codes = Object.keys(CODE_LABELS) as LabourCode[];
 
   return (
     <div className="space-y-20 sm:space-y-24">
@@ -92,13 +75,23 @@ export function HomePage() {
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-          <Link
-            to="/documents"
-            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-slate-800"
-          >
-            <Upload className="h-5 w-5" />
-            Submit filings
-          </Link>
+          {user ? (
+            <Link
+              to="/documents"
+              className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-slate-800"
+            >
+              <Upload className="h-5 w-5" />
+              Submit filings
+            </Link>
+          ) : (
+            <div
+              className="flex cursor-not-allowed select-none items-center gap-2 rounded-full border border-slate-300/80 bg-slate-100/90 px-8 py-3.5 text-base font-bold text-slate-400 opacity-70 shadow-none"
+              title="Sign in required to submit filings"
+            >
+              <Lock className="h-5 w-5 text-amber-500" />
+              <span>Submit filings (Locked)</span>
+            </div>
+          )}
           <Link
             to="/rules"
             className="flex items-center gap-2 rounded-full border border-slate-300 bg-white/90 px-7 py-3.5 text-base font-bold text-slate-900 shadow-sm transition-all hover:bg-white"
@@ -109,7 +102,7 @@ export function HomePage() {
           {!user && (
             <Link
               to="/profile"
-              className="rounded-full border border-slate-300/80 bg-slate-200/60 px-6 py-3.5 text-base font-bold text-slate-800 transition-all hover:bg-slate-200"
+              className="rounded-full bg-sky-600 px-7 py-3.5 text-base font-bold text-white shadow-md transition-all hover:bg-sky-700"
             >
               Sign in
             </Link>
@@ -117,8 +110,8 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* Signed-in summary, or service status for a visitor. */}
-      {user ? (
+      {/* Signed-in summary */}
+      {user && (
         <section className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link
             to="/findings"
@@ -194,66 +187,6 @@ export function HomePage() {
             </p>
           </Link>
         </section>
-      ) : (
-        <section className="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2">
-          <div className="space-y-2 rounded-3xl border border-slate-200/90 bg-white/80 p-6 shadow-sm backdrop-blur-md">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Service
-              </span>
-              <Server className="h-4 w-4 text-sky-700" />
-            </div>
-            <div className="flex items-center gap-2.5">
-              <span
-                className={
-                  health.isSuccess
-                    ? "h-3 w-3 rounded-full bg-emerald-600"
-                    : "h-3 w-3 animate-pulse rounded-full bg-amber-600"
-                }
-              />
-              <span className="text-base font-extrabold text-slate-900">
-                {health.data
-                  ? health.data.app
-                  : health.isError
-                    ? "Not responding"
-                    : "Connecting…"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500">
-              {health.data
-                ? `Version ${health.data.version} · ${health.data.environment}`
-                : "The API did not answer on port 8000."}
-            </p>
-          </div>
-
-          <div className="space-y-2 rounded-3xl border border-slate-200/90 bg-white/80 p-6 shadow-sm backdrop-blur-md">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Database
-              </span>
-              <Database className="h-4 w-4 text-indigo-700" />
-            </div>
-            <div className="flex items-center gap-2.5">
-              <span
-                className={
-                  readiness.data?.status === "ready"
-                    ? "h-3 w-3 rounded-full bg-emerald-600"
-                    : "h-3 w-3 rounded-full bg-amber-600"
-                }
-              />
-              <span className="text-base font-extrabold text-slate-900">
-                {readiness.data?.status === "ready" ? "Reachable" : "Not ready"}
-              </span>
-            </div>
-            <p className="text-xs text-slate-500">
-              {readiness.data
-                ? Object.entries(readiness.data.checks)
-                    .map(([name, ok]) => `${name}: ${ok ? "ok" : "failing"}`)
-                    .join(" · ")
-                : "Checking connectivity."}
-            </p>
-          </div>
-        </section>
       )}
 
       {/* What it does, honestly */}
@@ -296,99 +229,141 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* The division of labour. Stated openly because it is the design choice
-          that most affects whether the output can be trusted. */}
-      <section className="mx-auto grid max-w-6xl gap-6 lg:grid-cols-2">
-        <article className="space-y-4 rounded-3xl border border-sky-200/90 bg-white/90 p-8 shadow-sm backdrop-blur-xl">
-          <Badge tone="low">Model</Badge>
-          <h3 className="text-xl font-bold text-slate-900">
-            Reading, matching and explaining
-          </h3>
-          <p className="text-sm leading-relaxed text-slate-700">
-            A model reads handwriting and stamps, works out which printed column is
-            which, decides that "R. Kumar" and "RAJESH KUMAR S/O RAM LAL" are one
-            person, answers questions about a standing order written in prose, and
-            explains a finding in plain language. These have no fixed answer and no
-            threshold to look up, which is exactly what a model is for.
-          </p>
-          <p className="text-sm leading-relaxed text-slate-700">
-            It also reviews the findings and can raise problems the rules never
-            anticipated. Those are marked advisory: they carry no citation and do
-            not affect a score.
-          </p>
-        </article>
-
-        <article className="space-y-4 rounded-3xl border border-amber-200/90 bg-white/90 p-8 shadow-sm backdrop-blur-xl">
-          <Badge tone="medium">Rules</Badge>
-          <h3 className="text-xl font-bold text-slate-900">
-            Deciding compliance
-          </h3>
-          <p className="text-sm leading-relaxed text-slate-700">
-            Section 18(3) caps deductions at fifty per cent. Section 14 requires
-            overtime at twice the ordinary rate. Section 17(1)(iv) sets the seventh
-            of the following month. These are single numbers from an Act, and the
-            comparison against them is plain arithmetic.
-          </p>
-          <p className="text-sm leading-relaxed text-slate-700">
-            No model participates in that decision. An employer who disputes a
-            finding must get the same answer on a re-run, and the basis has to be a
-            provision they can look up — not a judgement they cannot examine.
-          </p>
-        </article>
-      </section>
-
       {/* The four Codes */}
-      <section className="mx-auto max-w-6xl space-y-8">
-        <div className="mx-auto max-w-3xl space-y-3 text-center">
-          <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">
+      <section className="mx-auto max-w-6xl space-y-10">
+        <div className="mx-auto max-w-4xl space-y-4 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-4 py-1.5 text-xs font-bold uppercase tracking-wider text-sky-800">
+            Statutory Framework
+          </div>
+          <h2 className="text-3xl font-black tracking-tight text-slate-950 sm:text-5xl">
             The four Labour Codes
           </h2>
-          <p className="text-base text-slate-600 sm:text-lg">
-            Rule packs are built from the Gazette and IndiaCode text of each Act.
-            Where an Act leaves a figure to be notified by the appropriate
-            Government, the rule says so and is weighted lightly until that
-            notification is obtained.
+          <p className="text-lg sm:text-xl font-medium leading-relaxed text-slate-700">
+            All compliance rule packs are derived directly from the official Gazette and IndiaCode statutory text. Where an Act requires an operative threshold or formula to be notified by the appropriate Government, the rule states so clearly and is evaluated with care until that notification is officially obtained.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {codes.map((code) => (
-            <article
-              key={code}
-              className="space-y-4 rounded-3xl border border-slate-200/90 bg-white/85 p-8 shadow-sm backdrop-blur-xl transition-colors hover:border-sky-400/60"
-            >
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {/* Code on Wages */}
+          <article className="flex flex-col justify-between space-y-5 rounded-3xl border border-sky-200/90 bg-white/95 p-8 sm:p-10 shadow-[0_12px_40px_rgba(56,189,248,0.08)] backdrop-blur-xl transition-all hover:border-sky-400 hover:shadow-md">
+            <div className="space-y-4">
               <div className="flex items-center justify-between gap-3">
-                <h3 className="text-xl font-bold text-slate-950 sm:text-2xl">
-                  {CODE_LABELS[code]}
-                </h3>
-                {rules.data?.by_code[code] !== undefined && (
-                  <Badge tone="neutral">{rules.data.by_code[code]} rules</Badge>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-sky-200 bg-sky-100 text-sky-700 shadow-sm">
+                    <Coins className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-950 sm:text-3xl">
+                    Code on Wages, 2019
+                  </h3>
+                </div>
+                {rules.data?.by_code["WAGES"] !== undefined && (
+                  <Badge tone="good">{rules.data.by_code["WAGES"]} rules</Badge>
                 )}
               </div>
-
-              <p className="text-sm leading-relaxed text-slate-700 sm:text-base">
-                {code === "WAGES" &&
-                  "Minimum wage by state and skill category, overtime at not less than twice the ordinary rate, the fifty per cent deduction cap, wage periods of no more than a month, payment by the seventh of the following month, and settlement within two working days of exit."}
-                {code === "OSH" &&
-                  "Establishment registration, appointment letters for every employee, daily and weekly hour limits, contractor licensing against the number actually deployed, accident notification, and welfare and health obligations."}
-                {code === "SOCIAL_SECURITY" &&
-                  "Provident fund and ESIC coverage reconciled worker by worker against the wage register, the declared contribution base against the wages actually paid, deposit timeliness, and gratuity for fixed-term employees."}
-                {code === "INDUSTRIAL_RELATIONS" &&
-                  "Works Committee at a hundred workers, Grievance Redressal Committee at twenty with proportionate women's representation, standing orders at three hundred, strike notice periods, and prior permission for retrenchment."}
+              <p className="text-base sm:text-lg leading-relaxed text-slate-700 font-medium">
+                Guarantees fair, universal, and timely wage payments across all establishments. The code establishes statutory minimum wage floors according to state and skill categories, ensures that overtime is compensated at double the normal rate, and protects workers by strictly capping total deductions at fifty percent. Furthermore, wages must be disbursed by the 7th of each month, with final dues paid within two working days of an employee leaving.
               </p>
-            </article>
-          ))}
+            </div>
+          </article>
+
+          {/* Industrial Relations Code */}
+          <article className="flex flex-col justify-between space-y-5 rounded-3xl border border-indigo-200/90 bg-white/95 p-8 sm:p-10 shadow-[0_12px_40px_rgba(99,102,241,0.08)] backdrop-blur-xl transition-all hover:border-indigo-400 hover:shadow-md">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-indigo-200 bg-indigo-100 text-indigo-700 shadow-sm">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-950 sm:text-3xl">
+                    Industrial Relations Code, 2020
+                  </h3>
+                </div>
+                {rules.data?.by_code["INDUSTRIAL_RELATIONS"] !== undefined && (
+                  <Badge tone="good">{rules.data.by_code["INDUSTRIAL_RELATIONS"]} rules</Badge>
+                )}
+              </div>
+              <p className="text-base sm:text-lg leading-relaxed text-slate-700 font-medium">
+                Promotes constructive workplace cooperation, fair dispute redressal, and transparent worker representation. It requires establishments with 20 or more workers to maintain a balanced Grievance Redressal Committee with adequate representation for women, while units with 100 or more workers establish formal Works Committees. It also standardizes standing orders, enforces statutory strike notices, and establishes transparent procedures for retrenchment.
+              </p>
+            </div>
+          </article>
+
+          {/* Code on Social Security */}
+          <article className="flex flex-col justify-between space-y-5 rounded-3xl border border-purple-200/90 bg-white/95 p-8 sm:p-10 shadow-[0_12px_40px_rgba(168,85,247,0.08)] backdrop-blur-xl transition-all hover:border-purple-400 hover:shadow-md">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-purple-200 bg-purple-100 text-purple-700 shadow-sm">
+                    <ShieldCheck className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-950 sm:text-3xl">
+                    Code on Social Security, 2020
+                  </h3>
+                </div>
+                {rules.data?.by_code["SOCIAL_SECURITY"] !== undefined && (
+                  <Badge tone="good">{rules.data.by_code["SOCIAL_SECURITY"]} rules</Badge>
+                )}
+              </div>
+              <p className="text-base sm:text-lg leading-relaxed text-slate-700 font-medium">
+                Provides essential healthcare and life-cycle financial security across the entire workforce. The platform reconciles employee Provident Fund (EPF) and ESIC health benefits worker-by-worker against filed wage registers, confirms that declared contributions match wages paid, ensures timely statutory deposits, and secures proportionate gratuity for fixed-term employees.
+              </p>
+            </div>
+          </article>
+
+          {/* OSH Code */}
+          <article className="flex flex-col justify-between space-y-5 rounded-3xl border border-teal-200/90 bg-white/95 p-8 sm:p-10 shadow-[0_12px_40px_rgba(20,184,166,0.08)] backdrop-blur-xl transition-all hover:border-teal-400 hover:shadow-md">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-teal-200 bg-teal-100 text-teal-700 shadow-sm">
+                    <HardHat className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-2xl font-black text-slate-950 sm:text-3xl">
+                    OSH &amp; Working Conditions Code, 2020
+                  </h3>
+                </div>
+                {rules.data?.by_code["OSH"] !== undefined && (
+                  <Badge tone="good">{rules.data.by_code["OSH"]} rules</Badge>
+                )}
+              </div>
+              <p className="text-base sm:text-lg leading-relaxed text-slate-700 font-medium">
+                Safeguards the health, safety, and daily working environment of every employee. It mandates official establishment registration and written appointment letters for all staff, enforces healthy daily and weekly work limits with statutory rest periods, regulates labor contractor licenses according to actual deployed staff, and guarantees clean welfare facilities alongside prompt reporting of workplace accidents.
+              </p>
+            </div>
+          </article>
         </div>
       </section>
 
       {/* Where to go */}
       <section className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-3">
-        <Shortcut
-          to="/documents"
-          icon={Upload}
-          title="Submit filings"
-          body="Upload a wage period and watch each document get identified and read."
-        />
+        {user ? (
+          <Shortcut
+            to="/documents"
+            icon={Upload}
+            title="Submit filings"
+            body="Upload a wage period and watch each document get identified and read."
+          />
+        ) : (
+          <div
+            className="cursor-not-allowed select-none rounded-3xl border border-slate-200/80 bg-white/60 p-6 opacity-60 backdrop-blur-md"
+            title="Sign in required to submit filings"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                <Lock className="h-5 w-5 text-amber-500" />
+              </div>
+              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                Locked
+              </span>
+            </div>
+            <h4 className="mt-4 text-base font-bold text-slate-500">
+              Submit filings
+            </h4>
+            <p className="mt-1 text-xs text-slate-400">
+              Upload a wage period and watch each document get identified and read (Sign-in required).
+            </p>
+          </div>
+        )}
         <Shortcut
           to="/establishments"
           icon={Building2}
