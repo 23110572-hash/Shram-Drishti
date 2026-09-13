@@ -1,0 +1,49 @@
+# Render installs from this file. Kept in step with pyproject.toml by hand, which
+# is deliberate: a lock file generated on Windows would carry platform-specific
+# wheels that fail on Render's Linux builders.
+#
+# Versions are floors, not pins. A prototype benefits from picking up patch fixes;
+# a production deployment should pin these exactly.
+
+# --- web framework ---
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+python-multipart>=0.0.20
+
+# --- database ---
+sqlalchemy>=2.0.36
+alembic>=1.14.0
+psycopg[binary]>=3.2.0
+
+# --- config and validation ---
+pydantic>=2.10.0
+pydantic-settings>=2.7.0
+email-validator>=2.2.0
+
+# --- auth ---
+argon2-cffi>=23.1.0
+pyjwt>=2.10.0
+
+# --- http client, for OpenRouter and OCR.space ---
+httpx>=0.28.0
+
+# --- document handling ---
+pypdfium2>=4.30.0
+pdfplumber>=0.11.4
+pillow>=11.0.0
+filetype>=1.2.0
+
+# --- rule engine and reference data ---
+pyyaml>=6.0.2
+python-dateutil>=2.9.0
+
+# --- identity matching and statistics ---
+rapidfuzz>=3.10.0
+numpy>=2.1.0
+
+# --- notices and reports ---
+jinja2>=3.1.4
+reportlab>=4.2.5
+
+# --- evaluation corpus: image-only variants for the OCR-only path ---
+img2pdf>=0.5.1

@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+/* Design tokens.
+   Kept as CSS variables rather than Tailwind config so a state or department
+   can rebrand by overriding a stylesheet, without a rebuild. */
+@theme {
+  --color-brand-50: oklch(0.97 0.02 250);
+  --color-brand-100: oklch(0.93 0.04 250);
+  --color-brand-500: oklch(0.55 0.16 250);
+  --color-brand-600: oklch(0.48 0.16 250);
+  --color-brand-700: oklch(0.4 0.14 250);
+
+  /* Severity palette. Chosen for >=4.5:1 contrast on white, so severity is
+     never conveyed by hue alone — each badge also carries a text label. */
+  --color-sev-critical: oklch(0.45 0.2 25);
+  --color-sev-high: oklch(0.55 0.18 45);
+  --color-sev-medium: oklch(0.55 0.13 85);
+  --color-sev-low: oklch(0.5 0.08 230);
+  --color-sev-info: oklch(0.5 0.02 260);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-[#FAF8F5] text-stone-900 antialiased selection:bg-blue-700 selection:text-white;
+  }
+
+  /* Visible focus for keyboard users on every interactive element. Removing
+     outlines without replacing them is the most common accessibility failure
+     in dashboards. */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+
+  /* Respect users who have asked for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

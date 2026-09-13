@@ -1,0 +1,24 @@
+# Tool configuration only.
+#
+# Dependencies live in requirements.txt, which is what Render installs. They used
+# to be duplicated here as well, and two lists of the same thing drift apart
+# silently — so this file no longer declares any.
+#
+# What it still does is necessary: pytest cannot import the `app` package without
+# `pythonpath`, and ruff needs to know the line length and rule set. Both would
+# otherwise fall back to defaults that disagree with the code.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "db: test requires a live database connection",
+    "network: test performs a real outbound API call",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "N", "SIM"]

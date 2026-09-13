@@ -1,0 +1,314 @@
+pack: industrial_relations
+version: "2026.01"
+jurisdiction: IN
+description: >
+  Industrial Relations Code, 2020 (Act 35 of 2020). Thresholds were read from the
+  IndiaCode consolidated text (as on 2 April 2026) held at
+  "Insdustrial Relation code 2020.md". Every rule below is verified against that
+  text.
+
+rules:
+  # ------------------------------------------------------------------ s.3(1)
+  - id: IR.WORKS_COMMITTEE.REQUIRED
+    code: INDUSTRIAL_RELATIONS
+    kind: MISSING_DOCUMENT
+    severity: MEDIUM
+    weight: 4
+    title: Works Committee not constituted
+    citation: "Industrial Relations Code, 2020 — s.3(1)"
+    source_ref: "IR Code s.3(1): 'in which one hundred or more workers are employed or have been employed on any day in the preceding twelve months'"
+    verified: true
+    requires: [estab, docs]
+    # The statute reads "employed on any day in the preceding twelve months", so
+    # the twelve-month peak governs, not the headcount on the day of inspection.
+    applicability: "estab.worker_count_peak_12m >= 100"
+    expression: "docs.works_committee_count > 0"
+    observe:
+      peak_workers_12m: "estab.worker_count_peak_12m"
+      records_received: "docs.works_committee_count"
+    expect:
+      threshold_workers: "100"
+    message:
+      en: "This establishment employs 100 or more workers but no Works Committee record was produced."
+      hi: "इस प्रतिष्ठान में 100 या अधिक श्रमिक हैं, परन्तु कार्य समिति का कोई अभिलेख प्रस्तुत नहीं किया गया।"
+    remediation:
+      en: "Constitute a Works Committee with equal numbers of employer and worker representatives, and retain the constitution record."
+      hi: "नियोजक और श्रमिक प्रतिनिधियों की समान संख्या के साथ कार्य समिति गठित करें और गठन अभिलेख रखें।"
+    fixtures:
+      - name: committee_exists
+        should_pass: true
+        facts:
+          estab: {worker_count_peak_12m: 140}
+          docs: {works_committee_count: 1}
+      - name: threshold_crossed_no_committee
+        should_pass: false
+        facts:
+          estab: {worker_count_peak_12m: 140}
+          docs: {works_committee_count: 0}
+
+  # ------------------------------------------------------------------ s.4(1)
+  - id: IR.GRIEVANCE_COMMITTEE.REQUIRED
+    code: INDUSTRIAL_RELATIONS
+    kind: MISSING_DOCUMENT
+    severity: HIGH
+    weight: 6
+    title: Grievance Redressal Committee not constituted
+    citation: "Industrial Relations Code, 2020 — s.4(1)"
+    source_ref: "IR Code s.4(1): 'Every industrial establishment employing twenty or more workers shall have one or more Grievance Redressal Committees'"
+    verified: true
+    requires: [estab, docs]
+    applicability: "estab.worker_count >= 20"
+    expression: "docs.grievance_committee_count > 0"
+    observe:
+      worker_count: "estab.worker_count"
+      records_received: "docs.grievance_committee_count"
+    expect:
+      threshold_workers: "20"
+    message:
+      en: "This establishment employs 20 or more workers but no Grievance Redressal Committee record was produced."
+      hi: "इस प्रतिष्ठान में 20 या अधिक श्रमिक हैं, परन्तु शिकायत निवारण समिति का कोई अभिलेख प्रस्तुत नहीं किया गया।"
+    remediation:
+      en: "Constitute one or more Grievance Redressal Committees with equal employer and worker representation."
+      hi: "नियोजक और श्रमिक प्रतिनिधित्व की समानता के साथ एक या अधिक शिकायत निवारण समितियाँ गठित करें।"
+    fixtures:
+      - name: committee_exists
+        should_pass: true
+        facts:
+          estab: {worker_count: 30}
+          docs: {grievance_committee_count: 1}
+      - name: no_committee
+        should_pass: false
+        facts:
+          estab: {worker_count: 30}
+          docs: {grievance_committee_count: 0}
+
+  # ------------------------------------------------------------------ s.4(4)
+  - id: IR.GRIEVANCE_COMMITTEE.SIZE_CAP
+    code: INDUSTRIAL_RELATIONS
+    kind: NON_COMPLIANCE
+    severity: LOW
+    weight: 2
+    title: Grievance Redressal Committee has more than ten members
+    citation: "Industrial Relations Code, 2020 — s.4(4)"
+    source_ref: "IR Code s.4(4): 'The total number of members of the Grievance Redressal Committee shall not exceed ten'"
+    verified: true
+    requires: [prose]
+    applicability: "estab.worker_count >= 20"
+    expression: >
+      is_missing(prose.grievance_committee_members) or prose.grievance_committee_members <= 10
+    observe:
+      members: "prose.grievance_committee_members"
+    expect:
+      maximum_members: "10"
+    message:
+      en: "The Grievance Redressal Committee has more than ten members."
+      hi: "शिकायत निवारण समिति में दस से अधिक सदस्य हैं।"
+    remediation:
+      en: "Reconstitute the committee with no more than ten members in total."
+      hi: "समिति का पुनर्गठन कुल दस से अधिक सदस्यों के बिना करें।"
+    fixtures:
+      - name: eight_members
+        should_pass: true
+        facts:
+          estab: {worker_count: 40}
+          prose: {grievance_committee_members: 8}
+      - name: fourteen_members
+        should_pass: false
+        facts:
+          estab: {worker_count: 40}
+          prose: {grievance_committee_members: 14}
+
+  - id: IR.GRIEVANCE_COMMITTEE.WOMEN_REPRESENTATION
+    code: INDUSTRIAL_RELATIONS
+    kind: NON_COMPLIANCE
+    severity: MEDIUM
+    weight: 5
+    title: Women's representation on the Grievance Committee below the workforce proportion
+    citation: "Industrial Relations Code, 2020 — s.4(4) proviso"
+    source_ref: "IR Code s.4(4) proviso: representation of women workers 'shall not be less than the proportion of women workers to the total workers employed'"
+    verified: true
+    requires: [estab, prose]
+    applicability: "estab.worker_count >= 20 and estab.women_worker_count > 0"
+    # Computable because both sides are held: the workforce ratio comes from the
+    # employee register and the committee composition from the committee record.
+    # No continuation indent inside a folded scalar: YAML preserves the extra
+    # spaces as a newline plus indentation, which the expression parser then
+    # rejects as an unexpected indent.
+    expression: >
+      is_missing(prose.grievance_committee_members)
+      or is_missing(prose.grievance_committee_women)
+      or ratio(prose.grievance_committee_women, prose.grievance_committee_members) >= ratio(estab.women_worker_count, estab.worker_count)
+    observe:
+      committee_women_share: "ratio(prose.grievance_committee_women, prose.grievance_committee_members)"
+      workforce_women_share: "ratio(estab.women_worker_count, estab.worker_count)"
+    expect:
+      minimum_share: "ratio(estab.women_worker_count, estab.worker_count)"
+    message:
+      en: "Women's representation on the Grievance Redressal Committee is below their proportion in the workforce."
+      hi: "शिकायत निवारण समिति में महिलाओं का प्रतिनिधित्व कार्यबल में उनके अनुपात से कम है।"
+    remediation:
+      en: "Add women members so their share on the committee is at least their share of the workforce."
+      hi: "महिला सदस्य जोड़ें ताकि समिति में उनका अनुपात कार्यबल में उनके अनुपात से कम न हो।"
+    fixtures:
+      - name: proportionate_representation
+        should_pass: true
+        facts:
+          estab: {worker_count: 100, women_worker_count: 30}
+          prose: {grievance_committee_members: 10, grievance_committee_women: 3}
+      - name: under_represented
+        should_pass: false
+        facts:
+          estab: {worker_count: 100, women_worker_count: 40}
+          prose: {grievance_committee_members: 10, grievance_committee_women: 1}
+
+  # ------------------------------------------------------------------ s.4(6)
+  - id: IR.GRIEVANCE.DECISION_WITHIN_THIRTY_DAYS
+    code: INDUSTRIAL_RELATIONS
+    kind: NON_COMPLIANCE
+    severity: MEDIUM
+    weight: 4
+    title: Grievance proceedings not completed within thirty days
+    citation: "Industrial Relations Code, 2020 — s.4(6)"
+    source_ref: "IR Code s.4(6): 'may complete its proceedings within thirty days of receipt of the application'"
+    verified: true
+    requires: [prose]
+    expression: >
+      is_missing(prose.longest_grievance_days) or prose.longest_grievance_days <= 30
+    observe:
+      longest_open_grievance_days: "prose.longest_grievance_days"
+    expect:
+      maximum_days: "30"
+    message:
+      en: "One or more grievances remained undecided beyond thirty days of the application."
+      hi: "एक या अधिक शिकायतें आवेदन के तीस दिनों के बाद भी अनिर्णीत रहीं।"
+    remediation:
+      en: "Complete Grievance Redressal Committee proceedings within thirty days of receiving an application."
+      hi: "आवेदन प्राप्ति के तीस दिनों के भीतर शिकायत निवारण समिति की कार्यवाही पूर्ण करें।"
+    fixtures:
+      - name: decided_in_three_weeks
+        should_pass: true
+        facts:
+          prose: {longest_grievance_days: 21}
+      - name: open_for_two_months
+        should_pass: false
+        facts:
+          prose: {longest_grievance_days: 63}
+
+  # ----------------------------------------------------------------- s.28(1)
+  - id: IR.STANDING_ORDERS.REQUIRED
+    code: INDUSTRIAL_RELATIONS
+    kind: MISSING_DOCUMENT
+    severity: HIGH
+    weight: 7
+    title: Standing orders not in place
+    citation: "Industrial Relations Code, 2020 — s.28(1)"
+    source_ref: "IR Code s.28(1): applies to 'every industrial establishment wherein three hundred or more than three hundred workers are employed, or were employed on any day of the preceding twelve months'"
+    verified: true
+    requires: [estab, docs]
+    applicability: "estab.worker_count_peak_12m >= 300"
+    expression: "docs.standing_orders_count > 0"
+    observe:
+      peak_workers_12m: "estab.worker_count_peak_12m"
+      records_received: "docs.standing_orders_count"
+    expect:
+      threshold_workers: "300"
+    message:
+      en: "This establishment has employed 300 or more workers but no standing orders were produced."
+      hi: "इस प्रतिष्ठान में 300 या अधिक श्रमिक नियोजित रहे हैं, परन्तु कोई स्थायी आदेश प्रस्तुत नहीं किए गए।"
+    remediation:
+      en: "Adopt the model standing orders, or obtain certification of your own standing orders where they differ from the model."
+      hi: "आदर्श स्थायी आदेश अपनाएँ, अथवा जहाँ वे आदर्श से भिन्न हों वहाँ अपने स्थायी आदेशों का प्रमाणन प्राप्त करें।"
+    fixtures:
+      - name: standing_orders_present
+        should_pass: true
+        facts:
+          estab: {worker_count_peak_12m: 420}
+          docs: {standing_orders_count: 1}
+      - name: large_establishment_without_standing_orders
+        should_pass: false
+        facts:
+          estab: {worker_count_peak_12m: 420}
+          docs: {standing_orders_count: 0}
+      - name: below_threshold_not_required
+        should_pass: true
+        facts:
+          estab: {worker_count_peak_12m: 120}
+          docs: {standing_orders_count: 0}
+
+  # ----------------------------------------------------------- s.62 (strikes)
+  - id: IR.STRIKE.NOTICE_PERIOD
+    code: INDUSTRIAL_RELATIONS
+    kind: NON_COMPLIANCE
+    severity: MEDIUM
+    weight: 4
+    title: Strike or lock-out without the required fourteen days' notice
+    citation: "Industrial Relations Code, 2020 — s.62"
+    source_ref: "IR Code s.62: no strike 'without giving notice of strike ... within sixty days before striking' or 'within fourteen days of giving such notice'"
+    verified: true
+    requires: [prose]
+    expression: >
+      is_missing(prose.strike_notice_days) or prose.strike_notice_days >= 14
+    observe:
+      notice_days_given: "prose.strike_notice_days"
+    expect:
+      minimum_notice_days: "14"
+    message:
+      en: "A strike or lock-out proceeded without the required fourteen days' notice."
+      hi: "आवश्यक चौदह दिनों की सूचना के बिना हड़ताल या तालाबंदी की गई।"
+    remediation:
+      en: "Ensure notice of strike or lock-out is given and that fourteen days elapse before action is taken."
+      hi: "सुनिश्चित करें कि हड़ताल या तालाबंदी की सूचना दी जाए और कार्रवाई से पूर्व चौदह दिन व्यतीत हों।"
+    fixtures:
+      - name: proper_notice
+        should_pass: true
+        facts:
+          prose: {strike_notice_days: 21}
+      - name: short_notice
+        should_pass: false
+        facts:
+          prose: {strike_notice_days: 5}
+
+  # -------------------------------------------------- Chapter X (permissions)
+  - id: IR.RETRENCHMENT.PRIOR_PERMISSION
+    code: INDUSTRIAL_RELATIONS
+    kind: NON_COMPLIANCE
+    severity: CRITICAL
+    weight: 10
+    title: Lay-off, retrenchment or closure without prior government permission
+    citation: "Industrial Relations Code, 2020 — Chapter X"
+    source_ref: "IR Code: obligation on mines, factories and plantations with 'three hundred or more workers to take prior permission of the appropriate Government before lay-off, retrenchment and closure'"
+    verified: true
+    requires: [estab, prose]
+    applicability: >
+      estab.worker_count_peak_12m >= 300
+      and (estab.is_factory or estab.is_mine or estab.is_plantation)
+    expression: >
+      is_missing(prose.retrenchment_count) or prose.retrenchment_count == 0
+      or prose.has_government_permission == True
+    observe:
+      workers_retrenched: "prose.retrenchment_count"
+      permission_on_record: "prose.has_government_permission"
+    expect:
+      permission_required: "True"
+    message:
+      en: "Workers were laid off, retrenched or the establishment closed without prior permission of the appropriate Government."
+      hi: "उचित सरकार की पूर्व अनुमति के बिना श्रमिकों की छँटनी, कटौती अथवा प्रतिष्ठान बंद किया गया।"
+    remediation:
+      en: "Apply for and obtain prior permission from the appropriate Government before any lay-off, retrenchment or closure."
+      hi: "किसी भी छँटनी, कटौती अथवा बंदी से पूर्व उचित सरकार से पूर्व अनुमति हेतु आवेदन करें और प्राप्त करें।"
+    fixtures:
+      - name: permission_obtained
+        should_pass: true
+        facts:
+          estab: {worker_count_peak_12m: 500, is_factory: true, is_mine: false, is_plantation: false}
+          prose: {retrenchment_count: 12, has_government_permission: true}
+      - name: retrenched_without_permission
+        should_pass: false
+        facts:
+          estab: {worker_count_peak_12m: 500, is_factory: true, is_mine: false, is_plantation: false}
+          prose: {retrenchment_count: 12, has_government_permission: false}
+      - name: no_retrenchment
+        should_pass: true
+        facts:
+          estab: {worker_count_peak_12m: 500, is_factory: true, is_mine: false, is_plantation: false}
+          prose: {retrenchment_count: 0, has_government_permission: false}

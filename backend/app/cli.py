@@ -1,0 +1,366 @@
+"""Operational commands.
+
+Run as ``python -m app.cli <command>``.
+
+These are the levers an operator needs: create the schema, load reference data,
+create the first admin, verify the audit chain, check the rule packs, and build an
+evaluation corpus. Deliberately plain argparse rather than a CLI framework,
+because a dependency that exists only to parse seven subcommands is not worth
+carrying.
+"""
+
+from __future__ import annotations
+
+import argparse
+import getpass
+import logging
+import sys
+from datetime import date
+from pathlib import Path
+
+from sqlalchemy import select
+
+from app.config import PROJECT_ROOT, get_settings
+from app.db import Base, get_engine, get_session_factory
+from app.logging_setup import configure_logging
+from app.models.enums import Role
+from app.models.user import Organisation, User
+from app.security import hash_password
+from app.services import audit as audit_service
+from app.services.wage_rates import load_wage_rates
+
+logger = logging.getLogger(__name__)
+
+
+def cmd_init_db(_: argparse.Namespace) -> int:
+    """Create tables directly from model metadata.
+
+    Alembic remains the source of truth for schema evolution. This exists so a
+    fresh database can be brought up in one step without generating a migration
+    first, which matters while the model layer is still moving.
+    """
+    settings = get_settings()
+    print(f"creating schema on {settings.safe_database_url()}")
+
+    # Importing the model package is what registers every table on the metadata.
+    # Without it, create_all would silently produce a partial schema.
+    import app.models  # noqa: F401
+
+    Base.metadata.create_all(bind=get_engine())
+
+    print(f"done: {len(Base.metadata.tables)} tables")
+    for name in sorted(Base.metadata.tables):
+        print(f"  {name}")
+    return 0
+
+
+def cmd_load_wages(_: argparse.Namespace) -> int:
+    settings = get_settings()
+
+    # Searched rather than fixed, because the statutory source files are curated
+    # by hand and have moved between the project root and storage/ more than once.
+    # A hard-coded path turns that into a silent "no rates loaded", which disables
+    # every wage-floor check without saying so.
+    filename = "state wise minimum wages.md"
+    candidates = [
+        settings.legal_data_dir / filename,
+        PROJECT_ROOT / filename,
+        PROJECT_ROOT / "storage" / filename,
+        PROJECT_ROOT / "data" / filename,
+    ]
+
+    source = next((path for path in candidates if path.exists()), None)
+    if source is None:
+        print(f"could not find {filename!r}. Looked in:", file=sys.stderr)
+        for path in candidates:
+            print(f"  {path}", file=sys.stderr)
+        return 1
+
+    with get_session_factory()() as session:
+        count = load_wage_rates(session, source)
+        session.commit()
+
+    if count == 0:
+        print(f"no rates loaded from {source}", file=sys.stderr)
+        return 1
+
+    print(f"loaded {count} minimum wage rows from {source.name}")
+    print(
+        "note: these are marked REFERENCE, not NOTIFIED. Every finding computed "
+        "from them carries that provenance."
+    )
+    return 0
+
+
+def cmd_create_admin(args: argparse.Namespace) -> int:
+    email = (args.email or input("admin email: ")).strip().lower()
+    name = args.name or input("full name: ").strip()
+
+    # Prompted rather than passed as an argument so the password does not land in
+    # shell history or the process list.
+    password = getpass.getpass("password: ")
+    if len(password) < 12:
+        print("password must be at least 12 characters", file=sys.stderr)
+        return 1
+    if password != getpass.getpass("confirm password: "):
+        print("passwords do not match", file=sys.stderr)
+        return 1
+
+    with get_session_factory()() as session:
+        if session.execute(select(User).where(User.email == email)).scalar_one_or_none():
+            print(f"user {email} already exists", file=sys.stderr)
+            return 1
+
+        org = session.execute(
+            select(Organisation).where(Organisation.is_government.is_(True))
+        ).scalar_one_or_none()
+        if org is None:
+            org = Organisation(
+                name="Ministry of Labour & Employment", is_government=True
+            )
+            session.add(org)
+            session.flush()
+
+        user = User(
+            organisation_id=org.id,
+            email=email,
+            full_name=name,
+            role=Role.ADMIN,
+            password_hash=hash_password(password),
+            jurisdictions=[],
+        )
+        session.add(user)
+        session.commit()
+        print(f"created admin {email} ({user.id})")
+    return 0
+
+
+def cmd_create_user(args: argparse.Namespace) -> int:
+    """Create a non-admin account.
+
+    Jurisdictions are mandatory for an inspector or analyst. An empty list means
+    no access rather than all access — the authorisation layer fails closed — so
+    creating one without a jurisdiction would produce an account that silently
+    sees nothing.
+    """
+    email = (args.email or input("email: ")).strip().lower()
+    name = args.name or input("full name: ").strip()
+
+    try:
+        role = Role(args.role.upper())
+    except ValueError:
+        print(
+            f"unknown role {args.role!r}; choose from "
+            f"{', '.join(r.value for r in Role)}",
+            file=sys.stderr,
+        )
+        return 1
+
+    states = [s.strip().upper() for s in (args.states or "").split(",") if s.strip()]
+    jurisdictions = [f"IN/{code}" for code in states]
+
+    if role in {Role.INSPECTOR, Role.ANALYST} and not jurisdictions:
+        print(
+            f"a {role.value} account needs at least one state, e.g. --states MH,GJ. "
+            "An account with no jurisdiction is given no access at all.",
+            file=sys.stderr,
+        )
+        return 1
+
+    password = getpass.getpass("password: ")
+    if len(password) < 12:
+        print("password must be at least 12 characters", file=sys.stderr)
+        return 1
+    if password != getpass.getpass("confirm password: "):
+        print("passwords do not match", file=sys.stderr)
+        return 1
+
+    with get_session_factory()() as session:
+        if session.execute(select(User).where(User.email == email)).scalar_one_or_none():
+            print(f"user {email} already exists", file=sys.stderr)
+            return 1
+
+        organisation_name = (
+            args.organisation
+            or ("Ministry of Labour & Employment" if role is not Role.EMPLOYER else None)
+        )
+        if organisation_name is None:
+            print(
+                "an employer account needs --organisation to name the employer",
+                file=sys.stderr,
+            )
+            return 1
+
+        org = session.execute(
+            select(Organisation).where(Organisation.name == organisation_name)
+        ).scalar_one_or_none()
+        if org is None:
+            org = Organisation(
+                name=organisation_name,
+                is_government=role is not Role.EMPLOYER,
+            )
+            session.add(org)
+            session.flush()
+
+        user = User(
+            organisation_id=org.id,
+            email=email,
+            full_name=name,
+            role=role,
+            password_hash=hash_password(password),
+            jurisdictions=jurisdictions,
+        )
+        session.add(user)
+        session.commit()
+
+        print(f"created {role.value} {email} ({user.id})")
+        print(f"  organisation: {org.name}")
+        print(f"  jurisdictions: {jurisdictions or 'none (employer scope)'}")
+    return 0
+
+
+def cmd_verify_audit(_: argparse.Namespace) -> int:
+    with get_session_factory()() as session:
+        result = audit_service.verify_chain(session)
+
+    if result.valid:
+        print(f"audit chain OK ({result.entries_checked} entries)")
+        return 0
+
+    print(
+        f"AUDIT CHAIN BROKEN at sequence {result.first_bad_sequence}: {result.reason}",
+        file=sys.stderr,
+    )
+    return 2
+
+
+def cmd_check_rules(args: argparse.Namespace) -> int:
+    """Validate the rule packs. Delegates to the checker so there is one implementation."""
+    from app.rules.checker import check
+
+    return check(args.dir or (PROJECT_ROOT / "rule_packs"), strict=args.strict)
+
+
+def cmd_build_corpus(args: argparse.Namespace) -> int:
+    """Generate an evaluation corpus with a machine-readable answer key."""
+    from app.services.corpus import build_corpus, write_corpus
+
+    out_dir = args.out or (PROJECT_ROOT / "corpus")
+
+    period = date(args.year, args.month, 1)
+    corpus = build_corpus(
+        establishment_name=args.name,
+        state_code=args.state.upper(),
+        worker_count=args.workers,
+        period=period,
+        seed=args.seed,
+        clean=args.clean,
+    )
+    write_corpus(corpus, out_dir, scanned=args.scanned)
+
+    print(f"corpus written to {out_dir}")
+    print(f"  establishment: {corpus.establishment_name} ({corpus.state_code})")
+    print(
+        f"  period: {corpus.period_start.isoformat()} to "
+        f"{corpus.period_end.isoformat()}"
+    )
+    print(f"  workers: {len(corpus.workers)}")
+    print(f"  documents: {len(corpus.files)}")
+
+    if args.clean:
+        print()
+        print(
+            "  This is the COMPLIANT set. Nothing should be found against it. Any "
+            "finding raised is a false positive, and that number matters as much as "
+            "the detection rate."
+        )
+    else:
+        print(f"  expected findings: {len(corpus.expected)}")
+        print()
+        by_rule: dict[str, int] = {}
+        for item in corpus.expected:
+            by_rule[item.rule_id] = by_rule.get(item.rule_id, 0) + 1
+        for rule_id in sorted(by_rule):
+            print(f"    {by_rule[rule_id]}x {rule_id}")
+
+    print()
+    print("  answer key: ground_truth.json")
+    print(
+        "  Upload these through the Documents screen, assess the period, then "
+        "compare the findings against the answer key."
+    )
+    return 0
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(prog="app.cli", description="Shram Drishti admin")
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    sub.add_parser("init-db", help="create tables from model metadata").set_defaults(
+        func=cmd_init_db
+    )
+    sub.add_parser("load-wages", help="load the state minimum wage table").set_defaults(
+        func=cmd_load_wages
+    )
+    sub.add_parser("verify-audit", help="verify the audit hash chain").set_defaults(
+        func=cmd_verify_audit
+    )
+
+    admin = sub.add_parser("create-admin", help="create an ADMIN user")
+    admin.add_argument("--email")
+    admin.add_argument("--name")
+    admin.set_defaults(func=cmd_create_admin)
+
+    user = sub.add_parser("create-user", help="create an employer, inspector or analyst")
+    user.add_argument("--email")
+    user.add_argument("--name")
+    user.add_argument("--role", required=True, help="EMPLOYER, INSPECTOR or ANALYST")
+    user.add_argument(
+        "--states",
+        help="comma-separated state codes, e.g. MH,GJ. Required for INSPECTOR and ANALYST.",
+    )
+    user.add_argument("--organisation", help="employer name, for an EMPLOYER account")
+    user.set_defaults(func=cmd_create_user)
+
+    rules = sub.add_parser("check-rules", help="validate the rule packs")
+    rules.add_argument("--dir", type=Path)
+    rules.add_argument(
+        "--strict",
+        action="store_true",
+        help="also fail on warnings and unverified thresholds",
+    )
+    rules.set_defaults(func=cmd_check_rules)
+
+    corpus = sub.add_parser(
+        "build-corpus", help="generate an evaluation corpus with known answers"
+    )
+    corpus.add_argument("--out", type=Path)
+    corpus.add_argument("--name", default="Sunrise Textile Works (Unit II)")
+    corpus.add_argument("--state", default="MH")
+    corpus.add_argument("--workers", type=int, default=24)
+    corpus.add_argument("--year", type=int, default=2026)
+    corpus.add_argument("--month", type=int, default=3)
+    corpus.add_argument("--seed", type=int, default=20260401)
+    corpus.add_argument(
+        "--clean",
+        action="store_true",
+        help="generate a fully compliant set, to measure false positives",
+    )
+    corpus.add_argument(
+        "--scanned",
+        action="store_true",
+        help=(
+            "also write image-only copies under corpus/scanned, so the OCR-only "
+            "reading path is exercised instead of the PDF text layer"
+        ),
+    )
+    corpus.set_defaults(func=cmd_build_corpus)
+
+    args = parser.parse_args(argv)
+    settings = get_settings()
+    configure_logging(level=settings.log_level, fmt=settings.log_format)
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
