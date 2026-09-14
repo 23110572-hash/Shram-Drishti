@@ -89,13 +89,12 @@ def build_alerts(
     """
     alerts: list[Alert] = []
 
-    # Anomalies are excluded from employer notices entirely. Telling an employer
-    # their digit distribution is unusual is not actionable and invites a dispute
-    # about statistics rather than about compliance.
+    # Statistical and model-only observations remain available to inspectors as
+    # advisory context, but are never legal compliance notices to employers.
     actionable = [
-        f
-        for f in findings
-        if f.kind is not FindingKind.ANOMALY and f.status is FindingStatus.OPEN
+        finding
+        for finding in findings
+        if finding.is_scored and finding.status is FindingStatus.OPEN
     ]
 
     if actionable:
@@ -305,8 +304,16 @@ def _inspector_notices(
         )
         return []
 
-    scored = [f for f in findings if f.kind is not FindingKind.ANOMALY]
-    anomalies = [f for f in findings if f.kind is FindingKind.ANOMALY]
+    scored = [finding for finding in findings if finding.is_scored]
+    anomalies = [
+        finding
+        for finding in findings
+        if finding.is_open
+        and (
+            finding.kind is FindingKind.ANOMALY
+            or finding.rule_id == "MODEL.OBSERVATION"
+        )
+    ]
     counts = _counts(scored)
 
     lines = [

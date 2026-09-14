@@ -919,11 +919,10 @@ def code_of(finding: Finding) -> LabourCode | None:
 def is_scored(finding: Finding) -> bool:
     """Whether a finding may affect a compliance score.
 
-    Anomalies never do. A statistical outlier is not a breach of law, and a score
-    that moved on one would be indefensible the moment an employer asked which
-    section they had broken.
+    Statistical anomalies and model-only observations are advisory. Neither may
+    change a legal compliance score.
     """
-    if finding.kind is FindingKind.ANOMALY:
+    if finding.kind is FindingKind.ANOMALY or finding.rule_id == "MODEL.OBSERVATION":
         return False
     return finding.status in {
         FindingStatus.OPEN,

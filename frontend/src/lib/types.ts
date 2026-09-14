@@ -216,6 +216,8 @@ export interface FindingSummary {
   severity: Severity;
   status: FindingStatus;
   title: string;
+  message: string;
+  remediation: string | null;
   citation: string;
   rule_id: string;
   rule_basis: RuleBasis;
@@ -235,8 +237,6 @@ export interface FindingSummary {
 }
 
 export interface FindingDetail extends FindingSummary {
-  message: string;
-  remediation: string | null;
   explanation: string | null;
   false_positive_reason: string | null;
   observed: Record<string, unknown>;
@@ -313,6 +313,8 @@ export interface ScorecardOut {
   data_completeness: number;
   documents_expected: number;
   documents_received: number;
+  expected_document_types: DocumentType[] | null;
+  missing_document_types: DocumentType[] | null;
   findings_by_severity: Record<string, number>;
   open_finding_count: number;
   anomaly_count: number;

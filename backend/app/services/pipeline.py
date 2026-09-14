@@ -63,7 +63,7 @@ from app.services.identity import (
 )
 from app.services.llm import BudgetTracker, LlmError, get_llm_client
 from app.services.ocr import OcrError, OcrFailure, get_ocr_provider
-from app.services.rule_engine import RuleEngine, resolve_assessed_severity
+from app.services.rule_engine import RuleEngine
 from app.services.storage import get_store
 
 logger = logging.getLogger(__name__)
@@ -1155,6 +1155,12 @@ async def _evaluate_establishment(
                 period_start=period_start,
                 period_end=period_end,
             )
+            _adopt_documented_workforce(
+                session,
+                establishment=establishment,
+                context=context,
+                actor_id=actor_id,
+            )
             _set_job_progress(job.id, 92, "Assessing compliance")
             for source_document in context.documents:
                 _set_document_progress(source_document.id, 92, "Assessing compliance")
@@ -1174,19 +1180,17 @@ async def _evaluate_establishment(
             _store_anomalies(session, context, anomalies)
             session.flush()
 
-            # 3. The model's review. Explains each finding, sets severity in
-            #    context within the bounds its rule allows, and raises what the
-            #    rules could not anticipate. It creates no finding and reverses
-            #    none.
+            # 3. The model's review. It explains deterministic findings, checks
+            #    all linked documents together, and raises advisory leads for
+            #    patterns the rules could not anticipate. It never changes a
+            #    verdict or scoring severity.
             analyst_notes = await _run_analyst(
                 session, establishment, context, report.findings, settings
             )
             session.flush()
 
-            # 4. Score. Anomalies and model observations are excluded by
-            #    construction, so nothing advisory can move this number. The
-            #    severities the review set are read from the findings, not
-            #    recomputed, which is what keeps the score reproducible.
+            # 4. Score. Statistical and model-only observations are excluded,
+            #    so advisory AI output cannot move the deterministic number.
             score = score_service.compute_score(
                 session,
                 establishment=establishment,
@@ -1201,7 +1205,7 @@ async def _evaluate_establishment(
                 period_end=period_end,
                 result=score,
                 actor_id=actor_id,
-                review_summary=analyst_notes.overall_assessment,
+                review_summary=_combined_analyst_summary(analyst_notes),
                 records_quality=analyst_notes.records_quality,
             )
 
@@ -1252,6 +1256,65 @@ async def _evaluate_establishment(
             raise
 
 
+def _adopt_documented_workforce(
+    session: Session,
+    *,
+    establishment: Establishment,
+    context: facts_service.FactContext,
+    actor_id: str | None,
+) -> None:
+    """Raise a zero/stale profile count to the documented workforce lower bound.
+
+    Applicability must not remain at zero after linked registers identify real
+    workers. The fact builder takes the maximum across independent sources; this
+    persists that conservative lower bound without ever reducing a declared value.
+    """
+    counts = context.namespaces.get("counts") or {}
+    effective = counts.get("effective")
+    effective_peak = counts.get("effective_peak_12m")
+    if not isinstance(effective, int) or not isinstance(effective_peak, int):
+        return
+
+    previous_current = establishment.worker_count
+    previous_peak = establishment.worker_count_peak_12m
+    establishment.worker_count = max(previous_current, effective)
+    establishment.worker_count_peak_12m = max(
+        previous_peak, establishment.worker_count, effective_peak
+    )
+    if (
+        establishment.worker_count == previous_current
+        and establishment.worker_count_peak_12m == previous_peak
+    ):
+        return
+
+    audit_service.record(
+        session,
+        action=AuditAction.ESTABLISHMENT_PROFILE_DERIVED,
+        subject_type="establishment",
+        subject_id=establishment.id,
+        actor_id=actor_id,
+        establishment_id=establishment.id,
+        purpose="deriving workforce threshold context from linked filings",
+        detail={
+            "previous_worker_count": previous_current,
+            "worker_count": establishment.worker_count,
+            "previous_peak_12m": previous_peak,
+            "worker_count_peak_12m": establishment.worker_count_peak_12m,
+            "source_counts": {
+                key: counts.get(key)
+                for key in (
+                    "register",
+                    "wage_register",
+                    "epf",
+                    "esic",
+                    "annual_return",
+                )
+            },
+        },
+    )
+    session.flush()
+
+
 @dataclass
 class AnalystOutcome:
     """What the model review produced, for the caller to record.
@@ -1269,6 +1332,15 @@ class AnalystOutcome:
     consistency_notes: str | None = None
 
 
+def _combined_analyst_summary(outcome: AnalystOutcome) -> str | None:
+    parts: list[str] = []
+    if outcome.overall_assessment:
+        parts.append(outcome.overall_assessment.strip())
+    if outcome.consistency_notes:
+        parts.append(f"Cross-document check: {outcome.consistency_notes.strip()}")
+    return "\n\n".join(part for part in parts if part) or None
+
+
 async def _run_analyst(
     session: Session,
     establishment: Establishment,
@@ -1278,9 +1350,9 @@ async def _run_analyst(
 ) -> AnalystOutcome:
     """Run the model review and store what it produced.
 
-    Failure here is logged and swallowed. The rule findings and the score are
-    already correct without it: this pass adds explanation, contextual severity and
-    extra leads, and losing those must not lose an evaluation.
+    Failure here is logged and swallowed. Deterministic rule findings and the
+    score remain valid without it: this pass adds explanations, cross-document
+    consistency analysis and advisory leads without changing legal outcomes.
     """
     if not context.documents:
         return AnalystOutcome()
@@ -1313,52 +1385,34 @@ async def _run_analyst(
         logger.warning("analyst review failed", extra={"error": str(exc)})
         return AnalystOutcome()
 
-    # Annotate the rule findings. The verdict itself is never touched — a finding
-    # is not deleted, and no non-compliance is created, on a model's say-so.
-    #
-    # Severity is different, and deliberately so. A rule declares one severity for
-    # its whole class of breach and cannot see magnitude, spread or repetition, so
-    # a 51% deduction for one worker and a 90% deduction across the workforce for
-    # three months arrive scored identically. The review does see that. Its opinion
-    # is therefore allowed to move severity by one step, with the reason recorded
-    # against the finding, and scoring reads the stored value rather than calling
-    # the model again — so the score stays reproducible while ceasing to pretend
-    # every breach of a kind is equally grave.
+    # Annotate deterministic findings without changing their legal verdict or
+    # scoring severity. The model contributes plain-language explanation,
+    # consistency context and false-positive leads; deterministic rules remain
+    # the sole authority for the score.
     by_id = {f.id: f for f in findings}
-    adjusted = 0
     for assessment in report.assessments:
         finding = by_id.get(assessment.finding_id)
         if finding is None:
             continue
-        finding.explanation = assessment.plain_explanation
+
+        explanation = (assessment.plain_explanation or "").strip()
+        if (
+            assessment.severity_opinion is not None
+            and assessment.severity_opinion is not finding.severity
+        ):
+            advisory = (
+                "Automated context suggested "
+                f"{assessment.severity_opinion.value.lower()} severity; "
+                f"the deterministic rule remains {finding.severity.value.lower()}."
+            )
+            explanation = f"{explanation}\n\n{advisory}" if explanation else advisory
+        finding.explanation = explanation or None
+
         if assessment.is_possible_false_positive:
             finding.possible_false_positive = True
             finding.false_positive_reason = assessment.reason
-            # A finding the review doubts is not one whose gravity it should be
-            # arguing about. The doubt is the message; the flag carries it.
-            continue
 
-        severity, rationale = resolve_assessed_severity(
-            baseline=finding.baseline_severity or finding.severity,
-            opinion=assessment.severity_opinion,
-            verdict_is_sound=assessment.verdict == "sound",
-            rationale=assessment.plain_explanation or assessment.reason,
-        )
-        if severity is not finding.severity:
-            finding.severity = severity
-            finding.severity_rationale = rationale
-            finding.severity_assessed = True
-            adjusted += 1
-
-    if adjusted:
-        logger.info(
-            "finding severities adjusted in context",
-            extra={
-                "establishment_id": context.establishment.id,
-                "adjusted": adjusted,
-                "of": len(report.assessments),
-            },
-        )
+    adjusted = 0
 
     observations = [*report.observations, *cross.observations]
     stored = _store_observations(session, context, observations)
@@ -1467,8 +1521,15 @@ def _store_observations(
 
     stored = 0
     document_ids = [d.id for d in context.documents]
+    known_document_ids = set(document_ids)
 
     for observation in observations:
+        involved_ids = [
+            document_id
+            for document_id in getattr(observation, "documents_involved", [])
+            if document_id in known_document_ids
+        ]
+        evidence_document_id = involved_ids[0] if len(involved_ids) == 1 else None
         kind = observation.kind
         if kind is FindingKind.NON_COMPLIANCE:
             kind = FindingKind.DISCREPANCY
@@ -1523,7 +1584,7 @@ def _store_observations(
         for page in getattr(observation, "evidence_pages", [])[:6]:
             finding.evidence.append(
                 FindingEvidence(
-                    document_id=document_ids[0] if document_ids else None,
+                    document_id=evidence_document_id,
                     page_number=page,
                     note="page identified by automated review",
                 )

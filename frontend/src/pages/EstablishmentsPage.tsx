@@ -2,8 +2,10 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import {
+  AlertTriangle,
   Building2,
   CalendarRange,
+  CheckCircle2,
   ChevronRight,
   FileSearch,
   Gauge,
@@ -18,13 +20,15 @@ import { api } from "@/lib/api";
 import { count, date, dateTime, paise, percent, period } from "@/lib/format";
 import {
   CODE_SHORT_LABELS,
+  DOCUMENT_TYPE_LABELS,
   WAGE_RATE_SOURCE_LABELS,
   type EstablishmentDetail,
   type EstablishmentSummary,
+  type FindingSummary,
   type LabourCode,
   type ScorecardOut,
 } from "@/lib/types";
-import { Badge, RiskBadge } from "@/components/ui/Badge";
+import { Badge, RiskBadge, SeverityBadge } from "@/components/ui/Badge";
 import {
   Caution,
   EmptyState,
@@ -269,12 +273,43 @@ function EstablishmentDrawer({
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["establishment", establishmentId] });
       void queryClient.invalidateQueries({ queryKey: ["scorecards", establishmentId] });
+      void queryClient.invalidateQueries({
+        queryKey: ["establishment-score-findings", establishmentId],
+      });
       void queryClient.invalidateQueries({ queryKey: ["findings"] });
     },
   });
 
   const establishment = detail.data;
   const scorecard = establishment?.latest_scorecard;
+  const findingParams = new URLSearchParams({
+    establishment_id: establishmentId,
+    open_only: "true",
+    scored_only: "true",
+    limit: "20",
+  });
+  if (scorecard?.period_start) {
+    findingParams.set("period_start", scorecard.period_start);
+  }
+  if (scorecard?.period_end) {
+    findingParams.set("period_end", scorecard.period_end);
+  }
+
+  const findings = useQuery({
+    queryKey: [
+      "establishment-score-findings",
+      establishmentId,
+      scorecard?.period_start,
+      scorecard?.period_end,
+    ],
+    queryFn: () =>
+      api.get<FindingSummary[]>(`/findings?${findingParams.toString()}`),
+    enabled: Boolean(scorecard),
+  });
+
+  const openFindings = findings.data ?? [];
+  const missingDocumentTypes = scorecard?.missing_document_types ?? [];
+  const issueCount = findings.data?.length ?? scorecard?.open_finding_count ?? 0;
 
   return (
     <div className="fixed inset-0 z-[60] flex justify-end">
@@ -322,105 +357,200 @@ function EstablishmentDrawer({
 
           {establishment && (
             <>
-              {/* Score */}
+              {/* Plain-language result first; methodology stays optional below. */}
               {scorecard ? (
-                <section className="space-y-3 rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Compliance score
-                      </p>
-                      <p className="text-4xl font-extrabold text-slate-900">
-                        {scorecard.overall_score.toFixed(0)}
-                        <span className="text-lg font-bold text-slate-400"> / 100</span>
-                      </p>
+                <section className="space-y-4 rounded-3xl border border-slate-200 bg-slate-50/70 p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div
+                        className={[
+                          "mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
+                          issueCount > 0
+                            ? "bg-rose-100 text-rose-700"
+                            : scorecard.evidence_sufficient
+                              ? "bg-emerald-100 text-emerald-700"
+                              : "bg-amber-100 text-amber-700",
+                        ].join(" ")}
+                      >
+                        {issueCount > 0 || !scorecard.evidence_sufficient ? (
+                          <AlertTriangle className="h-5 w-5" />
+                        ) : (
+                          <CheckCircle2 className="h-5 w-5" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                          Document compliance result
+                        </p>
+                        <h2 className="mt-1 text-2xl font-extrabold text-slate-950">
+                          {issueCount > 0
+                            ? `${issueCount} issue${issueCount === 1 ? "" : "s"} need attention`
+                            : scorecard.evidence_sufficient
+                              ? "No open issues found"
+                              : "More documents are needed"}
+                        </h2>
+                        <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
+                          {issueCount > 0
+                            ? "The checks below found specific problems in the linked records for this period."
+                            : scorecard.evidence_sufficient
+                              ? "No open issue was found in the documents that were assessed."
+                              : "No breach is confirmed from the available records, but there is not enough evidence to complete every check."}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-slate-500">
+                          {period(scorecard.period_start, scorecard.period_end)}
+                        </p>
+                      </div>
                     </div>
-                    <div className="space-y-2 text-right">
-                      <RiskBadge band={scorecard.risk_band} />
-                      <p className="text-xs text-slate-500">
-                        {period(scorecard.period_start, scorecard.period_end)}
+                    <div className="text-right">
+                      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                        Risk score
                       </p>
+                      <p className="text-3xl font-extrabold text-slate-900">
+                        {scorecard.overall_score.toFixed(0)}
+                        <span className="text-base text-slate-400"> / 100</span>
+                      </p>
+                      <RiskBadge band={scorecard.risk_band} />
                     </div>
                   </div>
 
-                  {/* Why the number is what it is, when missing evidence rather
-                      than conduct set it. Placed above the per-Code breakdown so a
-                      capped Code is explained before it is read. */}
-                  {scorecard.evidence_note && (
-                    <Caution title="Part of this score reflects missing evidence">
-                      {scorecard.evidence_note}
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <Metric label="Issues found" value={count(issueCount)} />
+                    <Metric
+                      label="Document types received"
+                      value={`${scorecard.documents_received} of ${scorecard.documents_expected}`}
+                    />
+                    <Metric
+                      label="Checks completed"
+                      value={percent(scorecard.data_completeness)}
+                    />
+                  </div>
+
+                  {findings.isPending && issueCount > 0 && (
+                    <p className="text-sm text-slate-500">Loading the issues…</p>
+                  )}
+                  {findings.isError && issueCount > 0 && (
+                    <Caution title="Issue details could not be loaded">
+                      Open the Findings page below to review the detected problems.
                     </Caution>
+                  )}
+
+                  {openFindings.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-sm font-extrabold text-slate-900">
+                        Issues to fix
+                      </h3>
+                      <ul className="space-y-2">
+                        {openFindings.slice(0, 4).map((finding) => (
+                          <li
+                            key={finding.id}
+                            className="rounded-2xl border border-rose-200 bg-white p-4"
+                          >
+                            <div className="flex flex-wrap items-center gap-2">
+                              <SeverityBadge severity={finding.severity} />
+                              <p className="font-bold text-slate-900">{finding.title}</p>
+                            </div>
+                            <p className="mt-2 text-sm leading-relaxed text-slate-700">
+                              {finding.message}
+                            </p>
+                            {finding.remediation && (
+                              <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
+                                <span className="font-bold">What to do: </span>
+                                {finding.remediation}
+                              </p>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                      {openFindings.length > 4 && (
+                        <p className="text-xs font-semibold text-slate-500">
+                          {openFindings.length - 4} more issue(s) are available on the Findings page.
+                        </p>
+                      )}
+                    </div>
                   )}
 
                   {!scorecard.evidence_sufficient && (
-                    <Caution title="This score rests on incomplete evidence">
-                      {scorecard.documents_received} of{" "}
-                      {scorecard.documents_expected} expected document types were
-                      received. A low finding count here does not indicate
-                      compliance — most checks could not be run at all.
-                    </Caution>
+                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                      <h3 className="font-bold text-amber-950">Documents still needed</h3>
+                      {missingDocumentTypes.length > 0 ? (
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {missingDocumentTypes.map((docType) => (
+                            <Badge key={docType} tone="medium">
+                              {DOCUMENT_TYPE_LABELS[docType]}
+                            </Badge>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-1 text-sm text-amber-900">
+                          {Math.max(
+                            0,
+                            scorecard.documents_expected - scorecard.documents_received,
+                          )} additional document type(s) are required. Re-run this assessment to see their names.
+                        </p>
+                      )}
+                      <p className="mt-2 text-xs leading-relaxed text-amber-900">
+                        Upload these records for the same establishment and period, then run the assessment again. Missing evidence is not itself proof of a breach.
+                      </p>
+                    </div>
                   )}
 
-                  {/* The model's qualitative reading, kept visually distinct from
-                      the score because it did not contribute to it. */}
                   {scorecard.review_summary && (
                     <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-sm leading-relaxed text-sky-950">
                       <p className="flex flex-wrap items-center gap-2 font-bold">
-                        Reading of the records
+                        AI review across linked documents
                         {scorecard.records_quality && (
                           <Badge tone="info">
                             {scorecard.records_quality.replace(/_/g, " ")}
                           </Badge>
                         )}
                       </p>
-                      <p className="mt-1">{scorecard.review_summary}</p>
+                      <p className="mt-2 whitespace-pre-line">{scorecard.review_summary}</p>
                       <p className="mt-2 text-xs text-sky-900/80">
-                        This is an automated reading offered for context. It did not
-                        affect the score above.
+                        AI links information across the submitted records and explains inconsistencies. Deterministic Labour Code rules—not AI opinion—decide findings and the score.
                       </p>
                     </div>
                   )}
 
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    {(Object.keys(CODE_SHORT_LABELS) as LabourCode[]).map((code) => (
-                      <div
-                        key={code}
-                        className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-2.5"
-                      >
-                        <span className="text-sm font-semibold text-slate-700">
-                          {CODE_SHORT_LABELS[code]}
-                        </span>
-                        <span className="font-mono text-sm font-extrabold text-slate-900">
-                          {(scorecard.code_scores[code] ?? 0).toFixed(0)}
-                        </span>
+                  <details className="rounded-2xl border border-slate-200 bg-white">
+                    <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-800">
+                      How this score was calculated
+                    </summary>
+                    <div className="space-y-3 border-t border-slate-100 p-4">
+                      {scorecard.evidence_note && (
+                        <p className="text-sm leading-relaxed text-slate-600">
+                          {scorecard.evidence_note}
+                        </p>
+                      )}
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {(Object.keys(CODE_SHORT_LABELS) as LabourCode[]).map((code) => (
+                          <div
+                            key={code}
+                            className="flex items-center justify-between rounded-xl border border-slate-200 px-3 py-2"
+                          >
+                            <span className="text-sm font-semibold text-slate-700">
+                              {CODE_SHORT_LABELS[code]}
+                            </span>
+                            <span className="font-mono text-sm font-extrabold text-slate-900">
+                              {scorecard.code_scores[code] === undefined
+                                ? "Not assessed"
+                                : scorecard.code_scores[code].toFixed(0)}
+                            </span>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <Metric
-                      label="Evidence assessable"
-                      value={percent(scorecard.data_completeness)}
-                    />
-                    <Metric
-                      label="Open findings"
-                      value={count(scorecard.open_finding_count)}
-                    />
-                    <Metric
-                      label="Advisory signals"
-                      value={count(scorecard.anomaly_count)}
-                    />
-                  </div>
-
-                  {scorecard.recommended_inspection_months !== null && (
-                    <p className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                      <CalendarRange aria-hidden="true" className="h-4 w-4" />
-                      Suggested inspection interval:{" "}
-                      {scorecard.recommended_inspection_months} months
-                      {scorecard.recommended_inspection_priority !== null &&
-                        ` · priority ${scorecard.recommended_inspection_priority}/100`}
-                    </p>
-                  )}
+                      <p className="text-xs font-semibold text-slate-500">
+                        Advisory AI/statistical signals: {count(scorecard.anomaly_count)}. These do not affect the score.
+                      </p>
+                      {scorecard.recommended_inspection_months !== null && (
+                        <p className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                          <CalendarRange aria-hidden="true" className="h-4 w-4" />
+                          Suggested inspection interval: {scorecard.recommended_inspection_months} months
+                          {scorecard.recommended_inspection_priority !== null &&
+                            ` · priority ${scorecard.recommended_inspection_priority}/100`}
+                        </p>
+                      )}
+                    </div>
+                  </details>
                 </section>
               ) : (
                 <Caution title="Never assessed">
@@ -487,6 +617,11 @@ function EstablishmentDrawer({
                 )}
               </section>
 
+              <details className="rounded-2xl border border-slate-200 bg-white">
+                <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-800">
+                  Profile, legal thresholds and wage rates
+                </summary>
+                <div className="space-y-6 border-t border-slate-100 p-4">
               {/* Profile */}
               <section className="space-y-2">
                 <h3 className="text-sm font-bold uppercase tracking-wider text-slate-700">
@@ -673,6 +808,8 @@ function EstablishmentDrawer({
                   </ul>
                 </section>
               )}
+                </div>
+              </details>
 
               {/* Score history */}
               {history.data && history.data.length > 1 && (

@@ -58,7 +58,9 @@ logger = logging.getLogger(__name__)
 #: 1.1 — a Code that could not be assessed is now capped at UNTESTED_CEILING
 #:       instead of scoring 100 by absence, and only rules awaiting a notification
 #:       are discounted rather than everything the old `verified` flag caught.
-SCORING_VERSION = "1.1"
+#: 1.2 — model-only observations are explicitly advisory and exact missing
+#:       document types are persisted with the score computation.
+SCORING_VERSION = "1.2"
 
 #: Relative importance of each Code in the overall score. Wages and social
 #: security are weighted highest because their breaches take money directly out
@@ -174,6 +176,8 @@ class Completeness:
 
     documents_expected: int
     documents_received: int
+    expected_document_types: list[DocumentType]
+    missing_document_types: list[DocumentType]
     rule_coverage: float
     unassessable_rules: int = 0
     documents_needing_review: int = 0
@@ -287,8 +291,16 @@ def compute_score(
     """
     findings = _findings(session, establishment.id, period_start, period_end)
 
-    scored = [f for f in findings if is_scored(f)]
-    anomalies = [f for f in findings if f.kind is FindingKind.ANOMALY]
+    scored = [finding for finding in findings if is_scored(finding)]
+    advisories = [
+        finding
+        for finding in findings
+        if finding.is_open
+        and (
+            finding.kind is FindingKind.ANOMALY
+            or finding.rule_id == "MODEL.OBSERVATION"
+        )
+    ]
 
     code_scores: dict[LabourCode, CodeScore] = {}
     contributing: dict[str, list[str]] = {}
@@ -384,8 +396,8 @@ def compute_score(
         code_scores=code_scores,
         completeness=completeness,
         findings_by_severity=_by_severity(scored),
-        open_finding_count=len([f for f in findings if f.is_open]),
-        anomaly_count=len(anomalies),
+        open_finding_count=len(scored),
+        anomaly_count=len(advisories),
         inspection_priority=priority,
         inspection_interval_months=INSPECTION_INTERVAL_MONTHS[band],
     )
@@ -408,13 +420,19 @@ def compute_score(
             code.value: score.as_dict() for code, score in code_scores.items()
         },
         "contributing_findings": contributing,
-        "excluded_anomalies": [f.id for f in anomalies],
+        "excluded_advisories": [finding.id for finding in advisories],
         "rule_pack_versions": sorted(
             {f.rule_pack_version for f in findings if f.rule_pack_version}
         ),
         "completeness": {
             "documents_expected": completeness.documents_expected,
             "documents_received": completeness.documents_received,
+            "expected_document_types": [
+                doc_type.value for doc_type in completeness.expected_document_types
+            ],
+            "missing_document_types": [
+                doc_type.value for doc_type in completeness.missing_document_types
+            ],
             "document_share": round(completeness.document_share, 3),
             "rule_coverage": completeness.rule_coverage,
             "unassessable_rules": completeness.unassessable_rules,
@@ -627,6 +645,10 @@ def _completeness(
     return Completeness(
         documents_expected=len(expected),
         documents_received=received,
+        expected_document_types=expected,
+        missing_document_types=[
+            doc_type for doc_type in expected if doc_type not in present_types
+        ],
         rule_coverage=report.coverage,
         unassessable_rules=report.rules_unassessable,
         documents_needing_review=sum(

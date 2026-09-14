@@ -132,10 +132,18 @@ def build_facts(
     context.documents = documents
     document_ids = [d.id for d in documents]
 
-    wage_lines = _wage_lines(session, establishment.id, period_start, period_end)
-    attendance = _attendance(session, establishment.id, period_start, period_end)
-    contributions = _contributions(session, establishment.id, period_start, period_end)
-    incidents = _incidents(session, establishment.id, period_start, period_end)
+    wage_lines = _wage_lines(
+        session, establishment.id, document_ids, period_start, period_end
+    )
+    attendance = _attendance(
+        session, establishment.id, document_ids, period_start, period_end
+    )
+    contributions = _contributions(
+        session, establishment.id, document_ids, period_start, period_end
+    )
+    incidents = _incidents(
+        session, establishment.id, document_ids, period_start, period_end
+    )
     prose = _prose(session, establishment.id, document_ids)
 
     identities = _identities(session, establishment.id)
@@ -158,10 +166,32 @@ def build_facts(
         [c for c in contributions if (c.scheme or "").upper() == "ESIC"], wage_lines
     )
     incident_rows, incident_sources = _incident_rows(incidents)
-    employee_rows = _employee_rows(identities, period_start, period_end)
+    has_employee_register = any(
+        document.doc_type is DocumentType.EMPLOYEE_REGISTER for document in documents
+    )
+    employee_rows = (
+        _employee_rows(identities, period_start, period_end)
+        if has_employee_register
+        else []
+    )
+    counts = _headcounts(wage_rows, epf_rows, esic_rows, prose, employee_rows)
+    effective_workers = _effective_worker_count(establishment.worker_count, counts)
+    effective_peak = max(establishment.worker_count_peak_12m, effective_workers)
+    counts.update(
+        {
+            "declared": establishment.worker_count,
+            "declared_peak_12m": establishment.worker_count_peak_12m,
+            "effective": effective_workers,
+            "effective_peak_12m": effective_peak,
+        }
+    )
 
     context.namespaces = {
-        "estab": _establishment_facts(establishment),
+        "estab": _establishment_facts(
+            establishment,
+            worker_count=effective_workers,
+            worker_count_peak_12m=effective_peak,
+        ),
         "period": _period_facts(period_start, period_end, documents),
         "wage_register": wage_rows,
         "employee_register": employee_rows,
@@ -175,7 +205,7 @@ def build_facts(
         "prose": prose,
         "wage_floor": wage_floor,
         "docs": _document_counts(documents),
-        "counts": _headcounts(wage_rows, epf_rows, esic_rows, prose, employee_rows),
+        "counts": counts,
     }
 
     context.row_sources = {
@@ -226,23 +256,41 @@ def _documents(
     )
     for condition in _in_period(Document.period_start, Document.period_end, start, end):
         query = query.where(condition)
-    return list(session.execute(query).scalars().all())
+    return list(
+        session.execute(query.order_by(Document.created_at, Document.id)).scalars().all()
+    )
 
 
 def _wage_lines(
-    session: Session, establishment_id: str, start: date | None, end: date | None
+    session: Session,
+    establishment_id: str,
+    document_ids: list[str],
+    start: date | None,
+    end: date | None,
 ) -> list[WageLine]:
-    query = select(WageLine).where(WageLine.establishment_id == establishment_id)
+    if not document_ids:
+        return []
+    query = select(WageLine).where(
+        WageLine.establishment_id == establishment_id,
+        WageLine.document_id.in_(document_ids),
+    )
     for condition in _in_period(WageLine.period_start, WageLine.period_end, start, end):
         query = query.where(condition)
     return list(session.execute(query).scalars().all())
 
 
 def _attendance(
-    session: Session, establishment_id: str, start: date | None, end: date | None
+    session: Session,
+    establishment_id: str,
+    document_ids: list[str],
+    start: date | None,
+    end: date | None,
 ) -> list[AttendanceRecord]:
+    if not document_ids:
+        return []
     query = select(AttendanceRecord).where(
-        AttendanceRecord.establishment_id == establishment_id
+        AttendanceRecord.establishment_id == establishment_id,
+        AttendanceRecord.document_id.in_(document_ids),
     )
     for condition in _in_period(
         AttendanceRecord.period_start, AttendanceRecord.period_end, start, end
@@ -252,10 +300,17 @@ def _attendance(
 
 
 def _contributions(
-    session: Session, establishment_id: str, start: date | None, end: date | None
+    session: Session,
+    establishment_id: str,
+    document_ids: list[str],
+    start: date | None,
+    end: date | None,
 ) -> list[ContributionLine]:
+    if not document_ids:
+        return []
     query = select(ContributionLine).where(
-        ContributionLine.establishment_id == establishment_id
+        ContributionLine.establishment_id == establishment_id,
+        ContributionLine.document_id.in_(document_ids),
     )
     for condition in _in_period(
         ContributionLine.period_start, ContributionLine.period_end, start, end
@@ -265,10 +320,17 @@ def _contributions(
 
 
 def _incidents(
-    session: Session, establishment_id: str, start: date | None, end: date | None
+    session: Session,
+    establishment_id: str,
+    document_ids: list[str],
+    start: date | None,
+    end: date | None,
 ) -> list[IncidentRecord]:
+    if not document_ids:
+        return []
     query = select(IncidentRecord).where(
-        IncidentRecord.establishment_id == establishment_id
+        IncidentRecord.establishment_id == establishment_id,
+        IncidentRecord.document_id.in_(document_ids),
     )
     if start is not None:
         query = query.where(IncidentRecord.occurred_on >= start)
@@ -294,7 +356,9 @@ def _prose(
         query = query.where(ProseAssertion.document_id.in_(document_ids))
 
     facts: dict[str, Any] = {}
-    for assertion in session.execute(query).scalars().all():
+    for assertion in session.execute(
+        query.order_by(ProseAssertion.created_at, ProseAssertion.id)
+    ).scalars().all():
         if not assertion.key:
             continue
 
@@ -619,7 +683,18 @@ def _employee_rows(
 
 
 # --------------------------------------------------------------- aggregates
-def _establishment_facts(establishment: Establishment) -> dict[str, Any]:
+def _establishment_facts(
+    establishment: Establishment,
+    *,
+    worker_count: int | None = None,
+    worker_count_peak_12m: int | None = None,
+) -> dict[str, Any]:
+    current = establishment.worker_count if worker_count is None else worker_count
+    peak = (
+        establishment.worker_count_peak_12m
+        if worker_count_peak_12m is None
+        else worker_count_peak_12m
+    )
     return {
         "id": establishment.id,
         "name": establishment.name,
@@ -630,12 +705,12 @@ def _establishment_facts(establishment: Establishment) -> dict[str, Any]:
         "jurisdiction_code": establishment.jurisdiction_code,
         "nic_code": establishment.nic_code,
         "sector": establishment.sector,
-        "worker_count": establishment.worker_count,
-        "worker_count_peak_12m": max(
-            establishment.worker_count_peak_12m, establishment.worker_count
-        ),
+        "worker_count": current,
+        "worker_count_peak_12m": max(peak, current),
         "women_worker_count": establishment.women_worker_count,
-        "women_worker_ratio": establishment.women_worker_ratio,
+        "women_worker_ratio": (
+            establishment.women_worker_count / current if current > 0 else 0.0
+        ),
         "contract_worker_count": establishment.contract_worker_count,
         "interstate_migrant_count": establishment.interstate_migrant_count,
         "is_factory": establishment.is_factory,
@@ -826,7 +901,7 @@ def _headcounts(
         return len({row[key] for row in rows if row.get(key)})
 
     return {
-        "register": distinct(employee_rows) or distinct(wage_rows),
+        "register": distinct(employee_rows),
         "wage_register": distinct(wage_rows),
         "epf": distinct(epf_rows),
         "esic": distinct(esic_rows),
@@ -840,6 +915,24 @@ def _headcounts(
             and (row.get("match_confidence") or 1.0) < 0.9
         ),
     }
+
+
+def _effective_worker_count(declared: int, counts: dict[str, Any]) -> int:
+    """Conservative workforce lower bound supported by linked documents.
+
+    A newly registered establishment starts at zero. Keeping that zero after a
+    wage register or statutory contribution filing has identified workers makes
+    threshold rules incorrectly disappear. We take the maximum corroborated
+    source count and never reduce a declared profile value.
+    """
+    candidates = [declared]
+    for key in ("register", "wage_register", "epf", "esic", "annual_return"):
+        value = counts.get(key)
+        if isinstance(value, bool):
+            continue
+        if isinstance(value, int | float) and value >= 0:
+            candidates.append(int(value))
+    return max(candidates)
 
 
 def _wage_floor(

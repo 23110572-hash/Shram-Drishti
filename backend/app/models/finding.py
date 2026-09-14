@@ -5,9 +5,9 @@ to defend itself: which rule fired, which version of which rule pack, the exact
 statutory citation, the observed and expected values, and the cell on the page
 that proves it.
 
-Anomalies live in the same table but are structurally prevented from affecting a
-score. ``FindingKind.ANOMALY`` is excluded from scoring, because a statistical
-outlier is not a breach of law.
+Statistical anomalies and model-only observations live in the same table but are
+structurally prevented from affecting a score. They remain advisory because they
+are leads from data analysis, not deterministic statutory verdicts.
 """
 
 from __future__ import annotations
@@ -163,8 +163,8 @@ class Finding(IdMixin, TimestampMixin, Base):
 
     @property
     def is_scored(self) -> bool:
-        """Anomalies and dismissed findings never contribute to a score."""
-        if self.kind is FindingKind.ANOMALY:
+        """Only current deterministic rule findings contribute to a score."""
+        if self.kind is FindingKind.ANOMALY or self.rule_id == "MODEL.OBSERVATION":
             return False
         return self.status in {
             FindingStatus.OPEN,

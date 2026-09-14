@@ -14,6 +14,7 @@ from app.deps import Access, CurrentUser, DbSession, require_roles
 from app.models.document import Document
 from app.models.enums import (
     DocumentStatus,
+    DocumentType,
     FindingKind,
     FindingStatus,
     LabourCode,
@@ -91,6 +92,8 @@ class ScorecardOut(BaseModel):
     data_completeness: float
     documents_expected: int
     documents_received: int
+    expected_document_types: list[DocumentType] | None
+    missing_document_types: list[DocumentType] | None
     findings_by_severity: dict[str, int]
     open_finding_count: int
     anomaly_count: int
@@ -524,6 +527,7 @@ def _summaries(
         .where(
             Finding.establishment_id.in_(ids),
             Finding.kind != FindingKind.ANOMALY,
+            Finding.rule_id != "MODEL.OBSERVATION",
             Finding.status.in_(
                 [
                     FindingStatus.OPEN,
@@ -571,6 +575,20 @@ def _summaries(
     return summaries
 
 
+def _document_types_from_computation(
+    completeness: dict[str, Any] | None, key: str
+) -> list[DocumentType] | None:
+    if not completeness or not isinstance(completeness.get(key), list):
+        return None
+    values: list[DocumentType] = []
+    for value in completeness[key]:
+        try:
+            values.append(DocumentType(str(value)))
+        except ValueError:
+            continue
+    return values
+
+
 def _scorecard_out(
     scorecard: Scorecard, *, include_computation: bool = False
 ) -> ScorecardOut:
@@ -588,6 +606,12 @@ def _scorecard_out(
         data_completeness=scorecard.data_completeness,
         documents_expected=scorecard.documents_expected,
         documents_received=scorecard.documents_received,
+        expected_document_types=_document_types_from_computation(
+            completeness, "expected_document_types"
+        ),
+        missing_document_types=_document_types_from_computation(
+            completeness, "missing_document_types"
+        ),
         findings_by_severity=dict(scorecard.findings_by_severity or {}),
         open_finding_count=scorecard.open_finding_count,
         anomaly_count=scorecard.anomaly_count,

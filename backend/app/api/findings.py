@@ -65,6 +65,8 @@ class FindingSummary(BaseModel):
     severity: Severity
     status: FindingStatus
     title: str
+    message: str
+    remediation: str | None
     citation: str
     rule_id: str
     rule_basis: RuleBasis
@@ -84,8 +86,6 @@ class FindingSummary(BaseModel):
 
 
 class FindingDetail(FindingSummary):
-    message: str
-    remediation: str | None
     explanation: str | None
     false_positive_reason: str | None
     observed: dict[str, Any]
@@ -130,6 +130,7 @@ def list_findings(
     open_only: Annotated[bool, Query()] = False,
     scored_only: Annotated[bool, Query()] = False,
     period_start: Annotated[date | None, Query()] = None,
+    period_end: Annotated[date | None, Query()] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[FindingSummary]:
@@ -152,6 +153,8 @@ def list_findings(
         query = query.where(Finding.status == status_filter)
     if period_start:
         query = query.where(Finding.period_start == period_start)
+    if period_end:
+        query = query.where(Finding.period_end == period_end)
     if open_only:
         query = query.where(
             Finding.status.in_(
@@ -165,7 +168,10 @@ def list_findings(
     if scored_only:
         # Excludes advisory signals. An employer reviewing what actually affects
         # their score should not have to sift statistical observations out of it.
-        query = query.where(Finding.kind != FindingKind.ANOMALY)
+        query = query.where(
+            Finding.kind != FindingKind.ANOMALY,
+            Finding.rule_id != "MODEL.OBSERVATION",
+        )
 
     # Ordered by the severity that matters, then by how many workers it touches.
     # Alphabetical or chronological ordering would bury a critical finding
@@ -231,7 +237,12 @@ def count_findings(
         by_code[key] = by_code.get(key, 0) + 1
         exposure += finding.exposure_paise or 0
 
-    advisory = sum(1 for f in findings if f.kind is FindingKind.ANOMALY)
+    advisory = sum(
+        1
+        for finding in findings
+        if finding.kind is FindingKind.ANOMALY
+        or finding.rule_id == "MODEL.OBSERVATION"
+    )
 
     return FindingCounts(
         by_severity=by_severity,
@@ -288,8 +299,6 @@ def get_finding(
 
     return FindingDetail(
         **summary.model_dump(),
-        message=finding.message,
-        remediation=finding.remediation,
         explanation=finding.explanation,
         false_positive_reason=finding.false_positive_reason,
         observed=dict(finding.observed or {}),
@@ -535,6 +544,8 @@ def _summary(finding: Finding, names: dict[str, str]) -> FindingSummary:
         severity=finding.severity,
         status=finding.status,
         title=finding.title,
+        message=finding.message,
+        remediation=finding.remediation,
         citation=finding.citation,
         rule_id=finding.rule_id,
         rule_basis=finding.rule_basis,
@@ -567,8 +578,6 @@ def _detail_unchanged(
     summary = _summary(finding, names)
     return FindingDetail(
         **summary.model_dump(),
-        message=finding.message,
-        remediation=finding.remediation,
         explanation=finding.explanation,
         false_positive_reason=finding.false_positive_reason,
         observed=dict(finding.observed or {}),
