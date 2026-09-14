@@ -64,19 +64,10 @@ class Settings(BaseSettings):
     # -------------------------------------------------------------------- AI
     openrouter_api_key: str = ""
 
-    # Gemini 2.5 Flash Lite: accepts PDFs and page images, supports
-    # schema-constrained output, and carries a 1M context window that comfortably
-    # holds a dense multi-page register plus its OCR text.
-    #
-    # Not the first choice. Muse Spark 1.3 Contributor is nominally cheaper, but
-    # OpenRouter filters it out for any account that has not permitted providers
-    # to train on submitted inputs — the "contributor" in its name is the reason
-    # it is cheap. Given that this pipeline sends images of workers' wage records,
-    # permitting that is not a trade worth making, so the model was changed rather
-    # than the privacy setting.
-    #
-    # Override with LLM_MODEL in .env. Anything set here must accept image input
-    # and support structured outputs, or extraction cannot run.
+    # Gemini 2.5 Flash Lite supports schema-constrained text output and carries a
+    # context window large enough for dense OCR text from statutory registers.
+    # Render never sends PDF bytes or page images to the model: OCR.space reads the
+    # private signed document URL and only its returned text reaches OpenRouter.
     llm_model: str = "google/gemini-2.5-flash-lite"
 
     # Extraction is perception, not deliberation, and reasoning tokens bill at the
@@ -93,21 +84,20 @@ class Settings(BaseSettings):
     ocr_space_engine_indic: int = 3
     ocr_space_daily_budget: int = 500
     ocr_space_engine3_monthly_budget: int = 2500
-    ocr_page_dpi: int = 200
-    ocr_page_fallback_dpi: int = 160
-    ocr_page_max_bytes: int = 1_000_000
+    ocr_space_timeout_seconds: float = Field(default=180.0, gt=0, le=600)
     allow_cloud_ocr_in_production: bool = False
 
     # ---------------------------------------------------------------- storage
     # Private S3-compatible object storage (Supabase Storage in production).
-    # Render's free filesystem is only a local parser cache and cannot be the
-    # durable copy because it disappears whenever the instance restarts.
+    # Render keeps a local validation cache only; OCR.space receives a short-lived
+    # signed URL and downloads the original directly from Supabase.
     storage_dir: Path = PROJECT_ROOT / "storage"
     s3_endpoint_url: str = ""
     s3_region: str = ""
     s3_access_key_id: str = ""
     s3_secret_access_key: str = ""
     s3_bucket: str = ""
+    s3_presigned_url_ttl_seconds: int = Field(default=900, ge=60, le=3600)
 
     # ------------------------------------------------------------------- CORS
     # Origins allowed to call the API from a browser, comma separated.
@@ -170,11 +160,12 @@ class Settings(BaseSettings):
             and not self.allow_cloud_ocr_in_production
         ):
             raise ValueError(
-                "OCR_PROVIDER=ocrspace sends page images to a third party, which "
-                "conflicts with DPDP data-minimisation when the pages contain real "
-                "worker records. Use OCR_PROVIDER=paddle, point "
-                "OCR_SPACE_BASE_URL at a self-hosted OCR.space instance, or set "
-                "ALLOW_CLOUD_OCR_IN_PRODUCTION=true to accept the risk explicitly."
+                "OCR_PROVIDER=ocrspace sends the original document through a "
+                "temporary private URL to a third party, which conflicts with "
+                "DPDP data-minimisation when files contain real worker records. "
+                "Point OCR_SPACE_BASE_URL at a self-hosted OCR.space instance, "
+                "or set ALLOW_CLOUD_OCR_IN_PRODUCTION=true to accept the risk "
+                "explicitly."
             )
         return self
 

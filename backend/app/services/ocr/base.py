@@ -103,3 +103,13 @@ class OcrProvider(Protocol):
         languages: list[str],
         want_tables: bool = True,
     ) -> OcrResult: ...
+
+    async def recognise_url(
+        self,
+        source_url: str,
+        *,
+        mime_type: str,
+        languages: list[str],
+        expected_pages: int,
+        want_tables: bool = True,
+    ) -> list[OcrResult]: ...

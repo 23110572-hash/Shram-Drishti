@@ -68,7 +68,11 @@ export type DocumentType =
   | "ANNUAL_RETURN"
   | "UNKNOWN";
 
-export type ExtractionMode = "NATIVE_PDF" | "OCR_PLUS_VISION" | "VISION_ONLY";
+export type ExtractionMode =
+  | "NATIVE_PDF"
+  | "OCR_ONLY"
+  | "OCR_PLUS_VISION"
+  | "VISION_ONLY";
 
 export type SchemaSource = "PRESCRIBED" | "INFERRED";
 
@@ -595,10 +599,10 @@ export const DOCUMENT_TYPE_LABELS: Record<DocumentType, string> = {
   UNKNOWN: "Not yet identified",
 };
 
-/** How a document was read. Shown to inspectors because it determines evidence
- *  quality: only the first two modes yield cell-level coordinates. */
+/** How a document was read. Shown because it determines evidence quality. */
 export const EXTRACTION_MODE_LABELS: Record<ExtractionMode, string> = {
-  NATIVE_PDF: "Digital text — exact",
+  NATIVE_PDF: "Structured text",
+  OCR_ONLY: "OCR text with source coordinates",
   OCR_PLUS_VISION: "OCR cross-checked against the page",
   VISION_ONLY: "Page image only — no cell coordinates",
 };

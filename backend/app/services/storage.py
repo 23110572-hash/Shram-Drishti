@@ -37,6 +37,9 @@ class ObjectStore(Protocol):
     def exists(self, key: str) -> bool: ...
     def delete(self, key: str) -> None: ...
     def size(self, key: str) -> int: ...
+    def presigned_get_url(
+        self, key: str, *, expires_in: int = 900, response_content_type: str | None = None
+    ) -> str: ...
 
 
 class S3ObjectStore:
@@ -214,6 +217,28 @@ class S3ObjectStore:
             raise
         return int(response["ContentLength"])
 
+    def presigned_get_url(
+        self,
+        key: str,
+        *,
+        expires_in: int = 900,
+        response_content_type: str | None = None,
+    ) -> str:
+        """Return a short-lived private download URL without fetching the object."""
+        self._path(key)  # Apply the same traversal validation as local operations.
+        if not 60 <= expires_in <= 3600:
+            raise ValueError("presigned URL lifetime must be between 60 and 3600 seconds")
+        params = {"Bucket": self._bucket, "Key": key}
+        if response_content_type:
+            params["ResponseContentType"] = response_content_type
+        return str(
+            self._client.generate_presigned_url(
+                "get_object",
+                Params=params,
+                ExpiresIn=expires_in,
+            )
+        )
+
     def delete(self, key: str) -> None:
         self._path(key).unlink(missing_ok=True)
         self._client.delete_object(Bucket=self._bucket, Key=key)
@@ -225,6 +250,10 @@ def _content_type(suffix: str) -> str:
         ".jpg": "image/jpeg",
         ".jpeg": "image/jpeg",
         ".png": "image/png",
+        ".tif": "image/tiff",
+        ".tiff": "image/tiff",
+        ".webp": "image/webp",
+        ".bmp": "image/bmp",
         ".txt": "text/plain",
         ".csv": "text/csv",
         ".ecr": "text/plain",

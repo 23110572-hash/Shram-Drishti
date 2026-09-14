@@ -1,28 +1,10 @@
-"""Document reading: OCR, the model, and conversion into canonical records.
+"""OCR-text extraction and conversion into canonical compliance records.
 
-Reading mode is chosen per page, not per document, because one PDF routinely
-mixes a typed cover sheet with photographed registers.
-
-* **Mode A, native text.** The PDF carries a text layer, so it is read directly.
-  Exact, costs nothing, involves neither OCR nor the model. The best outcome.
-* **Mode B, OCR plus vision.** The OCR text *and* the page image go to the model
-  in one request. This is the default. The model can see what OCR misread, and
-  every figure it returns is checked back against the OCR tokens, which is what
-  makes an invented number detectable.
-* **Mode C, vision only.** OCR was unavailable, out of quota, or the page would
-  not compress under the size limit. The model still reads the page, but there
-  are no tokens to check against, so evidence degrades to page level and every
-  numeric value is marked ``model_only``.
-
-Sending OCR and image together rather than in sequence is deliberate. A
-sequential design where the model only ever sees OCR text can never catch an OCR
-misread, because it has nothing to compare against; and a design that only sends
-the image has nothing to hold the model to. The combination is what makes the
-three safety checks in ``verify`` possible at all.
-
-This module deliberately does no database work. It takes plain page data in and
-returns plain records out, so it can be exercised against fixtures without a
-database or a network.
+PDFs and scans are rendered by OCR.space from a short-lived private Supabase URL.
+This module receives only page text and positioned OCR tokens; it never receives
+PDF bytes or page images. Model values are still traced back to those tokens so
+unsupported figures are held for review, while avoiding image/base64 memory spikes
+inside the Render web process.
 """
 
 from __future__ import annotations
@@ -46,17 +28,11 @@ from app.services.llm import (
     LlmClient,
     LlmError,
     SchemaViolation,
-    image_part,
     text_part,
 )
 from app.services.verify import Agreement, Trace
 
 logger = logging.getLogger(__name__)
-
-# Below this the OCR text is treated as a failed read rather than a sparse page.
-# A register page with three recognised words is not a page we can check figures
-# against, so it is better handled as Mode C.
-MIN_USEFUL_OCR_CHARS = 40
 
 # One page per request.
 #
@@ -94,25 +70,7 @@ PRESCRIBED_TYPES = frozenset(
 # ------------------------------------------------------------------- inputs
 @dataclass
 class PageInput:
-    """Everything known about one page before extraction runs.
-
-    Up to three independent readings of the same page are carried here, and all of
-    them are used:
-
-    * ``native_text`` / ``native_tokens`` — the PDF's own text layer. Exact, free,
-      and it carries word coordinates, so a digitally generated register yields
-      cell-level evidence without OCR being involved at all.
-    * ``ocr_text`` / ``ocr_tokens`` — recognition over the rendered page. The only
-      source available for a scan or a photograph.
-    * ``image`` — the page itself, given to the model so it can see what the other
-      two got wrong.
-
-    An earlier version short-circuited to the text layer alone whenever one
-    existed, on the reasoning that exact text cannot be improved on. That was
-    wrong in an important way: it meant the model never saw the page, so a column
-    read in the wrong order had nothing to contradict it, and the cross-check the
-    whole design rests on never ran.
-    """
+    """Text and positioned tokens available for one document page."""
 
     page_number: int
     native_text: str | None = None
@@ -120,71 +78,47 @@ class PageInput:
     ocr_text: str | None = None
     ocr_markdown: str | None = None
     ocr_tokens: list[dict] = field(default_factory=list)
-    image: bytes | None = None
     ocr_failed_reason: str | None = None
 
     @property
     def has_native_text(self) -> bool:
-        return bool(
-            self.native_text and len(self.native_text.strip()) >= MIN_USEFUL_OCR_CHARS
-        )
+        return bool(self.native_text and self.native_text.strip())
 
     @property
     def has_useful_ocr(self) -> bool:
-        return bool(self.ocr_text and len(self.ocr_text.strip()) >= MIN_USEFUL_OCR_CHARS)
+        return bool(self.ocr_text and self.ocr_text.strip())
 
     @property
     def tokens(self) -> list[dict]:
-        """Every positioned word available for this page, text layer first.
-
-        Text-layer words lead because they are authored characters rather than a
-        recognition guess, so a value matched against them is certain. Tracing
-        walks the list in order and stops at the first match.
-        """
         return [*self.native_tokens, *self.ocr_tokens]
 
     @property
     def has_coordinates(self) -> bool:
-        return bool(self.native_tokens or self.ocr_tokens)
+        return bool(self.tokens)
 
     @property
     def mode(self) -> ExtractionMode:
-        """What this page's evidence quality actually is.
-
-        NATIVE_PDF is now reserved for the case where there genuinely is nothing
-        else — a plain text file, or a page that could not be rendered. A page with
-        both a text layer and a rendered image is reported as OCR_PLUS_VISION,
-        because that is what happened: two sources were compared.
-        """
-        if self.image is None:
-            return ExtractionMode.NATIVE_PDF
-        if self.has_useful_ocr or self.native_tokens:
-            return ExtractionMode.OCR_PLUS_VISION
-        return ExtractionMode.VISION_ONLY
+        if (
+            self.ocr_text is not None
+            or self.ocr_markdown is not None
+            or bool(self.ocr_tokens)
+            or self.ocr_failed_reason is not None
+        ):
+            return ExtractionMode.OCR_ONLY
+        return ExtractionMode.NATIVE_PDF
 
     def text_blocks(self) -> list[tuple[str, str]]:
-        """Labelled text readings to put in front of the model, best first.
-
-        Both readings are shown when both exist, and labelled so the model knows
-        which is authored text and which is recognition. Where they disagree, that
-        disagreement is itself the signal — it marks the cells worth looking at on
-        the image.
-        """
         blocks: list[tuple[str, str]] = []
-
         if self.has_native_text:
-            blocks.append(("Text layer (exact, from the PDF itself)", self.native_text or ""))
-
-        if self.ocr_markdown and len(self.ocr_markdown.strip()) >= MIN_USEFUL_OCR_CHARS:
-            blocks.append(("OCR table reading (may contain errors)", self.ocr_markdown))
+            blocks.append(("Structured source text", self.native_text or ""))
+        if self.ocr_markdown and self.ocr_markdown.strip():
+            blocks.append(("OCR table reading (may contain recognition errors)", self.ocr_markdown))
         elif self.has_useful_ocr:
-            blocks.append(("OCR text (may contain errors)", self.ocr_text or ""))
-
+            blocks.append(("OCR text (may contain recognition errors)", self.ocr_text or ""))
         return blocks
 
     @property
     def best_text(self) -> str:
-        """A single text reading, for callers that need only one — e.g. binding."""
         blocks = self.text_blocks()
         return blocks[0][1] if blocks else ""
 
@@ -315,7 +249,7 @@ class ExtractionResult:
     doc_type: DocumentType = DocumentType.UNKNOWN
     doc_type_confidence: float = 0.0
     schema_source: SchemaSource = SchemaSource.INFERRED
-    mode: ExtractionMode = ExtractionMode.VISION_ONLY
+    mode: ExtractionMode = ExtractionMode.OCR_ONLY
     header: Header = field(default_factory=Header)
 
     wage_rows: list[Record] = field(default_factory=list)
@@ -393,20 +327,20 @@ inspection. The figures you return will be compared against the Code on Wages \
 the Occupational Safety, Health and Working Conditions Code 2020, and may be put \
 to an employer as evidence of underpayment.
 
-You are given, for each page, the OCR text and the page image. Use both. The OCR \
-text is machine-generated and contains errors; the image is the truth.
+You are given OCR text for each page. It is machine-generated and may contain \
+recognition errors. Return only values that are actually present in that text; \
+there is no page image available to correct or supplement it.
 
 Absolute rules:
-1. Transcribe only what is printed. Never compute, never complete a pattern, \
-never fill a blank cell with a figure that would look reasonable. A blank cell \
-is null, and a missing entry is exactly what an inspection needs to find.
+1. Transcribe only what the OCR text contains. Never compute, never complete a \
+pattern, and never fill a blank with a figure that would look reasonable. A \
+blank cell is null, and a missing entry is exactly what an inspection needs to \
+find.
 2. Every figure you return will be searched for in the OCR tokens of the page \
-you attribute it to. If it is not found and you have not listed it as a \
-correction, the whole row is held for human review. So: when the image \
-contradicts the OCR text, trust the image AND record it in "corrections" with \
-the OCR reading, your reading, and why.
-3. If a region is illegible, list it in "unreadable_regions". Do not guess at \
-smudged or overwritten digits.
+you attribute it to. If it cannot be found, the row is held for human review. \
+Do not invent a correction to bypass this check; leave "corrections" empty.
+3. If text is incomplete or illegible, list it in "unreadable_regions". Do not \
+guess at missing or malformed digits.
 4. Amounts are plain rupees as digit strings, no symbols and no thousands \
 separators: "15250.50". Dates are YYYY-MM-DD. Where a register shows only a \
 month, use its first day.
@@ -436,12 +370,11 @@ fill the gap.
 - A dash, a hyphen or an empty cell is null. It is not the next column's value.
 - Before you finish each row, check it against itself: gross should equal basic \
 plus dearness allowance plus other allowances, and net paid should equal gross \
-plus overtime less total deductions. If either does not hold, you have almost \
-certainly misaligned a column. Go back to the image and look again.
+plus overtime less total deductions. If either does not hold, the OCR columns \
+may be misaligned; mark the row unreadable rather than shifting values.
 - Total deductions is usually printed to the LEFT of net paid, and net paid is \
-almost always the smaller of the two. If the value you have called "net paid" is \
-smaller than the one you have called "deductions", check whether you have swapped \
-them.
+almost always the smaller of the two. If the values appear swapped, do not \
+correct them from a pattern; preserve the OCR reading and flag it for review.
 
 Getting the alignment right matters more than reading every optional column.
 
@@ -699,7 +632,7 @@ class _RowContext:
         return self.tokens_by_page.get(page) or []
 
     def mode(self, page: int) -> ExtractionMode:
-        return self.modes_by_page.get(page, ExtractionMode.VISION_ONLY)
+        return self.modes_by_page.get(page, ExtractionMode.OCR_ONLY)
 
 
 def _record_value(
@@ -1080,42 +1013,25 @@ def _prose_record(raw: dict, context: _RowContext) -> Record:
 
 # ------------------------------------------------------------------ assembly
 def _build_parts(pages: list[PageInput], *, instruction: str) -> list[ContentPart]:
-    """Assemble the multimodal message: instruction, then per page text + image.
-
-    Text precedes its image so the model reads the OCR first and then looks at
-    the page, which is the order that produces corrections rather than blind
-    agreement with the OCR.
-    """
+    """Assemble a text-only model request from page-labelled OCR output."""
     parts: list[ContentPart] = [text_part(instruction)]
 
     for page in pages:
         header = f"\n--- PAGE {page.page_number} ---"
         blocks = page.text_blocks()
-
         if blocks:
             rendered = "\n\n".join(
                 f"{label}:\n{body.strip()}" for label, body in blocks if body.strip()
             )
-            if len(blocks) > 1:
-                rendered += (
-                    "\n\nTwo readings of this page are given above. Where they "
-                    "disagree, look at the image and record which is right in "
-                    "\"corrections\"."
-                )
             parts.append(text_part(f"{header}\n{rendered}"))
         else:
-            reason = page.ocr_failed_reason or "no text could be recovered"
+            reason = page.ocr_failed_reason or "OCR found no readable text"
             parts.append(
                 text_part(
-                    f"{header}\nNo text is available for this page ({reason}). "
-                    "Read it from the image alone and be conservative: report "
-                    "anything you cannot read clearly as unreadable rather than "
-                    "guessing."
+                    f"{header}\n{reason}. Return no rows for this page and mark "
+                    "the page unreadable; do not infer its contents."
                 )
             )
-
-        if page.image:
-            parts.append(image_part(page.image))
 
     return parts
 
@@ -1143,18 +1059,9 @@ def _batch_pages(pages: list[PageInput], size: int) -> list[list[PageInput]]:
 
 
 def _document_mode(pages: list[PageInput]) -> ExtractionMode:
-    """Document-level mode: the weakest page decides.
-
-    Reporting the best mode would overstate evidence quality for the document as
-    a whole, and evidence quality is the thing an inspector needs to judge.
-    """
-    if not pages:
-        return ExtractionMode.VISION_ONLY
-    modes = {page.mode for page in pages}
-    if ExtractionMode.VISION_ONLY in modes:
-        return ExtractionMode.VISION_ONLY
-    if ExtractionMode.OCR_PLUS_VISION in modes:
-        return ExtractionMode.OCR_PLUS_VISION
+    """Report OCR-only whenever any page was read by the OCR service."""
+    if any(page.mode is ExtractionMode.OCR_ONLY for page in pages):
+        return ExtractionMode.OCR_ONLY
     return ExtractionMode.NATIVE_PDF
 
 

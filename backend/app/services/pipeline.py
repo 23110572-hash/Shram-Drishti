@@ -46,7 +46,6 @@ from app.services import alerts as alert_service
 from app.services import anomaly as anomaly_service
 from app.services import audit as audit_service
 from app.services import facts as facts_service
-from app.services import pages as page_service
 from app.services import scorecard as score_service
 from app.services.analyst import Analyst, DocumentBrief, FindingBrief
 from app.services.binding import DocumentBinder, DocumentHeaderBrief
@@ -63,7 +62,7 @@ from app.services.identity import (
     RosterEntry,
 )
 from app.services.llm import BudgetTracker, LlmError, get_llm_client
-from app.services.ocr import OcrError, get_ocr_provider
+from app.services.ocr import OcrError, OcrFailure, get_ocr_provider
 from app.services.rule_engine import RuleEngine, resolve_assessed_severity
 from app.services.storage import get_store
 
@@ -193,9 +192,9 @@ async def _process_document(job_id: str, document_id: str) -> None:
         try:
             client = get_llm_client()
             if client.capabilities is None:
-                # Verified once per process. Sending a PDF to a model that only
-                # accepts images fails at request time, on a background thread,
-                # where nobody is watching.
+                # Verify the configured model once before spending OCR budget.
+                # This pipeline sends text only, but still requires structured
+                # output support for deterministic record schemas.
                 await client.load_capabilities()
 
             pages = await _prepare_pages(session, document, job.id)
@@ -380,176 +379,114 @@ def _fail_document(_session: Session | None, document_id: str, job_id: str, erro
 async def _prepare_pages(
     session: Session, document: Document, job_id: str
 ) -> list[PageInput]:
-    """Rasterise, OCR and assemble the page inputs.
+    """Send the private original to OCR.space and build text-only page inputs.
 
-    Mode is decided per page here. A native text layer short-circuits both OCR and
-    the image, because reading it is exact and costs nothing; a page without one
-    gets rasterised, OCR'd, and sent with both text and image so the two can be
-    cross-checked.
+    Render never downloads or rasterises PDFs and never keeps page images in
+    memory. OCR.space fetches a short-lived Supabase URL directly, then only the
+    returned text and word coordinates are passed to the LLM.
     """
     store = get_store()
     settings = get_settings()
-    raw = store.read(document.storage_key)
 
-    inputs: list[PageInput] = []
-
-    native_text: dict[int, str] = {}
-    native_words: dict[int, list[dict]] = {}
-
-    if document.detected_mime == "application/pdf":
-        if document.has_text_layer:
-            native_text = {
-                p.page_number: p.text for p in page_service.extract_pdf_text(raw)
-            }
-            # Word boxes from the text layer. This is what gives a digitally
-            # generated register cell-level evidence without OCR being involved.
-            native_words = page_service.extract_pdf_words(raw)
-
-        # Every page is rendered and sent to the model even when a text layer
-        # exists. Exact text is not the same as correctly *interpreted* text: a
-        # column read in the wrong order looks perfectly plausible in isolation,
-        # and only the page image can contradict it. Skipping the render here is
-        # what let a swapped deductions column turn a 55% deduction into 45%.
-        # Render one page per call. A compressed PDF can expand to tens of
-        # megabytes per bitmap; rendering every page in one call is what pushed
-        # the 512 MB Render instance over its memory limit.
-        rendered = []
-        page_total = min(document.page_count, MAX_OCR_PAGES)
-        for page_number in range(1, page_total + 1):
-            rendered.extend(
-                page_service.render_pdf_pages(
-                    raw,
-                    dpi=settings.ocr_page_dpi,
-                    fallback_dpi=settings.ocr_page_fallback_dpi,
-                    max_bytes=settings.ocr_page_max_bytes,
-                    page_numbers=[page_number],
-                )
-            )
-            _set_job_progress(
-                job_id,
-                5 + int(5 * page_number / max(page_total, 1)),
-                f"Preparing page {page_number} of {page_total}",
-                pages_completed=0,
-                pages_total=page_total,
-            )
-    elif document.detected_mime == "text/plain":
-        # Structured text such as an EPF ECR file. No rasterising, no OCR, and no
-        # image: the bytes are the data.
+    if document.detected_mime == "text/plain":
+        raw = store.read(document.storage_key)
         text = raw.decode("utf-8", errors="replace")
-        inputs.append(PageInput(page_number=1, native_text=text))
-        _upsert_page(session, document, page_number=1, mode=ExtractionMode.NATIVE_PDF)
+        page_input = PageInput(page_number=1, native_text=text)
+        _upsert_page(
+            session,
+            document,
+            page_number=1,
+            mode=page_input.mode,
+            image_key=None,
+            image_width=None,
+            image_height=None,
+            image_dpi=None,
+            image_byte_size=None,
+            ocr_provider=None,
+            ocr_engine=None,
+            ocr_text=None,
+            ocr_markdown=None,
+            ocr_tokens=[],
+            ocr_failed_reason=None,
+        )
         document.page_count = 1
         document.status = DocumentStatus.NORMALISED
         _set_job_progress(job_id, 60, "Text prepared", pages_completed=1, pages_total=1)
-        return inputs
-    else:
-        single = page_service.prepare_image_page(
-            raw, max_bytes=settings.ocr_page_max_bytes
-        )
-        rendered = [single] if single is not None else []
+        return [page_input]
 
-    if not rendered:
-        raise PipelineError(
-            "no page of this document could be prepared for reading; it may be "
-            "corrupt, or every page may be too large to compress without "
-            "destroying the text"
-        )
+    page_total = max(1, min(document.page_count, MAX_OCR_PAGES))
+    _set_job_progress(
+        job_id,
+        10,
+        "OCR service is reading the document",
+        pages_completed=0,
+        pages_total=page_total,
+    )
 
+    source_url = store.presigned_get_url(
+        document.storage_key,
+        expires_in=settings.s3_presigned_url_ttl_seconds,
+        response_content_type=document.detected_mime,
+    )
     provider = get_ocr_provider()
+    ocr_pages = await provider.recognise_url(
+        source_url,
+        mime_type=document.detected_mime,
+        languages=OCR_LANGUAGES,
+        expected_pages=page_total,
+        want_tables=True,
+    )
 
-    for completed, page in enumerate(rendered, start=1):
-        stored = store.put_bytes(page.image, prefix="pages", suffix=".jpg")
+    if not any(page.text.strip() or page.tokens for page in ocr_pages):
+        raise OcrError(OcrFailure.EMPTY_RESULT, "OCR found no text in this document")
 
-        ocr_text: str | None = None
-        ocr_markdown: str | None = None
-        tokens: list[dict] = []
-        provider_name: str | None = None
-        engine: str | None = None
-        failure: str | None = None
-
-        try:
-            ocr = await provider.recognise(
-                page.image,
-                mime_type=page.mime_type,
-                languages=OCR_LANGUAGES,
-                want_tables=True,
-            )
-            ocr_text = ocr.text
-            ocr_markdown = ocr.markdown
-            tokens = [token.as_dict() for token in ocr.tokens]
-            provider_name = ocr.provider
-            engine = ocr.engine
-        except OcrError as exc:
-            # OCR failing is not fatal. The page still goes to the model as an
-            # image; what is lost is the ability to check figures against tokens,
-            # and that loss is recorded so the resulting evidence is honestly
-            # marked as page-level.
-            failure = f"{exc.reason.value}: {exc.message}"
-            logger.warning(
-                "OCR failed for page",
-                extra={
-                    "document_id": document.id,
-                    "page": page.page_number,
-                    "reason": exc.reason.value,
-                },
-            )
-
+    inputs: list[PageInput] = []
+    for page_number, ocr in enumerate(ocr_pages, start=1):
+        tokens = [token.as_dict() for token in ocr.tokens]
         page_input = PageInput(
-            page_number=page.page_number,
-            # All three sources on the same page. The text layer, where one
-            # exists, is exact and carries its own coordinates; OCR covers pages
-            # that have none; the image lets the model overrule either.
-            native_text=native_text.get(page.page_number),
-            native_tokens=native_words.get(page.page_number, []),
-            ocr_text=ocr_text,
-            ocr_markdown=ocr_markdown,
+            page_number=page_number,
+            ocr_text=ocr.text,
+            ocr_markdown=ocr.markdown,
             ocr_tokens=tokens,
-            image=page.image,
-            ocr_failed_reason=failure,
         )
         inputs.append(page_input)
-
-        logger.info(
-            "page prepared",
-            extra={
-                "document_id": document.id,
-                "page": page.page_number,
-                "mode": str(page_input.mode),
-                "text_layer_words": len(page_input.native_tokens),
-                "ocr_words": len(tokens),
-                "ocr_failed": bool(failure),
-            },
-        )
 
         _upsert_page(
             session,
             document,
-            page_number=page.page_number,
+            page_number=page_number,
             mode=page_input.mode,
-            image_key=stored.key,
-            image_width=page.width,
-            image_height=page.height,
-            image_dpi=page.dpi,
-            image_byte_size=page.byte_size,
-            ocr_provider=provider_name,
-            ocr_engine=engine,
-            ocr_text=ocr_text,
-            ocr_markdown=ocr_markdown,
-            # The merged set, so the evidence viewer can highlight a cell whether
-            # the coordinates came from the text layer or from OCR.
-            ocr_tokens=page_input.tokens,
-            ocr_failed_reason=failure,
+            image_key=None,
+            image_width=None,
+            image_height=None,
+            image_dpi=None,
+            image_byte_size=None,
+            ocr_provider=ocr.provider,
+            ocr_engine=ocr.engine,
+            ocr_text=ocr.text,
+            ocr_markdown=ocr.markdown,
+            ocr_tokens=tokens,
+            ocr_failed_reason=None,
         )
-        _set_job_progress(
-            job_id,
-            10 + int(50 * completed / max(len(rendered), 1)),
-            f"Reading page {completed} of {len(rendered)}",
-            pages_completed=completed,
-            pages_total=len(rendered),
+        logger.info(
+            "OCR page prepared",
+            extra={
+                "document_id": document.id,
+                "page": page_number,
+                "mode": str(page_input.mode),
+                "ocr_words": len(tokens),
+            },
         )
 
-    document.page_count = max(document.page_count, len(inputs))
+    document.page_count = len(inputs)
     document.status = DocumentStatus.NORMALISED
+    _set_job_progress(
+        job_id,
+        60,
+        "Document text ready",
+        pages_completed=len(inputs),
+        pages_total=len(inputs),
+    )
     return inputs
 
 

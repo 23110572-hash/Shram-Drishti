@@ -50,6 +50,7 @@ def get_ocr_provider() -> OcrProvider:
             engine_indic=settings.ocr_space_engine_indic,
             daily_budget=settings.ocr_space_daily_budget,
             engine3_monthly_budget=settings.ocr_space_engine3_monthly_budget,
+            timeout_seconds=settings.ocr_space_timeout_seconds,
         )
         return _provider
 

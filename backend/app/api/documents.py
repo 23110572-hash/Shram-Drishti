@@ -133,7 +133,7 @@ async def upload_document(
     user: CurrentUser,
     ip: Annotated[str | None, Depends(client_ip)],
     file: Annotated[UploadFile, File(description="PDF, image, or structured text")],
-    establishment_id: Annotated[str | None, Form()] = None,
+    establishment_id: Annotated[str, Form()],
 ) -> UploadResponse:
     """Accept a document and queue it for reading.
 
@@ -207,16 +207,14 @@ async def upload_document(
         .limit(1)
     ).scalar_one_or_none()
 
-    bound_establishment_id: str | None = None
-    if establishment_id:
-        establishment = session.get(Establishment, establishment_id)
-        if establishment is None:
-            raise HTTPException(status_code=404, detail="establishment not found")
-        if establishment.organisation_id != user.organisation_id and user.role is not Role.ADMIN:
-            # 404 rather than 403: confirming existence would leak which
-            # establishments belong to other employers.
-            raise HTTPException(status_code=404, detail="establishment not found")
-        bound_establishment_id = establishment.id
+    establishment = session.get(Establishment, establishment_id)
+    if establishment is None:
+        raise HTTPException(status_code=404, detail="establishment not found")
+    if establishment.organisation_id != user.organisation_id and user.role is not Role.ADMIN:
+        # 404 rather than 403: confirming existence would leak which
+        # establishments belong to other employers.
+        raise HTTPException(status_code=404, detail="establishment not found")
+    bound_establishment_id = establishment.id
 
     document = Document(
         organisation_id=user.organisation_id,

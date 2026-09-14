@@ -290,7 +290,11 @@ export function ExtractionModeNote({ mode }: { mode: ExtractionMode | null }) {
   if (!mode) return null;
 
   const tone =
-    mode === "NATIVE_PDF" ? "good" : mode === "OCR_PLUS_VISION" ? "low" : "medium";
+    mode === "NATIVE_PDF"
+      ? "good"
+      : mode === "OCR_ONLY" || mode === "OCR_PLUS_VISION"
+        ? "low"
+        : "medium";
 
   return (
     <Badge tone={tone} title={EXTRACTION_MODE_LABELS[mode]}>

@@ -189,20 +189,17 @@ class DocumentStatus(StrEnum):
 
 
 class ExtractionMode(StrEnum):
-    """Which reading path produced a document's data.
-
-    Recorded per document because it determines evidence quality: only modes A
-    and B yield cell-level coordinates.
-    """
+    """Which reading path produced a document's data."""
 
     NATIVE_PDF = "NATIVE_PDF"
-    """Mode A. Text layer read directly. No OCR, no model, exact."""
+    """Structured text read directly without OCR."""
 
+    OCR_ONLY = "OCR_ONLY"
+    """OCR text and coordinates sent to the model without page images."""
+
+    # Retained so historical rows remain readable after the low-memory rollout.
     OCR_PLUS_VISION = "OCR_PLUS_VISION"
-    """Mode B. OCR text and page image sent to the model together. Default."""
-
     VISION_ONLY = "VISION_ONLY"
-    """Mode C. OCR unavailable. Page-level evidence only."""
 
 
 class SchemaSource(StrEnum):

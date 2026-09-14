@@ -1,8 +1,8 @@
 # Render blueprint for the API. The frontend is deployed separately on Vercel.
 #
-# Expensive document work is consumed one job at a time from Postgres. Uploaded
-# bytes and rendered evidence images live in private Supabase S3 storage; Render's
-# filesystem is only a parser cache and can disappear safely on restart.
+# Expensive document work is consumed one job at a time from Postgres. Originals
+# live in private Supabase S3 storage; OCR.space reads a short-lived signed URL,
+# and Render handles only OCR text plus structured LLM responses.
 
 services:
   - type: web

@@ -1,12 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  ClipboardList,
-  MapPin,
-  ShieldCheck,
-  Users,
-} from "lucide-react";
+import { ArrowRight, MapPin, ShieldCheck, Users } from "lucide-react";
 
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -14,21 +8,7 @@ import { count, date } from "@/lib/format";
 import type { WorklistItem } from "@/lib/types";
 import { CompletenessBar } from "@/pages/EstablishmentsPage";
 import { Badge, RiskBadge } from "@/components/ui/Badge";
-import {
-  Caution,
-  EmptyState,
-  ErrorState,
-  SkeletonRows,
-} from "@/components/ui/State";
-
-/** Inspection worklist — the output the whole system exists to produce.
- *
- *  Ranked by recommended priority rather than by score. Priority already folds in
- *  evidence completeness, so an establishment that submitted nothing rises up the
- *  list instead of sitting at the top of the rankings with an untested clean
- *  score. That distinction is the difference between a targeting tool and one
- *  that rewards non-submission.
- */
+import { EmptyState, ErrorState, SkeletonRows } from "@/components/ui/State";
 
 export function WorklistPage() {
   const { user } = useAuth();
@@ -40,7 +20,6 @@ export function WorklistPage() {
   });
 
   const items = worklist.data ?? [];
-  const urgent = items.filter((item) => item.priority >= 70);
 
   if (!user) {
     return (
@@ -65,54 +44,11 @@ export function WorklistPage() {
 
   return (
     <div className="space-y-10">
-      <header className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-        <div>
-          <div className="mb-3 inline-flex items-center gap-2.5 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-1.5 text-sm font-bold text-indigo-800">
-            <ClipboardList className="h-4 w-4" />
-            Risk-based targeting
-          </div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">
-            Inspection worklist
-          </h1>
-          <p className="mt-2 max-w-3xl text-base text-slate-700 sm:text-lg">
-            Establishments ranked by inspection priority. A low score is one
-            reason to visit; thin evidence is another, and both are counted here.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="rounded-3xl border border-slate-200 bg-white/85 px-6 py-3.5 text-center shadow-sm">
-            <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-              In queue
-            </span>
-            <span className="text-xl font-extrabold text-slate-900">
-              {items.length}
-            </span>
-          </div>
-          <div
-            className={[
-              "rounded-3xl border px-6 py-3.5 text-center shadow-sm",
-              urgent.length > 0
-                ? "border-rose-300 bg-rose-50/90"
-                : "border-slate-200 bg-white/85",
-            ].join(" ")}
-          >
-            <span className="block text-xs font-bold uppercase tracking-wider text-slate-500">
-              Priority 70+
-            </span>
-            <span className="text-xl font-extrabold text-slate-900">
-              {urgent.length}
-            </span>
-          </div>
-        </div>
+      <header>
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">
+          Inspection worklist
+        </h1>
       </header>
-
-      <Caution title="How this ranking is built">
-        Priority combines the compliance score, the number and severity of open
-        findings, and how much of the expected evidence could actually be assessed.
-        An establishment that has submitted nothing is ranked high on purpose — an
-        untested record is not a clean one.
-      </Caution>
 
       <div className="overflow-hidden rounded-3xl border border-sky-200/90 bg-white/95 shadow-sm backdrop-blur-xl">
         {worklist.isPending && <SkeletonRows rows={6} columns={5} />}

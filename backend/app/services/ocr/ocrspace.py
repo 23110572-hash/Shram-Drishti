@@ -1,17 +1,9 @@
-"""OCR.space provider.
+"""OCR.space provider for images and signed document URLs.
 
-Free-tier constraints this adapter works around, from their published API docs:
-
-* 1 MB per request, 3 PDF pages per request -> we send one page image at a time
-* 500 requests/day per IP                   -> daily budget counter
-* Engine 1/2: 25,000/month, Engine 3: 2,500 -> separate counter per engine
-* Engine 2 reads Latin scripts and Chinese only, with precise word boxes
-* Engine 3 reads 200+ languages including Devanagari, returns tables as
-  Markdown, handles handwriting and checkboxes, but its coordinates are less
-  precise and asking for them makes the call 2-3x slower
-
-Engine choice is therefore a correctness requirement, not a preference: a Hindi
-page sent to Engine 2 comes back as garbage.
+The production pipeline submits a short-lived Supabase URL instead of rendering
+PDF pages inside the 512 MB Render process. OCR.space returns one ``ParsedResults``
+entry per PDF page; this adapter preserves that page order and rejects partial
+results rather than silently extracting an incomplete register.
 """
 
 from __future__ import annotations
@@ -20,6 +12,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
+from typing import Any
 
 import httpx
 
@@ -27,26 +20,18 @@ from app.services.ocr.base import OcrError, OcrFailure, OcrResult, OcrToken
 
 logger = logging.getLogger(__name__)
 
-# Language codes in this API are always three letters ("eng", not "en").
 LATIN_LANGUAGE = "eng"
-# Engine 3 auto-detects across 200+ languages, so no explicit code is needed.
 AUTO_LANGUAGE = "auto"
 
 INDIC_HINTS = frozenset(
     {"hin", "hi", "mar", "ben", "guj", "tam", "tel", "kan", "mal", "pan", "ori", "asm"}
 )
-
 _RETRYABLE_STATUS = frozenset({429, 500, 502, 503, 504})
 
 
 @dataclass
 class EngineBudget:
-    """In-process request counter.
-
-    Not persisted: a restart resetting the count is acceptable for a soft guard
-    whose job is to avoid silently burning through a free tier. The provider's
-    own 403 remains the hard limit.
-    """
+    """Soft in-process request/conversion guard; provider limits remain authoritative."""
 
     limit: int
     used: int = 0
@@ -59,8 +44,8 @@ class EngineBudget:
     def exhausted(self) -> bool:
         return self.used >= self.limit
 
-    def consume(self) -> None:
-        self.used += 1
+    def consume(self, units: int = 1) -> None:
+        self.used += max(0, units)
 
 
 class OcrSpaceProvider:
@@ -75,7 +60,7 @@ class OcrSpaceProvider:
         engine_indic: int = 3,
         daily_budget: int = 500,
         engine3_monthly_budget: int = 2500,
-        timeout_seconds: float = 60.0,
+        timeout_seconds: float = 180.0,
     ) -> None:
         if not api_key:
             raise ValueError("OCR_SPACE_API_KEY is not set")
@@ -85,37 +70,38 @@ class OcrSpaceProvider:
         self._engine_latin = engine_latin
         self._engine_indic = engine_indic
         self._timeout = timeout_seconds
-
         self._daily = EngineBudget(limit=daily_budget)
         self._engine3 = EngineBudget(limit=engine3_monthly_budget)
 
-    # ------------------------------------------------------------- selection
-    def _select_engine(self, languages: list[str], *, want_tables: bool) -> int:
-        """Choose Engine 2 or Engine 3.
-
-        Engine 3 is required for non-Latin scripts and is much better on
-        handwriting and tables, but has a tenth of the quota. So it is spent
-        where it is genuinely needed and Engine 2 is used otherwise, preserving
-        the Engine 3 allowance for pages that cannot be read without it.
-        """
+    def _select_engine(
+        self, languages: list[str], *, want_tables: bool, conversions: int = 1
+    ) -> int:
         needs_indic = any(lang.lower() in INDIC_HINTS for lang in languages)
 
         if needs_indic or want_tables:
-            if not self._engine3.exhausted:
+            if self._engine3.remaining >= conversions:
                 return self._engine_indic
             if needs_indic:
-                # No Engine 3 quota left and Engine 2 cannot read this script.
-                # Reporting it precisely lets the caller escalate to the vision
-                # model instead of storing nonsense.
                 raise OcrError(
                     OcrFailure.UNSUPPORTED_SCRIPT,
-                    "Engine 3 quota exhausted and page is not Latin script",
+                    "Engine 3 quota is too low to read every page of this document",
                 )
-            logger.info("engine 3 quota exhausted; using engine 2 for table page")
+            logger.info("engine 3 quota exhausted; using engine 2 for table document")
 
         return self._engine_latin
 
-    # ---------------------------------------------------------------- public
+    def _request_form(self, engine: int, *, want_tables: bool) -> dict[str, str]:
+        is_engine3 = engine == self._engine_indic
+        return {
+            "apikey": self._api_key,
+            "OCREngine": str(engine),
+            "isOverlayRequired": "true",
+            "isTable": "true" if want_tables else "false",
+            "scale": "true",
+            "detectOrientation": "true",
+            "language": AUTO_LANGUAGE if is_engine3 else LATIN_LANGUAGE,
+        }
+
     async def recognise(
         self,
         image: bytes,
@@ -124,57 +110,116 @@ class OcrSpaceProvider:
         languages: list[str] | None = None,
         want_tables: bool = True,
     ) -> OcrResult:
+        """Retained for bounded callers; production documents use ``recognise_url``."""
+        self._ensure_daily_budget()
+        engine = self._select_engine(languages or [], want_tables=want_tables)
+        form = self._request_form(engine, want_tables=want_tables)
+
+        started = time.perf_counter()
+        payload = await self._post_with_retry(
+            form,
+            image=image,
+            mime_type=mime_type,
+        )
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        self._consume(engine, conversions=1)
+
+        pages = self._parse_results(
+            payload,
+            engine=engine,
+            duration_ms=duration_ms,
+            allow_blank_pages=False,
+        )
+        if len(pages) != 1:
+            raise OcrError(
+                OcrFailure.PROVIDER_ERROR,
+                f"OCR returned {len(pages)} results for one image",
+            )
+        return pages[0]
+
+    async def recognise_url(
+        self,
+        source_url: str,
+        *,
+        mime_type: str,
+        languages: list[str] | None = None,
+        expected_pages: int,
+        want_tables: bool = True,
+    ) -> list[OcrResult]:
+        """Read an image or PDF directly from a short-lived private HTTPS URL."""
+        if not source_url.lower().startswith("https://"):
+            raise OcrError(
+                OcrFailure.PROVIDER_ERROR,
+                "OCR document URLs must use HTTPS",
+            )
+        if expected_pages < 1:
+            raise OcrError(OcrFailure.EMPTY_RESULT, "document has no pages")
+
+        self._ensure_daily_budget()
+        engine = self._select_engine(
+            languages or [],
+            want_tables=want_tables,
+            conversions=expected_pages,
+        )
+        form = self._request_form(engine, want_tables=want_tables)
+        form["url"] = source_url
+        if mime_type == "application/pdf":
+            form["filetype"] = "PDF"
+
+        started = time.perf_counter()
+        payload = await self._post_with_retry(form)
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        self._consume(engine, conversions=expected_pages)
+
+        pages = self._parse_results(
+            payload,
+            engine=engine,
+            duration_ms=duration_ms,
+            allow_blank_pages=True,
+        )
+        if len(pages) != expected_pages:
+            raise OcrError(
+                OcrFailure.PROVIDER_ERROR,
+                "OCR returned "
+                f"{len(pages)} of {expected_pages} page(s). The OCR plan may have "
+                "rejected the document size or page count; split the PDF and retry.",
+            )
+        return pages
+
+    def _ensure_daily_budget(self) -> None:
         if self._daily.exhausted:
             raise OcrError(
                 OcrFailure.QUOTA_EXHAUSTED,
                 f"daily OCR budget of {self._daily.limit} requests is used up",
             )
 
-        engine = self._select_engine(languages or [], want_tables=want_tables)
-        is_engine3 = engine == self._engine_indic
-
-        form = {
-            "apikey": self._api_key,
-            "OCREngine": str(engine),
-            # Word boxes. Nearly free on Engine 2, and the only way to produce
-            # cell-level evidence an inspector can click.
-            "isOverlayRequired": "true",
-            # Documented as recommended for table, receipt and invoice OCR.
-            "isTable": "true" if want_tables else "false",
-            # Off by default in the API and documented to improve low-resolution
-            # scans significantly. Every scanned register benefits.
-            "scale": "true",
-            "detectOrientation": "true",
-            "language": AUTO_LANGUAGE if is_engine3 else LATIN_LANGUAGE,
-        }
-
-        started = time.perf_counter()
-        payload = await self._post_with_retry(form, image, mime_type)
-        duration_ms = int((time.perf_counter() - started) * 1000)
-
+    def _consume(self, engine: int, *, conversions: int) -> None:
         self._daily.consume()
-        if is_engine3:
-            self._engine3.consume()
+        if engine == self._engine_indic:
+            self._engine3.consume(conversions)
 
-        return self._parse(payload, engine=engine, duration_ms=duration_ms)
-
-    # ----------------------------------------------------------- transport
     async def _post_with_retry(
-        self, form: dict[str, str], image: bytes, mime_type: str, attempts: int = 3
-    ) -> dict:
+        self,
+        form: dict[str, str],
+        *,
+        image: bytes | None = None,
+        mime_type: str = "image/jpeg",
+        attempts: int = 3,
+    ) -> dict[str, Any]:
         last_error: Exception | None = None
 
         async with httpx.AsyncClient(timeout=self._timeout) as client:
             for attempt in range(attempts):
                 try:
-                    response = await client.post(
-                        self._endpoint,
-                        data=form,
-                        files={"file": ("page.jpg", image, mime_type)},
-                    )
-                except httpx.TimeoutException as exc:
-                    last_error = exc
-                except httpx.HTTPError as exc:
+                    if image is None:
+                        response = await client.post(self._endpoint, data=form)
+                    else:
+                        response = await client.post(
+                            self._endpoint,
+                            data=form,
+                            files={"file": ("page.jpg", image, mime_type)},
+                        )
+                except (httpx.TimeoutException, httpx.HTTPError) as exc:
                     last_error = exc
                 else:
                     if response.status_code == 403:
@@ -194,102 +239,126 @@ class OcrSpaceProvider:
 
                     if response.status_code == 429 and attempt == attempts - 1:
                         raise OcrError(
-                            OcrFailure.RATE_LIMITED, "OCR.space rate limit reached"
+                            OcrFailure.RATE_LIMITED,
+                            "OCR.space rate limit reached",
                         )
                     last_error = RuntimeError(f"HTTP {response.status_code}")
 
-                # Exponential backoff. The free tier is shared infrastructure and
-                # transient 5xx responses are common.
                 if attempt < attempts - 1:
                     await asyncio.sleep(1.5 * (2**attempt))
 
         if isinstance(last_error, httpx.TimeoutException):
             raise OcrError(OcrFailure.TIMEOUT, "OCR.space did not respond in time")
         raise OcrError(
-            OcrFailure.PROVIDER_ERROR, f"OCR.space request failed: {last_error}"
+            OcrFailure.PROVIDER_ERROR,
+            f"OCR.space request failed: {last_error}",
         )
 
-    # ------------------------------------------------------------- parsing
-    def _parse(self, payload: dict, *, engine: int, duration_ms: int) -> OcrResult:
+    def _parse_results(
+        self,
+        payload: dict[str, Any],
+        *,
+        engine: int,
+        duration_ms: int,
+        allow_blank_pages: bool,
+    ) -> list[OcrResult]:
         if payload.get("IsErroredOnProcessing"):
-            message = payload.get("ErrorMessage") or "unknown OCR error"
-            if isinstance(message, list):
-                message = "; ".join(str(m) for m in message)
-            raise OcrError(OcrFailure.PROVIDER_ERROR, str(message)[:250])
-
-        results = payload.get("ParsedResults") or []
-        if not results:
-            raise OcrError(OcrFailure.EMPTY_RESULT, "OCR returned no parsed results")
-
-        # We submit one page per request, so there is exactly one result. The
-        # per-page exit code still has to be checked: OCRExitCode 2 means partial
-        # success, where the call looks fine overall but this page failed.
-        first = results[0]
-        if str(first.get("FileParseExitCode", "1")) not in {"1", "2"}:
             raise OcrError(
                 OcrFailure.PROVIDER_ERROR,
-                str(first.get("ErrorMessage") or "page could not be parsed")[:250],
+                self._error_message(payload, "unknown OCR error"),
             )
 
-        text = first.get("ParsedText") or ""
-        tokens = self._extract_tokens(first.get("TextOverlay") or {})
+        exit_code = str(payload.get("OCRExitCode") or "")
+        if exit_code in {"3", "4"}:
+            raise OcrError(
+                OcrFailure.PROVIDER_ERROR,
+                self._error_message(payload, "OCR could not parse the document"),
+            )
 
-        if not text.strip() and not tokens:
-            raise OcrError(OcrFailure.EMPTY_RESULT, "OCR found no text on the page")
+        raw_results = payload.get("ParsedResults") or []
+        if not isinstance(raw_results, list) or not raw_results:
+            raise OcrError(OcrFailure.EMPTY_RESULT, "OCR returned no parsed results")
 
-        # Engine 3 renders tables as Markdown inside ParsedText. Detecting pipe
-        # rows lets the extractor use a much cleaner input than raw text.
-        markdown = text if (engine != self._engine_latin and "|" in text) else None
+        pages: list[OcrResult] = []
+        for page_number, raw in enumerate(raw_results, start=1):
+            if not isinstance(raw, dict):
+                raise OcrError(
+                    OcrFailure.PROVIDER_ERROR,
+                    f"OCR returned an invalid result for page {page_number}",
+                )
 
-        return OcrResult(
-            provider=self.name,
-            engine=str(engine),
-            text=text,
-            tokens=tokens,
-            markdown=markdown,
-            duration_ms=duration_ms,
-        )
+            if str(raw.get("FileParseExitCode", "")) != "1":
+                raise OcrError(
+                    OcrFailure.PROVIDER_ERROR,
+                    f"page {page_number}: "
+                    + self._error_message(raw, "page could not be parsed"),
+                )
+
+            text = str(raw.get("ParsedText") or "")
+            tokens = self._extract_tokens(raw.get("TextOverlay") or {})
+            if not allow_blank_pages and not text.strip() and not tokens:
+                raise OcrError(OcrFailure.EMPTY_RESULT, "OCR found no text on the page")
+
+            pages.append(
+                OcrResult(
+                    provider=self.name,
+                    engine=str(engine),
+                    text=text,
+                    tokens=tokens,
+                    markdown=(
+                        text
+                        if engine != self._engine_latin and "|" in text
+                        else None
+                    ),
+                    duration_ms=duration_ms,
+                )
+            )
+
+        return pages
 
     @staticmethod
-    def _extract_tokens(overlay: dict) -> list[OcrToken]:
-        """Convert pixel word boxes into normalised 0-1 coordinates.
+    def _error_message(payload: dict[str, Any], fallback: str) -> str:
+        message = payload.get("ErrorMessage") or payload.get("ErrorDetails") or fallback
+        if isinstance(message, list):
+            message = "; ".join(str(item) for item in message)
+        return str(message)[:250]
 
-        The API returns Left/Top/Width/Height in pixels but no page dimensions,
-        so the extent is derived from the boxes themselves. Coordinates have to
-        be resolution-independent, or an evidence highlight drawn over a page
-        re-rendered at a different DPI lands on the wrong cell.
-        """
+    @staticmethod
+    def _extract_tokens(overlay: dict[str, Any]) -> list[OcrToken]:
         lines = overlay.get("Lines") or []
-        if not lines:
+        if not isinstance(lines, list) or not lines:
             return []
 
-        raw: list[tuple[str, float, float, float, float, int]] = []
+        raw_tokens: list[tuple[str, float, float, float, float, int]] = []
         max_right = 0.0
         max_bottom = 0.0
 
         for line_index, line in enumerate(lines):
+            if not isinstance(line, dict):
+                continue
             for word in line.get("Words") or []:
+                if not isinstance(word, dict):
+                    continue
                 text = str(word.get("WordText") or "").strip()
                 if not text:
                     continue
+                try:
+                    left = float(word.get("Left", 0) or 0)
+                    top = float(word.get("Top", 0) or 0)
+                    width = float(word.get("Width", 0) or 0)
+                    height = float(word.get("Height", 0) or 0)
+                except (TypeError, ValueError):
+                    continue
 
-                left = float(word.get("Left", 0) or 0)
-                top = float(word.get("Top", 0) or 0)
-                width = float(word.get("Width", 0) or 0)
-                height = float(word.get("Height", 0) or 0)
-
-                raw.append((text, left, top, width, height, line_index))
+                raw_tokens.append((text, left, top, width, height, line_index))
                 max_right = max(max_right, left + width)
                 max_bottom = max(max_bottom, top + height)
 
-        if not raw or max_right <= 0 or max_bottom <= 0:
+        if not raw_tokens or max_right <= 0 or max_bottom <= 0:
             return []
 
-        # Pad the derived extent slightly. Text rarely reaches the page edge, so
-        # the text bounding box alone would overstate every coordinate.
         page_width = max_right * 1.02
         page_height = max_bottom * 1.02
-
         return [
             OcrToken(
                 text=text,
@@ -299,10 +368,9 @@ class OcrSpaceProvider:
                 height=height / page_height,
                 line=line_index,
             )
-            for text, left, top, width, height, line_index in raw
+            for text, left, top, width, height, line_index in raw_tokens
         ]
 
-    # -------------------------------------------------------------- status
     def budget_status(self) -> dict[str, int]:
         return {
             "daily_used": self._daily.used,

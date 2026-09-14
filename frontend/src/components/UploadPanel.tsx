@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -18,46 +18,13 @@ import { getAccessToken } from "@/lib/tokens";
 import { bytes } from "@/lib/format";
 import type { EstablishmentSummary, UploadResponse } from "@/lib/types";
 
-/** Upload panel.
- *
- *  Designed around what actually goes wrong when an employer's clerk uploads a
- *  month of filings.
- *
- *  **Many files at once.** A wage period means a wage register, a muster roll, an
- *  EPF challan and an ESIC challan. Uploading them one at a time turns a
- *  two-minute job into a twenty-minute one, so the whole batch is queued and each
- *  file reports its own progress.
- *
- *  **No document type field.** The backend identifies the document from its own
- *  contents and refuses to guess when unsure. Asking a clerk to pick a type adds
- *  a second source of truth that is wrong more often than the classifier, and a
- *  mislabelled document gets read against the wrong schema — which produces
- *  confident nonsense rather than an obvious failure.
- *
- *  **The workplace is asked as a question, not offered as a dropdown.** This used
- *  to be a pre-populated select, which failed twice over: "establishment" was
- *  never explained, and an employer with ten units had to scroll a list whose
- *  first entry looked pre-chosen. Now it is an explicit choice between taking the
- *  name from the document and picking one, with the list only appearing — and only
- *  loading — if the second is chosen.
- *
- *  **Real progress, not a spinner.** XHR rather than fetch, only because fetch
- *  cannot report upload progress. A fifty-megabyte scan over a slow line needs a
- *  progress bar or the user assumes it has hung and uploads it again.
- */
+/** Upload many documents for one explicitly selected establishment. */
 
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.tif,.tiff,.webp,.bmp,.txt,.csv,.ecr";
 const MAX_BYTES = 20 * 1024 * 1024;
-
-/** How many workplaces to list before asking the user to type. Long enough to
- *  scan, short enough that nobody scrolls looking for theirs. */
 const MAX_VISIBLE_ESTABLISHMENTS = 8;
 
 type ItemStatus = "queued" | "uploading" | "done" | "error";
-
-/** Where the workplace comes from. Default is the document, because the header is
- *  usually right and because a pre-selected list invites the wrong pick. */
-type BindMode = "auto" | "manual";
 
 interface QueueItem {
   key: string;
@@ -68,8 +35,14 @@ interface QueueItem {
   documentId?: string | undefined;
 }
 
+export interface EstablishmentUploadBatch {
+  establishmentId: string;
+  establishmentName: string;
+  documentIds: string[];
+}
+
 interface UploadPanelProps {
-  onUploaded?: (documentIds: string[]) => void;
+  onUploaded?: (batch: EstablishmentUploadBatch) => void;
 }
 
 export function UploadPanel({ onUploaded }: UploadPanelProps) {
@@ -78,41 +51,30 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
 
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [dragging, setDragging] = useState(false);
-  const [bindMode, setBindMode] = useState<BindMode>("auto");
-  const [establishmentId, setEstablishmentId] = useState("");
   const [filter, setFilter] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selectedEstablishment, setSelectedEstablishment] =
+    useState<EstablishmentSummary | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // Only fetched when the user asks to choose for themselves. An employer with one
-  // unit never needs this list, and a failure to load it must not block uploading:
-  // the header binding does not depend on it.
+  const searchTerm = filter.trim();
   const establishments = useQuery({
-    queryKey: ["establishments", "for-upload"],
-    queryFn: () => api.get<EstablishmentSummary[]>("/establishments?limit=200"),
-    enabled: bindMode === "manual",
+    queryKey: ["establishments", "upload-search", searchTerm],
+    queryFn: ({ signal }) =>
+      api.get<EstablishmentSummary[]>(
+        `/establishments?search=${encodeURIComponent(searchTerm)}&limit=${MAX_VISIBLE_ESTABLISHMENTS}`,
+        signal,
+      ),
+    enabled:
+      pickerOpen &&
+      searchTerm.length >= 2 &&
+      selectedEstablishment?.name !== searchTerm,
     retry: false,
+    staleTime: 30_000,
   });
 
-  // Typed filtering rather than a long dropdown. With ten or more units a
-  // pre-populated select is a scrolling exercise, and the first entry sitting
-  // there selected-looking is what makes people file against the wrong workplace.
-  const { matches, truncated } = useMemo(() => {
-    const all = establishments.data ?? [];
-    const needle = filter.trim().toLowerCase();
-
-    const hits = needle
-      ? all.filter((item) =>
-          [item.name, item.lin, item.district, item.state_code]
-            .filter(Boolean)
-            .some((field) => String(field).toLowerCase().includes(needle)),
-        )
-      : all;
-
-    return {
-      matches: hits.slice(0, MAX_VISIBLE_ESTABLISHMENTS),
-      truncated: Math.max(0, hits.length - MAX_VISIBLE_ESTABLISHMENTS),
-    };
-  }, [establishments.data, filter]);
+  const matches = establishments.data ?? [];
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const incoming = Array.from(files);
@@ -138,7 +100,7 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
           status: tooLarge || empty ? "error" : "queued",
           progress: 0,
           message: tooLarge
-            ? `${bytes(file.size)} exceeds the 64 MB limit`
+            ? `${bytes(file.size)} exceeds the 20 MB limit`
             : empty
               ? "This file is empty"
               : undefined,
@@ -158,18 +120,23 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
   async function uploadAll() {
     const pending = queue.filter((item) => item.status === "queued");
     if (!pending.length) return;
+    if (!selectedEstablishment) {
+      setSelectionError("Select an existing establishment before uploading.");
+      setPickerOpen(true);
+      return;
+    }
 
+    const target = selectedEstablishment;
+    setSelectionError(null);
     setBusy(true);
     const uploaded: string[] = [];
 
-    // Send files sequentially so the web process handles one multipart body at a
-    // time. Accepted files enter the backend's durable single-worker queue; this
-    // loop never starts OCR/model work itself.
+    // Submit sequentially so one request body at a time reaches the free service.
     for (const item of pending) {
       patch(item.key, { status: "uploading", progress: 0, message: undefined });
 
       try {
-        const response = await uploadOne(item.file, establishmentId, (progress) =>
+        const response = await uploadOne(item.file, target.id, (progress) =>
           patch(item.key, { progress }),
         );
         patch(item.key, {
@@ -179,7 +146,6 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
           message: response.message,
         });
         uploaded.push(response.document_id);
-        onUploaded?.([response.document_id]);
       } catch (error) {
         patch(item.key, {
           status: "error",
@@ -192,6 +158,11 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
     setBusy(false);
 
     if (uploaded.length) {
+      onUploaded?.({
+        establishmentId: target.id,
+        establishmentName: target.name,
+        documentIds: uploaded,
+      });
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
       setQueue((current) =>
         current.filter((item) => !item.documentId || !uploaded.includes(item.documentId)),
@@ -205,198 +176,96 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
 
   return (
     <section className="space-y-5 rounded-3xl border border-sky-200/90 bg-white/95 p-6 shadow-[0_10px_35px_rgba(56,189,248,0.10)] backdrop-blur-xl sm:p-8">
-      <header className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h2 className="flex items-center gap-2.5 text-xl font-bold text-slate-900">
-            <UploadCloud className="h-6 w-6 text-sky-600" />
-            Submit documents
-          </h2>
-          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-600">
-            You can select all the documents for one wage period together. You do
-            not need to say what each file is — that is taken from the document
-            itself.
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-xs">
-          <p className="font-bold text-slate-700">Accepted</p>
-          <p className="mt-0.5 text-slate-500">PDF, scans, photos, EPF text files</p>
-          <p className="mt-1 text-slate-500">Up to 20 MB and 25 pages each</p>
-        </div>
+      <header>
+        <h2 className="flex items-center gap-2.5 text-xl font-bold text-slate-900">
+          <UploadCloud className="h-6 w-6 text-sky-600" />
+          Submit documents
+        </h2>
       </header>
 
-      {/* Which workplace these documents belong to */}
-      <fieldset className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5">
-        <legend className="px-1 text-sm font-bold text-slate-900">
-          Which workplace do these documents belong to?
-        </legend>
-
-        <p className="mt-1 text-xs leading-relaxed text-slate-600">
-          An establishment is one registered workplace — a single factory, unit,
-          site, shop or office. Compliance is assessed separately for each one, so
-          documents have to be attached to the right workplace.
-        </p>
-
-        <div className="mt-4 space-y-2.5">
-          <label
-            className={[
-              "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors",
-              bindMode === "auto"
-                ? "border-sky-500 bg-white shadow-sm"
-                : "border-slate-200 bg-white/70 hover:border-slate-300",
-            ].join(" ")}
-          >
-            <input
-              type="radio"
-              name="bind-mode"
-              checked={bindMode === "auto"}
-              onChange={() => {
-                setBindMode("auto");
-                setEstablishmentId("");
-              }}
-              className="mt-0.5 h-4 w-4 cursor-pointer border-slate-400 text-sky-600"
+      <div className="relative rounded-2xl border border-slate-200 bg-slate-50/60 p-5">
+        <label htmlFor="establishment-search" className="block text-sm font-bold text-slate-900">
+          Establishment name
+        </label>
+        <div className="relative mt-2">
+          <Search
+            aria-hidden="true"
+            className="pointer-events-none absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-400"
+          />
+          <input
+            id="establishment-search"
+            type="search"
+            role="combobox"
+            aria-expanded={pickerOpen && matches.length > 0}
+            aria-controls="establishment-options"
+            aria-autocomplete="list"
+            value={filter}
+            onFocus={() => setPickerOpen(true)}
+            onBlur={() => window.setTimeout(() => setPickerOpen(false), 120)}
+            onChange={(event) => {
+              setFilter(event.target.value);
+              setSelectedEstablishment(null);
+              setSelectionError(null);
+              setPickerOpen(true);
+            }}
+            placeholder="Start typing the establishment name"
+            autoComplete="off"
+            disabled={busy}
+            className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-11 text-sm text-slate-900 transition-colors focus:border-sky-600 disabled:opacity-60"
+          />
+          {selectedEstablishment && (
+            <CheckCircle2
+              aria-label="Establishment selected"
+              className="absolute right-3.5 top-2.5 h-5 w-5 text-emerald-600"
             />
-            <span>
-              <span className="block text-sm font-bold text-slate-900">
-                Take it from the document
-              </span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-slate-600">
-                Most registers and challans carry the workplace name in the header.
-                If it cannot be read clearly, the document is kept aside for you to
-                attach yourself rather than filed against a guess.
-              </span>
-            </span>
-          </label>
-
-          <label
-            className={[
-              "flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition-colors",
-              bindMode === "manual"
-                ? "border-sky-500 bg-white shadow-sm"
-                : "border-slate-200 bg-white/70 hover:border-slate-300",
-            ].join(" ")}
-          >
-            <input
-              type="radio"
-              name="bind-mode"
-              checked={bindMode === "manual"}
-              onChange={() => setBindMode("manual")}
-              className="mt-0.5 h-4 w-4 cursor-pointer border-slate-400 text-sky-600"
-            />
-            <span>
-              <span className="block text-sm font-bold text-slate-900">
-                I will choose the workplace
-              </span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-slate-600">
-                Useful when you run several units with similar names.
-              </span>
-            </span>
-          </label>
+          )}
         </div>
 
-        {bindMode === "manual" && (
-          <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
-            <label className="block">
-              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
-                Type a name to find the workplace
-              </span>
-              <div className="relative">
-                <Search
-                  aria-hidden="true"
-                  className="pointer-events-none absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-400"
-                />
-                <input
-                  type="text"
-                  value={filter}
-                  onChange={(event) => setFilter(event.target.value)}
-                  placeholder="Name, registration number or district"
-                  autoComplete="off"
-                  className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-900 transition-colors focus:border-sky-600 focus:bg-white"
-                />
-              </div>
-            </label>
-
-            {establishments.isPending && (
-              <p className="text-xs text-slate-500">Loading your workplaces…</p>
-            )}
-
-            {establishments.isError && (
-              <p className="text-xs font-semibold text-rose-700">
-                Your list of workplaces could not be loaded. You can still upload —
-                choose "Take it from the document" above.
-              </p>
-            )}
-
-            {establishments.isSuccess && matches.length === 0 && (
-              <p className="text-xs text-slate-600">
-                {filter
-                  ? "No workplace matches what you typed."
-                  : "No workplaces are registered under your account yet."}
-              </p>
-            )}
-
-            {matches.length > 0 && (
-              <ul className="max-h-56 space-y-1 overflow-y-auto">
-                {matches.map((establishment) => {
-                  const chosen = establishmentId === establishment.id;
-
-                  return (
-                    <li key={establishment.id}>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setEstablishmentId(chosen ? "" : establishment.id)
-                        }
-                        aria-pressed={chosen}
-                        className={[
-                          "flex w-full cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors",
-                          chosen
-                            ? "border-sky-600 bg-sky-50"
-                            : "border-transparent hover:bg-slate-50",
-                        ].join(" ")}
-                      >
-                        <Building2
-                          aria-hidden="true"
-                          className={[
-                            "h-4 w-4 shrink-0",
-                            chosen ? "text-sky-700" : "text-slate-400",
-                          ].join(" ")}
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate text-sm font-semibold text-slate-900">
-                            {establishment.name}
-                          </span>
-                          <span className="block truncate text-xs text-slate-500">
-                            {[
-                              establishment.district,
-                              establishment.state_code,
-                              establishment.lin,
-                            ]
-                              .filter(Boolean)
-                              .join(" · ")}
-                          </span>
-                        </span>
-                        {chosen && (
-                          <CheckCircle2
-                            aria-hidden="true"
-                            className="h-4 w-4 shrink-0 text-sky-700"
-                          />
-                        )}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-
-            {truncated > 0 && (
-              <p className="text-xs text-slate-500">
-                {truncated} more not shown. Type a few letters to narrow the list.
-              </p>
-            )}
-          </div>
+        {selectionError && (
+          <p className="mt-2 text-xs font-semibold text-rose-700">{selectionError}</p>
         )}
-      </fieldset>
+        {establishments.isFetching && (
+          <p className="mt-2 text-xs text-slate-500">Searching…</p>
+        )}
+        {establishments.isError && pickerOpen && (
+          <p className="mt-2 text-xs font-semibold text-rose-700">
+            Establishments could not be loaded. Please retry.
+          </p>
+        )}
+        {establishments.isSuccess &&
+          pickerOpen &&
+          searchTerm.length >= 2 &&
+          matches.length === 0 && (
+            <p className="mt-2 text-xs text-slate-600">No establishment matches this name.</p>
+          )}
+
+        {pickerOpen && matches.length > 0 && (
+          <ul
+            id="establishment-options"
+            role="listbox"
+            className="mt-2 max-h-56 space-y-1 overflow-y-auto rounded-xl border border-slate-200 bg-white p-1 shadow-lg"
+          >
+            {matches.map((establishment) => (
+              <li key={establishment.id} role="option" aria-selected={false}>
+                <button
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    setSelectedEstablishment(establishment);
+                    setFilter(establishment.name);
+                    setSelectionError(null);
+                    setPickerOpen(false);
+                  }}
+                  className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-slate-900 hover:bg-sky-50"
+                >
+                  <Building2 aria-hidden="true" className="h-4 w-4 shrink-0 text-sky-700" />
+                  <span className="truncate">{establishment.name}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       {/* Dropzone */}
       <div
@@ -444,10 +313,6 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
             browse your files
           </label>
         </p>
-        <p className="mx-auto mt-1.5 max-w-md text-sm text-slate-600">
-          Wage registers, muster rolls, EPF and ESIC challans, appointment letters,
-          licences, accident registers, annual returns.
-        </p>
       </div>
 
       {/* Queue */}
@@ -481,7 +346,7 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
               <button
                 type="button"
                 onClick={() => void uploadAll()}
-                disabled={busy || pendingCount === 0}
+                disabled={busy || pendingCount === 0 || !selectedEstablishment}
                 className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {busy ? (
@@ -615,7 +480,7 @@ function uploadOne(
   return new Promise((resolve, reject) => {
     const form = new FormData();
     form.append("file", file);
-    if (establishmentId) form.append("establishment_id", establishmentId);
+    form.append("establishment_id", establishmentId);
 
     const request = new XMLHttpRequest();
     request.open("POST", `${apiBaseUrl()}/documents`);
