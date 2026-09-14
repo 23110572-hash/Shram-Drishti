@@ -13,7 +13,7 @@ import {
   X,
 } from "lucide-react";
 
-import { api } from "@/lib/api";
+import { api, apiBaseUrl } from "@/lib/api";
 import { getAccessToken } from "@/lib/tokens";
 import { bytes } from "@/lib/format";
 import type { EstablishmentSummary } from "@/lib/types";
@@ -613,8 +613,13 @@ function uploadOne(
     form.append("file", file);
     if (establishmentId) form.append("establishment_id", establishmentId);
 
+    // Built from the configured base URL, not hardcoded. This was "/api/documents",
+    // which is correct only in development where Vite proxies that path. Deployed
+    // to Vercel it posted to the Vercel domain instead of the API, and Vercel
+    // answered 405 because nothing there accepts POST on that path — an error that
+    // looks like the API rejecting the file rather than never receiving it.
     const request = new XMLHttpRequest();
-    request.open("POST", "/api/documents");
+    request.open("POST", `${apiBaseUrl()}/documents`);
 
     const token = getAccessToken();
     if (token) request.setRequestHeader("Authorization", `Bearer ${token}`);
@@ -657,6 +662,16 @@ function describeUploadError(error: unknown): string {
     }
     if (status === 413) {
       return "The server rejected this file as too large.";
+    }
+    if (status === 404 || status === 405) {
+      // Not a problem with the file. Something answered, but it was not the API:
+      // almost always the upload address resolving to the site's own host rather
+      // than the backend.
+      return (
+        `The upload address ${apiBaseUrl()}/documents did not accept it ` +
+        `(HTTP ${status}). Nothing is wrong with the file — the request did not ` +
+        "reach the API."
+      );
     }
 
     // The upload guard returns a structured reason: extension lying about
