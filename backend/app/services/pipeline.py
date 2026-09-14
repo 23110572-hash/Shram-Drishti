@@ -646,6 +646,7 @@ def _supersede_earlier(session: Session, document: Document) -> None:
                 Document.establishment_id == document.establishment_id,
                 Document.doc_type == document.doc_type,
                 Document.period_start == document.period_start,
+                Document.period_end == document.period_end,
                 Document.id != document.id,
                 or_(
                     Document.created_at < document.created_at,

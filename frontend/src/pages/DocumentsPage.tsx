@@ -44,6 +44,17 @@ const FALLBACK_PROGRESS: Record<DocumentStatus, number> = {
   FAILED: 100,
 };
 
+function documentProgress(document: DocumentDetail): number {
+  const raw = Number(document.latest_job?.detail.progress);
+  return Number.isFinite(raw)
+    ? Math.max(0, Math.min(100, raw))
+    : FALLBACK_PROGRESS[document.status];
+}
+
+function processingSettled(document: DocumentDetail): boolean {
+  return TERMINAL.has(document.status) && documentProgress(document) >= 100;
+}
+
 interface ActiveEstablishment {
   establishmentId: string;
   establishmentName: string;
@@ -148,7 +159,7 @@ export function DocumentsPage() {
 
       <section className="space-y-4" aria-labelledby="processing-title">
         <h2 id="processing-title" className="text-xl font-extrabold text-slate-950">
-          Processing progress
+          Document status
         </h2>
 
         {activeEstablishments.length === 0 ? (
@@ -185,7 +196,7 @@ function EstablishmentProgressCard({
       queryFn: () => api.get<DocumentDetail>(`/documents/${documentId}`),
       refetchInterval: (query: { state: { data?: unknown } }) => {
         const current = query.state.data as DocumentDetail | undefined;
-        return current && TERMINAL.has(current.status) ? false : 2000;
+        return current && processingSettled(current) ? false : 2000;
       },
       retry: 2,
     })),
@@ -195,14 +206,10 @@ function EstablishmentProgressCard({
     .map((query) => query.data)
     .filter((document): document is DocumentDetail => Boolean(document));
   const progress = item.documentIds.length
-    ? queries.reduce((total, query) => {
-        if (!query.data) return total;
-        const raw = Number(query.data.latest_job?.detail.progress);
-        const value = Number.isFinite(raw)
-          ? Math.max(0, Math.min(100, raw))
-          : FALLBACK_PROGRESS[query.data.status];
-        return total + value;
-      }, 0) / item.documentIds.length
+    ? queries.reduce(
+        (total, query) => total + (query.data ? documentProgress(query.data) : 0),
+        0,
+      ) / item.documentIds.length
     : 0;
 
   const unavailable = queries.some((query) => query.isError && !query.data);
@@ -213,21 +220,20 @@ function EstablishmentProgressCard({
     (document) =>
       document.status === "NEEDS_BINDING" || document.status === "NEEDS_REVIEW",
   );
+  const replaced = documents.some((document) => document.status === "SUPERSEDED");
   const complete =
     documents.length === item.documentIds.length &&
-    documents.every((document) => TERMINAL.has(document.status)) &&
-    !failed &&
-    !needsAction;
+    documents.every(processingSettled) &&
+    !failed;
+  const displayedProgress = complete ? 100 : progress;
 
   const label = unavailable
     ? "Status unavailable"
     : failed
       ? "Processing failed"
-      : needsAction
-        ? "Needs review"
-        : complete
-          ? "Complete"
-          : "Processing";
+      : complete
+        ? "Completed"
+        : "Processing";
 
   return (
     <article
@@ -280,7 +286,7 @@ function EstablishmentProgressCard({
           <div className="mt-4 flex items-center justify-between gap-3 text-sm">
             <span className="font-bold text-slate-800">{label}</span>
             <span className="font-black tabular-nums text-slate-700">
-              {Math.round(progress)}%
+              {Math.round(displayedProgress)}%
             </span>
           </div>
           <div
@@ -288,7 +294,7 @@ function EstablishmentProgressCard({
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={Math.round(progress)}
+            aria-valuenow={Math.round(displayedProgress)}
             aria-label={`${item.establishmentName} processing progress`}
           >
             <div
@@ -302,9 +308,20 @@ function EstablishmentProgressCard({
                       ? "bg-emerald-500"
                       : "bg-gradient-to-r from-sky-500 to-cyan-400",
               ].join(" ")}
-              style={{ width: `${progress}%` }}
+              style={{ width: `${displayedProgress}%` }}
             />
           </div>
+
+          {complete && needsAction && (
+            <p className="mt-3 text-xs font-semibold text-amber-800">
+              Automated checks are complete. Some extracted details should be confirmed by a reviewer.
+            </p>
+          )}
+          {complete && replaced && (
+            <p className="mt-2 text-xs font-semibold text-slate-600">
+              A newer upload replaced an earlier file for this period.
+            </p>
+          )}
 
           {unavailable && (
             <button

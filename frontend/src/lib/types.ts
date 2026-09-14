@@ -314,6 +314,7 @@ export interface ScorecardOut {
   documents_expected: number;
   documents_received: number;
   expected_document_types: DocumentType[] | null;
+  present_document_types: DocumentType[] | null;
   missing_document_types: DocumentType[] | null;
   findings_by_severity: Record<string, number>;
   open_finding_count: number;

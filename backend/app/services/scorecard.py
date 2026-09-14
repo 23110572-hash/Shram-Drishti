@@ -177,6 +177,7 @@ class Completeness:
     documents_expected: int
     documents_received: int
     expected_document_types: list[DocumentType]
+    present_document_types: list[DocumentType]
     missing_document_types: list[DocumentType]
     rule_coverage: float
     unassessable_rules: int = 0
@@ -430,6 +431,9 @@ def compute_score(
             "expected_document_types": [
                 doc_type.value for doc_type in completeness.expected_document_types
             ],
+            "present_document_types": [
+                doc_type.value for doc_type in completeness.present_document_types
+            ],
             "missing_document_types": [
                 doc_type.value for doc_type in completeness.missing_document_types
             ],
@@ -646,6 +650,7 @@ def _completeness(
         documents_expected=len(expected),
         documents_received=received,
         expected_document_types=expected,
+        present_document_types=sorted(present_types, key=lambda item: item.value),
         missing_document_types=[
             doc_type for doc_type in expected if doc_type not in present_types
         ],

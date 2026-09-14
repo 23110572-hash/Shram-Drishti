@@ -93,6 +93,7 @@ class ScorecardOut(BaseModel):
     documents_expected: int
     documents_received: int
     expected_document_types: list[DocumentType] | None
+    present_document_types: list[DocumentType] | None
     missing_document_types: list[DocumentType] | None
     findings_by_severity: dict[str, int]
     open_finding_count: int
@@ -334,7 +335,9 @@ def get_establishment(
             )
             for c in establishment.contractors or []
         ],
-        latest_scorecard=_scorecard_out(scorecard, include_computation=True)
+        latest_scorecard=_scorecard_out(
+            scorecard, session=session, include_computation=True
+        )
         if scorecard
         else None,
         document_counts=document_counts,
@@ -589,11 +592,47 @@ def _document_types_from_computation(
     return values
 
 
+def _present_document_types(
+    session: DbSession, scorecard: Scorecard
+) -> list[DocumentType]:
+    """Document types actually assessed in this immutable scorecard period.
+
+    Older scorecards predate the persisted list, so the detail API reconstructs
+    it with the same status and inclusive-period rules used by score computation.
+    """
+    query = select(Document.doc_type).where(
+        Document.establishment_id == scorecard.establishment_id,
+        Document.status.in_(
+            [
+                DocumentStatus.EXTRACTED,
+                DocumentStatus.NEEDS_REVIEW,
+                DocumentStatus.VERIFIED,
+                DocumentStatus.EVALUATED,
+            ]
+        ),
+    )
+    if scorecard.period_end is not None:
+        query = query.where(Document.period_start <= scorecard.period_end)
+    if scorecard.period_start is not None:
+        query = query.where(Document.period_end >= scorecard.period_start)
+
+    values = set(session.execute(query).scalars().all())
+    return sorted(values, key=lambda item: item.value)
+
+
 def _scorecard_out(
-    scorecard: Scorecard, *, include_computation: bool = False
+    scorecard: Scorecard,
+    *,
+    session: DbSession | None = None,
+    include_computation: bool = False,
 ) -> ScorecardOut:
     completeness = scorecard.computation.get("completeness") if scorecard.computation else None
     sufficient = bool(completeness.get("is_sufficient")) if completeness else False
+    present_document_types = _document_types_from_computation(
+        completeness, "present_document_types"
+    )
+    if present_document_types is None and session is not None:
+        present_document_types = _present_document_types(session, scorecard)
 
     return ScorecardOut(
         id=scorecard.id,
@@ -609,6 +648,7 @@ def _scorecard_out(
         expected_document_types=_document_types_from_computation(
             completeness, "expected_document_types"
         ),
+        present_document_types=present_document_types,
         missing_document_types=_document_types_from_computation(
             completeness, "missing_document_types"
         ),

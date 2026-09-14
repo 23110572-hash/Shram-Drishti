@@ -2,7 +2,6 @@ import { useCallback, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
-  Building2,
   CheckCircle2,
   FileText,
   Image as ImageIcon,
@@ -397,7 +396,12 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
                   }}
                   className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-slate-900 hover:bg-sky-50"
                 >
-                  <Building2 aria-hidden="true" className="h-4 w-4 shrink-0 text-sky-700" />
+                  <span
+                    aria-hidden="true"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-black text-sky-800"
+                  >
+                    {Array.from(establishment.name.trim())[0]?.toLocaleUpperCase() ?? "?"}
+                  </span>
                   <span className="min-w-0">
                     <span className="block truncate">{establishment.name}</span>
                     <span className="block truncate text-xs font-medium text-slate-500">

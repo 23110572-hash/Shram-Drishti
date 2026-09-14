@@ -286,7 +286,7 @@ function EstablishmentDrawer({
     establishment_id: establishmentId,
     open_only: "true",
     scored_only: "true",
-    limit: "20",
+    limit: "200",
   });
   if (scorecard?.period_start) {
     findingParams.set("period_start", scorecard.period_start);
@@ -302,13 +302,32 @@ function EstablishmentDrawer({
       scorecard?.period_start,
       scorecard?.period_end,
     ],
-    queryFn: () =>
-      api.get<FindingSummary[]>(`/findings?${findingParams.toString()}`),
+    queryFn: async () => {
+      const all: FindingSummary[] = [];
+      let offset = 0;
+
+      while (true) {
+        const pageParams = new URLSearchParams(findingParams);
+        pageParams.set("offset", String(offset));
+        const page = await api.get<FindingSummary[]>(
+          `/findings?${pageParams.toString()}`,
+        );
+        all.push(...page);
+        if (page.length < 200) return all;
+        offset += page.length;
+      }
+    },
     enabled: Boolean(scorecard),
   });
 
   const openFindings = findings.data ?? [];
   const missingDocumentTypes = scorecard?.missing_document_types ?? [];
+  const missingDocumentSet = new Set(missingDocumentTypes);
+  const receivedDocumentTypes =
+    scorecard?.present_document_types ??
+    (scorecard?.expected_document_types ?? []).filter(
+      (docType) => !missingDocumentSet.has(docType),
+    );
   const issueCount = findings.data?.length ?? scorecard?.open_finding_count ?? 0;
 
   return (
@@ -380,18 +399,18 @@ function EstablishmentDrawer({
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                          Document compliance result
+                          Compliance check
                         </p>
                         <h2 className="mt-1 text-2xl font-extrabold text-slate-950">
                           {issueCount > 0
-                            ? `${issueCount} issue${issueCount === 1 ? "" : "s"} need attention`
+                            ? `${issueCount} problem${issueCount === 1 ? "" : "s"} found`
                             : scorecard.evidence_sufficient
                               ? "No open issues found"
                               : "More documents are needed"}
                         </h2>
                         <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
                           {issueCount > 0
-                            ? "The checks below found specific problems in the linked records for this period."
+                            ? "These problems were found by checking the documents together. Fix them using the steps below."
                             : scorecard.evidence_sufficient
                               ? "No open issue was found in the documents that were assessed."
                               : "No breach is confirmed from the available records, but there is not enough evidence to complete every check."}
@@ -403,26 +422,34 @@ function EstablishmentDrawer({
                     </div>
                     <div className="text-right">
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                        Risk score
+                        Overall result
                       </p>
                       <p className="text-3xl font-extrabold text-slate-900">
                         {scorecard.overall_score.toFixed(0)}
-                        <span className="text-base text-slate-400"> / 100</span>
+                        <span className="text-base text-slate-500"> out of 100</span>
                       </p>
                       <RiskBadge band={scorecard.risk_band} />
                     </div>
                   </div>
 
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <Metric label="Issues found" value={count(issueCount)} />
-                    <Metric
-                      label="Document types received"
-                      value={`${scorecard.documents_received} of ${scorecard.documents_expected}`}
-                    />
-                    <Metric
-                      label="Checks completed"
-                      value={percent(scorecard.data_completeness)}
-                    />
+                  <div className="rounded-2xl border border-sky-200 bg-white p-4">
+                    <h3 className="font-bold text-slate-950">Documents checked</h3>
+                    {receivedDocumentTypes.length > 0 ? (
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {receivedDocumentTypes.map((docType) => (
+                          <Badge key={docType} tone="info">
+                            {DOCUMENT_TYPE_LABELS[docType]}
+                          </Badge>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mt-1 text-sm text-slate-700">
+                        No usable document was available for this assessment period.
+                      </p>
+                    )}
+                    <p className="mt-2 text-xs leading-relaxed text-slate-600">
+                      These are the document types the system linked and checked together for this result.
+                    </p>
                   </div>
 
                   {findings.isPending && issueCount > 0 && (
@@ -437,10 +464,10 @@ function EstablishmentDrawer({
                   {openFindings.length > 0 && (
                     <div className="space-y-2">
                       <h3 className="text-sm font-extrabold text-slate-900">
-                        Issues to fix
+                        Problems found and how to fix them
                       </h3>
                       <ul className="space-y-2">
-                        {openFindings.slice(0, 4).map((finding) => (
+                        {openFindings.map((finding) => (
                           <li
                             key={finding.id}
                             className="rounded-2xl border border-rose-200 bg-white p-4"
@@ -452,27 +479,38 @@ function EstablishmentDrawer({
                             <p className="mt-2 text-sm leading-relaxed text-slate-700">
                               {finding.message}
                             </p>
-                            {finding.remediation && (
-                              <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
-                                <span className="font-bold">What to do: </span>
-                                {finding.remediation}
-                              </p>
-                            )}
+                            <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
+                              <span className="font-bold">How to fix it: </span>
+                              {finding.remediation ??
+                                "Check the supporting record, correct the information, and upload the corrected document."}
+                            </p>
                           </li>
                         ))}
                       </ul>
-                      {openFindings.length > 4 && (
-                        <p className="text-xs font-semibold text-slate-500">
-                          {openFindings.length - 4} more issue(s) are available on the Findings page.
-                        </p>
-                      )}
                     </div>
                   )}
 
-                  {!scorecard.evidence_sufficient && (
-                    <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                      <h3 className="font-bold text-amber-950">Documents still needed</h3>
-                      {missingDocumentTypes.length > 0 ? (
+                  <div
+                    className={[
+                      "rounded-2xl border p-4",
+                      missingDocumentTypes.length > 0
+                        ? "border-amber-200 bg-amber-50"
+                        : "border-emerald-200 bg-emerald-50",
+                    ].join(" ")}
+                  >
+                    <h3
+                      className={
+                        missingDocumentTypes.length > 0
+                          ? "font-bold text-amber-950"
+                          : "font-bold text-emerald-950"
+                      }
+                    >
+                      {missingDocumentTypes.length > 0
+                        ? "Documents not received"
+                        : "Required documents received"}
+                    </h3>
+                    {missingDocumentTypes.length > 0 ? (
+                      <>
                         <div className="mt-2 flex flex-wrap gap-2">
                           {missingDocumentTypes.map((docType) => (
                             <Badge key={docType} tone="medium">
@@ -480,38 +518,28 @@ function EstablishmentDrawer({
                             </Badge>
                           ))}
                         </div>
-                      ) : (
-                        <p className="mt-1 text-sm text-amber-900">
-                          {Math.max(
-                            0,
-                            scorecard.documents_expected - scorecard.documents_received,
-                          )} additional document type(s) are required. Re-run this assessment to see their names.
+                        <p className="mt-2 text-xs leading-relaxed text-amber-900">
+                          Upload these records for the same establishment and period. A missing document means that check could not be completed; it does not by itself prove a violation.
                         </p>
-                      )}
-                      <p className="mt-2 text-xs leading-relaxed text-amber-900">
-                        Upload these records for the same establishment and period, then run the assessment again. Missing evidence is not itself proof of a breach.
+                      </>
+                    ) : (
+                      <p className="mt-1 text-sm text-emerald-900">
+                        All document types required for this establishment were available for this period.
                       </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
                   {scorecard.review_summary && (
                     <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-sm leading-relaxed text-sky-950">
-                      <p className="flex flex-wrap items-center gap-2 font-bold">
-                        AI review across linked documents
-                        {scorecard.records_quality && (
-                          <Badge tone="info">
-                            {scorecard.records_quality.replace(/_/g, " ")}
-                          </Badge>
-                        )}
-                      </p>
+                      <p className="font-bold">AI summary of the checked documents</p>
                       <p className="mt-2 whitespace-pre-line">{scorecard.review_summary}</p>
                       <p className="mt-2 text-xs text-sky-900/80">
-                        AI links information across the submitted records and explains inconsistencies. Deterministic Labour Code rules—not AI opinion—decide findings and the score.
+                        AI connects names, totals, dates, and other information across the uploaded records. The rule checks decide the official problems and score.
                       </p>
                     </div>
                   )}
 
-                  <details className="rounded-2xl border border-slate-200 bg-white">
+                  <details className="hidden rounded-2xl border border-slate-200 bg-white">
                     <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-800">
                       How this score was calculated
                     </summary>
@@ -561,7 +589,7 @@ function EstablishmentDrawer({
               )}
 
               {/* Run an assessment */}
-              <section className="space-y-3 rounded-3xl border border-sky-200 bg-sky-50/60 p-5">
+              <section className="hidden space-y-3 rounded-3xl border border-sky-200 bg-sky-50/60 p-5">
                 <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-sky-900">
                   <Play className="h-4 w-4" />
                   Run an assessment
@@ -617,7 +645,7 @@ function EstablishmentDrawer({
                 )}
               </section>
 
-              <details className="rounded-2xl border border-slate-200 bg-white">
+              <details className="hidden rounded-2xl border border-slate-200 bg-white">
                 <summary className="cursor-pointer px-4 py-3 text-sm font-bold text-slate-800">
                   Profile, legal thresholds and wage rates
                 </summary>
@@ -813,7 +841,7 @@ function EstablishmentDrawer({
 
               {/* Score history */}
               {history.data && history.data.length > 1 && (
-                <section className="space-y-2">
+                <section className="hidden space-y-2">
                   <h3 className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-700">
                     <Gauge className="h-4 w-4" />
                     Score history
