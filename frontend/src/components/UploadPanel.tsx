@@ -47,7 +47,7 @@ import type { EstablishmentSummary, UploadResponse } from "@/lib/types";
  */
 
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.tif,.tiff,.webp,.bmp,.txt,.csv,.ecr";
-const MAX_BYTES = 64 * 1024 * 1024;
+const MAX_BYTES = 20 * 1024 * 1024;
 
 /** How many workplaces to list before asking the user to type. Long enough to
  *  scan, short enough that nobody scrolls looking for theirs. */
@@ -179,6 +179,7 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
           message: response.message,
         });
         uploaded.push(response.document_id);
+        onUploaded?.([response.document_id]);
       } catch (error) {
         patch(item.key, {
           status: "error",
@@ -192,7 +193,9 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
 
     if (uploaded.length) {
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
-      onUploaded?.(uploaded);
+      setQueue((current) =>
+        current.filter((item) => !item.documentId || !uploaded.includes(item.documentId)),
+      );
     }
   }
 
@@ -218,7 +221,7 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
         <div className="rounded-2xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-xs">
           <p className="font-bold text-slate-700">Accepted</p>
           <p className="mt-0.5 text-slate-500">PDF, scans, photos, EPF text files</p>
-          <p className="mt-1 text-slate-500">Up to 64 MB and 500 pages each</p>
+          <p className="mt-1 text-slate-500">Up to 20 MB and 25 pages each</p>
         </div>
       </header>
 

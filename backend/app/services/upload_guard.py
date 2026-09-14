@@ -47,8 +47,8 @@ ALLOWED_MIME_TYPES = frozenset(
 # and carry no magic bytes.
 TEXT_EXTENSIONS = frozenset({".txt", ".csv", ".ecr"})
 
-MAX_UPLOAD_BYTES = 64 * 1024 * 1024  # 64 MB
-MAX_PDF_PAGES = 500
+MAX_UPLOAD_BYTES = 20 * 1024 * 1024  # 20 MB; bounded for a 512 MB Render process
+MAX_PDF_PAGES = 25
 MAX_IMAGE_PIXELS = 80_000_000  # ~8000 x 10000
 
 

@@ -75,7 +75,7 @@ OCR_LANGUAGES = ["eng", "hin"]
 
 # Pages OCR'd per document. A 500-page muster roll would exhaust a free-tier
 # daily quota on one upload and starve every other establishment that day.
-MAX_OCR_PAGES = 60
+MAX_OCR_PAGES = 25
 
 
 class PipelineError(Exception):
@@ -114,6 +114,43 @@ def _finish_job(
     session.flush()
 
 
+def _set_job_progress(job_id: str, progress: int, stage: str, **detail: Any) -> None:
+    """Persist visible progress without committing the extraction transaction."""
+    with get_session_factory()() as progress_session:
+        job = progress_session.get(Job, job_id)
+        if job is None or job.status != JobStatus.RUNNING:
+            return
+        job.detail = {
+            **(job.detail or {}),
+            "progress": max(0, min(100, progress)),
+            "stage": stage,
+            **detail,
+        }
+        progress_session.commit()
+
+
+def _set_document_progress(document_id: str, progress: int, stage: str) -> None:
+    with get_session_factory()() as progress_session:
+        job = progress_session.execute(
+            select(Job)
+            .where(
+                Job.kind == "process_document",
+                Job.subject_type == "document",
+                Job.subject_id == document_id,
+            )
+            .order_by(Job.created_at.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+        if job is None:
+            return
+        job.detail = {
+            **(job.detail or {}),
+            "progress": max(0, min(100, progress)),
+            "stage": stage,
+        }
+        progress_session.commit()
+
+
 # =============================================================================
 # Document reading
 # =============================================================================
@@ -150,6 +187,7 @@ async def _process_document(job_id: str, document_id: str) -> None:
             session.commit()
             return
 
+        _set_job_progress(job.id, 5, "Preparing document")
         budget = BudgetTracker(limit_usd=settings.llm_budget_per_doc_usd)
 
         try:
@@ -160,16 +198,17 @@ async def _process_document(job_id: str, document_id: str) -> None:
                 # where nobody is watching.
                 await client.load_capabilities()
 
-            pages = await _prepare_pages(session, document)
+            pages = await _prepare_pages(session, document, job.id)
             session.commit()
+            _set_job_progress(job.id, 62, "Identifying document")
 
             extractor = DocumentExtractor(client)
-
             classification = await extractor.classify(pages, budget)
             document.doc_type = classification.doc_type
             document.doc_type_confidence = classification.confidence
             document.contains_redacted_pii = classification.contains_worker_identifiers
             document.status = DocumentStatus.CLASSIFIED
+            _set_job_progress(job.id, 68, "Matching workplace and period")
 
             if classification.looks_like_multiple_documents:
                 _add_review(
@@ -192,6 +231,8 @@ async def _process_document(job_id: str, document_id: str) -> None:
                     unclassified=True,
                     confidence=classification.confidence,
                     cost_usd=round(budget.spent_usd, 6),
+                    progress=100,
+                    stage="Needs document details",
                 )
                 session.commit()
                 return
@@ -230,12 +271,15 @@ async def _process_document(job_id: str, document_id: str) -> None:
                         job,
                         unbound=True,
                         cost_usd=round(budget.spent_usd, 6),
+                        progress=100,
+                        stage="Choose a workplace",
                     )
                     session.commit()
                     return
 
                 document.establishment_id = binding.establishment_id
 
+            _set_job_progress(job.id, 72, "Extracting records")
             result = await extractor.extract(
                 doc_type=classification.doc_type, pages=pages, budget=budget
             )
@@ -245,6 +289,7 @@ async def _process_document(job_id: str, document_id: str) -> None:
             document.schema_source = result.schema_source
 
             await _store_records(session, document, result, client, budget)
+            _set_job_progress(job.id, 85, "Saving extracted records")
 
             for reason in result.review_reasons:
                 _add_review(document, reason)
@@ -282,6 +327,8 @@ async def _process_document(job_id: str, document_id: str) -> None:
                 cost_usd=round(budget.spent_usd, 6),
                 llm_calls=budget.calls,
                 review_reasons=len(document.review_reasons),
+                progress=90,
+                stage="Waiting for assessment",
             )
 
             # The evaluation is another durable queue row in the same commit as
@@ -318,13 +365,21 @@ def _fail_document(_session: Session | None, document_id: str, job_id: str, erro
             document.rejection_reason = error[:512]
         job = fresh.get(Job, job_id)
         if job is not None:
-            _finish_job(fresh, job, error=error[:2000])
+            _finish_job(
+                fresh,
+                job,
+                error=error[:2000],
+                progress=100,
+                stage="Processing failed",
+            )
         fresh.commit()
     logger.error("document failed", extra={"document_id": document_id, "error": error})
 
 
 # --------------------------------------------------------------- page reading
-async def _prepare_pages(session: Session, document: Document) -> list[PageInput]:
+async def _prepare_pages(
+    session: Session, document: Document, job_id: str
+) -> list[PageInput]:
     """Rasterise, OCR and assemble the page inputs.
 
     Mode is decided per page here. A native text layer short-circuits both OCR and
@@ -355,13 +410,28 @@ async def _prepare_pages(session: Session, document: Document) -> list[PageInput
         # column read in the wrong order looks perfectly plausible in isolation,
         # and only the page image can contradict it. Skipping the render here is
         # what let a swapped deductions column turn a 55% deduction into 45%.
-        rendered = page_service.render_pdf_pages(
-            raw,
-            dpi=settings.ocr_page_dpi,
-            fallback_dpi=settings.ocr_page_fallback_dpi,
-            max_bytes=settings.ocr_page_max_bytes,
-            page_numbers=list(range(1, min(document.page_count, MAX_OCR_PAGES) + 1)),
-        )
+        # Render one page per call. A compressed PDF can expand to tens of
+        # megabytes per bitmap; rendering every page in one call is what pushed
+        # the 512 MB Render instance over its memory limit.
+        rendered = []
+        page_total = min(document.page_count, MAX_OCR_PAGES)
+        for page_number in range(1, page_total + 1):
+            rendered.extend(
+                page_service.render_pdf_pages(
+                    raw,
+                    dpi=settings.ocr_page_dpi,
+                    fallback_dpi=settings.ocr_page_fallback_dpi,
+                    max_bytes=settings.ocr_page_max_bytes,
+                    page_numbers=[page_number],
+                )
+            )
+            _set_job_progress(
+                job_id,
+                5 + int(5 * page_number / max(page_total, 1)),
+                f"Preparing page {page_number} of {page_total}",
+                pages_completed=0,
+                pages_total=page_total,
+            )
     elif document.detected_mime == "text/plain":
         # Structured text such as an EPF ECR file. No rasterising, no OCR, and no
         # image: the bytes are the data.
@@ -370,6 +440,7 @@ async def _prepare_pages(session: Session, document: Document) -> list[PageInput
         _upsert_page(session, document, page_number=1, mode=ExtractionMode.NATIVE_PDF)
         document.page_count = 1
         document.status = DocumentStatus.NORMALISED
+        _set_job_progress(job_id, 60, "Text prepared", pages_completed=1, pages_total=1)
         return inputs
     else:
         single = page_service.prepare_image_page(
@@ -386,7 +457,7 @@ async def _prepare_pages(session: Session, document: Document) -> list[PageInput
 
     provider = get_ocr_provider()
 
-    for page in rendered:
+    for completed, page in enumerate(rendered, start=1):
         stored = store.put_bytes(page.image, prefix="pages", suffix=".jpg")
 
         ocr_text: str | None = None
@@ -468,6 +539,13 @@ async def _prepare_pages(session: Session, document: Document) -> list[PageInput
             # the coordinates came from the text layer or from OCR.
             ocr_tokens=page_input.tokens,
             ocr_failed_reason=failure,
+        )
+        _set_job_progress(
+            job_id,
+            10 + int(50 * completed / max(len(rendered), 1)),
+            f"Reading page {completed} of {len(rendered)}",
+            pages_completed=completed,
+            pages_total=len(rendered),
         )
 
     document.page_count = max(document.page_count, len(inputs))
@@ -1140,6 +1218,9 @@ async def _evaluate_establishment(
                 period_start=period_start,
                 period_end=period_end,
             )
+            _set_job_progress(job.id, 92, "Assessing compliance")
+            for source_document in context.documents:
+                _set_document_progress(source_document.id, 92, "Assessing compliance")
 
             # 1. Deterministic rules. These, and only these, decide compliance.
             engine = RuleEngine()
@@ -1217,8 +1298,12 @@ async def _evaluate_establishment(
                 completeness=score.completeness.overall,
                 alerts=len(queued),
                 errors=report.errors[:10],
+                progress=100,
+                stage="Complete",
             )
             session.commit()
+            for source_document in context.documents:
+                _set_document_progress(source_document.id, 100, "Complete")
 
         except Exception as exc:  # noqa: BLE001
             session.rollback()

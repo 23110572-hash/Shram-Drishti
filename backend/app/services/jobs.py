@@ -227,6 +227,20 @@ class _PipelineWorker:
                 select(Job).where(Job.kind.in_(_KINDS), Job.status == JobStatus.RUNNING)
             ).scalars().all()
             for job in running:
+                if (job.attempts or 0) >= 2:
+                    job.status = JobStatus.FAILED
+                    job.finished_at = utcnow()
+                    job.error = (
+                        "Processing exceeded the free service memory limit twice. "
+                        "Split the file into smaller documents and submit it again."
+                    )
+                    if job.kind == PROCESS_DOCUMENT:
+                        document = session.get(Document, job.subject_id)
+                        if document is not None:
+                            document.status = DocumentStatus.FAILED
+                            document.rejection_reason = job.error[:512]
+                    continue
+
                 job.status = JobStatus.QUEUED
                 job.started_at = None
                 job.finished_at = None
@@ -236,6 +250,7 @@ class _PipelineWorker:
                     "restart_recoveries": int((job.detail or {}).get("restart_recoveries", 0)) + 1,
                 }
 
+            session.flush()
             active_document_ids = set(
                 session.execute(
                     select(Job.subject_id).where(

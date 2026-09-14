@@ -93,13 +93,21 @@ class Settings(BaseSettings):
     ocr_space_engine_indic: int = 3
     ocr_space_daily_budget: int = 500
     ocr_space_engine3_monthly_budget: int = 2500
-    ocr_page_dpi: int = 300
-    ocr_page_fallback_dpi: int = 200
+    ocr_page_dpi: int = 200
+    ocr_page_fallback_dpi: int = 160
     ocr_page_max_bytes: int = 1_000_000
     allow_cloud_ocr_in_production: bool = False
 
     # ---------------------------------------------------------------- storage
+    # Private S3-compatible object storage (Supabase Storage in production).
+    # Render's free filesystem is only a local parser cache and cannot be the
+    # durable copy because it disappears whenever the instance restarts.
     storage_dir: Path = PROJECT_ROOT / "storage"
+    s3_endpoint_url: str = ""
+    s3_region: str = ""
+    s3_access_key_id: str = ""
+    s3_secret_access_key: str = ""
+    s3_bucket: str = ""
 
     # ------------------------------------------------------------------- CORS
     # Origins allowed to call the API from a browser, comma separated.

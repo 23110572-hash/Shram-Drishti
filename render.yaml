@@ -1,8 +1,8 @@
 # Render blueprint for the API. The frontend is deployed separately on Vercel.
 #
 # Expensive document work is consumed one job at a time from Postgres. Uploaded
-# bytes and rendered evidence images are mirrored to Neon because the free Render
-# filesystem is only a cache and disappears on restarts/deployments.
+# bytes and rendered evidence images live in private Supabase S3 storage; Render's
+# filesystem is only a parser cache and can disappear safely on restart.
 
 services:
   - type: web
@@ -38,6 +38,17 @@ services:
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OCR_SPACE_API_KEY
+        sync: false
+
+      - key: S3_ENDPOINT_URL
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_BUCKET
         sync: false
 
       - key: CORS_ALLOWED_ORIGINS
