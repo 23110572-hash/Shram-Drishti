@@ -55,10 +55,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     void (async () => {
-      const restored = await restoreSession();
+      let restored = false;
+      try {
+        restored = await restoreSession();
+      } catch {
+        // A sleeping or failed API must not hold the entire frontend in its
+        // loading state. Discard the unusable session and show sign-in instead.
+        clearTokens();
+      }
       if (cancelled) return;
 
       if (!restored) {
+        setUser(null);
         setStatus("anonymous");
         return;
       }
