@@ -127,7 +127,11 @@ class Document(IdMixin, TimestampMixin, Base):
 
     @property
     def is_terminal(self) -> bool:
-        return self.status in {DocumentStatus.REJECTED, DocumentStatus.FAILED}
+        return self.status in {
+            DocumentStatus.REJECTED,
+            DocumentStatus.FAILED,
+            DocumentStatus.SUPERSEDED,
+        }
 
 
 class DocumentPage(IdMixin, TimestampMixin, Base):

@@ -13,10 +13,10 @@ import {
   X,
 } from "lucide-react";
 
-import { api, apiBaseUrl } from "@/lib/api";
+import { api, apiBaseUrl, refreshAccessToken } from "@/lib/api";
 import { getAccessToken } from "@/lib/tokens";
 import { bytes } from "@/lib/format";
-import type { EstablishmentSummary } from "@/lib/types";
+import type { EstablishmentSummary, UploadResponse } from "@/lib/types";
 
 /** Upload panel.
  *
@@ -66,7 +66,6 @@ interface QueueItem {
   progress: number;
   message?: string | undefined;
   documentId?: string | undefined;
-  supersedes?: string | null | undefined;
 }
 
 interface UploadPanelProps {
@@ -163,9 +162,9 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
     setBusy(true);
     const uploaded: string[] = [];
 
-    // Sequential rather than parallel. Each accepted upload immediately starts
-    // OCR and model calls on a background thread, and firing ten at once would
-    // exhaust the OCR daily quota for every other establishment in the queue.
+    // Send files sequentially so the web process handles one multipart body at a
+    // time. Accepted files enter the backend's durable single-worker queue; this
+    // loop never starts OCR/model work itself.
     for (const item of pending) {
       patch(item.key, { status: "uploading", progress: 0, message: undefined });
 
@@ -177,7 +176,6 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
           status: "done",
           progress: 100,
           documentId: response.document_id,
-          supersedes: response.supersedes_document_id,
           message: response.message,
         });
         uploaded.push(response.document_id);
@@ -597,29 +595,28 @@ function QueueRow({
   );
 }
 
-/** One multipart upload with progress.
- *
- *  XMLHttpRequest rather than fetch purely for `upload.onprogress`, which fetch
- *  does not expose. The bearer token is read at call time rather than captured,
- *  so a refresh that happened mid-batch is picked up.
- */
+/** One multipart upload with progress and one transparent token refresh. */
+type UploadFailure = {
+  status: number;
+  body?: string;
+  requestId?: string | null;
+  message?: string;
+};
+
 function uploadOne(
   file: File,
   establishmentId: string,
   onProgress: (percent: number) => void,
-): Promise<{ document_id: string; message: string; supersedes_document_id: string | null }> {
+  isRetry = false,
+): Promise<UploadResponse> {
   return new Promise((resolve, reject) => {
     const form = new FormData();
     form.append("file", file);
     if (establishmentId) form.append("establishment_id", establishmentId);
 
-    // Built from the configured base URL, not hardcoded. This was "/api/documents",
-    // which is correct only in development where Vite proxies that path. Deployed
-    // to Vercel it posted to the Vercel domain instead of the API, and Vercel
-    // answered 405 because nothing there accepts POST on that path — an error that
-    // looks like the API rejecting the file rather than never receiving it.
     const request = new XMLHttpRequest();
     request.open("POST", `${apiBaseUrl()}/documents`);
+    request.timeout = 120_000;
 
     const token = getAccessToken();
     if (token) request.setRequestHeader("Authorization", `Bearer ${token}`);
@@ -630,21 +627,50 @@ function uploadOne(
       }
     };
 
-    request.onload = () => {
+    request.onload = async () => {
+      if (request.status === 401 && !isRetry && (await refreshAccessToken())) {
+        uploadOne(file, establishmentId, onProgress, true).then(resolve, reject);
+        return;
+      }
+
+      const requestId = request.getResponseHeader("X-Request-ID");
       if (request.status >= 200 && request.status < 300) {
         try {
-          resolve(JSON.parse(request.responseText));
+          const parsed = JSON.parse(request.responseText) as Partial<UploadResponse>;
+          if (
+            typeof parsed.document_id !== "string" ||
+            typeof parsed.message !== "string" ||
+            typeof parsed.status !== "string"
+          ) {
+            throw new Error("response shape is invalid");
+          }
+          resolve(parsed as UploadResponse);
         } catch {
-          reject(new Error("The server accepted the file but returned an unreadable reply."));
+          reject({
+            status: 502,
+            requestId,
+            message:
+              "The upload endpoint returned an invalid response. Refresh the document list before retrying; the file may already have been received.",
+          } satisfies UploadFailure);
         }
         return;
       }
-      reject({ status: request.status, body: request.responseText });
+      reject({
+        status: request.status,
+        body: request.responseText,
+        requestId,
+      } satisfies UploadFailure);
     };
 
     request.onerror = () =>
-      reject(new Error("The connection dropped while uploading."));
-    request.ontimeout = () => reject(new Error("The upload timed out."));
+      reject(
+        new Error(
+          "The API connection was interrupted. Refresh the document list before retrying; the file may already have been received.",
+        ),
+      );
+    request.ontimeout = () =>
+      reject(new Error("The API did not acknowledge this upload within two minutes."));
+    request.onabort = () => reject(new Error("The upload was cancelled."));
 
     request.send(form);
   });
@@ -652,7 +678,8 @@ function uploadOne(
 
 function describeUploadError(error: unknown): string {
   if (error && typeof error === "object" && "status" in error) {
-    const { status, body } = error as { status: number; body?: string };
+    const { status, body, requestId, message } = error as UploadFailure;
+    if (message) return requestId ? `${message} Request ID: ${requestId}.` : message;
 
     if (status === 401) {
       return "Your session expired during the upload. Sign in again and retry.";
@@ -664,29 +691,30 @@ function describeUploadError(error: unknown): string {
       return "The server rejected this file as too large.";
     }
     if (status === 404 || status === 405) {
-      // Not a problem with the file. Something answered, but it was not the API:
-      // almost always the upload address resolving to the site's own host rather
-      // than the backend.
       return (
-        `The upload address ${apiBaseUrl()}/documents did not accept it ` +
-        `(HTTP ${status}). Nothing is wrong with the file — the request did not ` +
-        "reach the API."
+        `The configured upload address ${apiBaseUrl()}/documents is not the API ` +
+        `(HTTP ${status}).`
       );
     }
 
-    // The upload guard returns a structured reason: extension lying about
-    // content, an encrypted PDF, a page-count bomb. Those messages are written
-    // for the person uploading, so they are shown verbatim.
     if (body) {
       try {
         const parsed = JSON.parse(body) as { detail?: { message?: string } | string };
-        if (typeof parsed.detail === "string") return parsed.detail;
-        if (parsed.detail?.message) return parsed.detail.message;
+        const detail =
+          typeof parsed.detail === "string"
+            ? parsed.detail
+            : parsed.detail?.message;
+        if (detail) return requestId ? `${detail} Request ID: ${requestId}.` : detail;
       } catch {
-        /* not JSON */
+        /* The status and request id below remain actionable. */
       }
     }
-    return `The server rejected this file (HTTP ${status}).`;
+
+    const base =
+      status >= 500
+        ? "The API could not accept this upload."
+        : `The server rejected this file (HTTP ${status}).`;
+    return requestId ? `${base} Request ID: ${requestId}.` : base;
   }
 
   if (error instanceof Error) return error.message;

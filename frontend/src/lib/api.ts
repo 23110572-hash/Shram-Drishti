@@ -109,7 +109,7 @@ async function performRefresh(): Promise<boolean> {
   return true;
 }
 
-function refreshOnce(): Promise<boolean> {
+export function refreshAccessToken(): Promise<boolean> {
   refreshInFlight ??= performRefresh().finally(() => {
     refreshInFlight = null;
   });
@@ -161,7 +161,7 @@ async function send(
   // One retry only. A second 401 after a successful refresh means the request
   // is genuinely unauthorised, not stale — retrying again would loop.
   if (response.status === 401 && !options.anonymous && !isRetry) {
-    if (await refreshOnce()) {
+    if (await refreshAccessToken()) {
       return send(path, options, true);
     }
   }
@@ -230,5 +230,5 @@ export const api = {
  *  Returns false when there is nothing to restore. */
 export async function restoreSession(): Promise<boolean> {
   if (!getRefreshToken()) return false;
-  return refreshOnce();
+  return refreshAccessToken();
 }

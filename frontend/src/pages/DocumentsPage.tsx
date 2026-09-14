@@ -66,13 +66,26 @@ const NEEDS_ATTENTION: DocumentStatus[] = [
   "REJECTED",
 ];
 
-/** Group key for documents not yet attached to any workplace. */
-const UNATTACHED = "__unattached__";
+/** Null-establishment rows are split by lifecycle; only NEEDS_BINDING asks
+ *  the user to choose a workplace. */
+const PROCESSING = "__processing__";
+const NEEDS_WORKPLACE = "__needs_workplace__";
+const FAILED_UPLOADS = "__failed_uploads__";
+const REPLACED_UPLOADS = "__replaced_uploads__";
+
+type DocumentGroupKind =
+  | "workplace"
+  | "processing"
+  | "needs-workplace"
+  | "failed"
+  | "replaced";
 
 interface DocumentGroup {
   key: string;
+  kind: DocumentGroupKind;
   establishmentId: string | null;
   name: string;
+  note: string | undefined;
   rows: DocumentSummary[];
   attention: number;
 }
@@ -112,39 +125,75 @@ export function DocumentsPage() {
   const rows = documents.data ?? [];
   const attention = rows.filter((row) => NEEDS_ATTENTION.includes(row.status));
 
-  // Grouped by workplace rather than shown as one flat list. An employer with ten
-  // units reading a single list interleaved by upload time cannot tell whose
-  // register is whose, and the establishment column repeating the same name down
-  // twenty rows is not a substitute for structure.
+  // Group completed documents by workplace. Rows that have not reached binding
+  // are grouped by their real lifecycle state rather than falsely claiming that
+  // workplace detection has already failed.
   const groups = useMemo(() => {
-    const byEstablishment = new Map<string, DocumentGroup>();
+    const grouped = new Map<string, DocumentGroup>();
 
     for (const row of rows) {
-      const key = row.establishment_id ?? UNATTACHED;
-      let group = byEstablishment.get(key);
+      let key = row.establishment_id ?? NEEDS_WORKPLACE;
+      let kind: DocumentGroupKind = "workplace";
+      let name = row.establishment_name ?? "Choose a workplace";
+      let note: string | undefined;
 
+      if (!row.establishment_id && DOCUMENT_IN_PROGRESS.includes(row.status)) {
+        key = PROCESSING;
+        kind = "processing";
+        name = "Being read";
+        note =
+          "These uploads are queued or being read. Their workplace will appear after identification.";
+      } else if (!row.establishment_id && row.status === "NEEDS_BINDING") {
+        key = NEEDS_WORKPLACE;
+        kind = "needs-workplace";
+        name = "Choose a workplace";
+        note =
+          "Reading finished, but the workplace could not be identified safely. Open a document and choose the correct workplace.";
+      } else if (
+        !row.establishment_id &&
+        (row.status === "FAILED" || row.status === "REJECTED")
+      ) {
+        key = FAILED_UPLOADS;
+        kind = "failed";
+        name = "Uploads that need retrying";
+        note =
+          "These files could not be completed. Open one to see the recorded reason before submitting it again.";
+      } else if (!row.establishment_id && row.status === "SUPERSEDED") {
+        key = REPLACED_UPLOADS;
+        kind = "replaced";
+        name = "Replaced filings";
+        note =
+          "A later filing replaced these documents, so they no longer affect assessment.";
+      }
+
+      let group = grouped.get(key);
       if (!group) {
         group = {
           key,
+          kind,
           establishmentId: row.establishment_id,
-          name: row.establishment_name ?? "Not yet attached to a workplace",
+          name,
+          note,
           rows: [],
           attention: 0,
         };
-        byEstablishment.set(key, group);
+        grouped.set(key, group);
       }
 
       group.rows.push(row);
       if (NEEDS_ATTENTION.includes(row.status)) group.attention += 1;
     }
 
-    // Unattached first: those are the ones nothing will happen to until somebody
-    // acts. Then alphabetical, so a given workplace is always in the same place.
-    return [...byEstablishment.values()].sort((a, b) => {
-      if (a.key === UNATTACHED) return -1;
-      if (b.key === UNATTACHED) return 1;
-      return a.name.localeCompare(b.name);
-    });
+    const priority: Record<DocumentGroupKind, number> = {
+      processing: 0,
+      "needs-workplace": 1,
+      failed: 2,
+      workplace: 3,
+      replaced: 4,
+    };
+    return [...grouped.values()].sort(
+      (a, b) => priority[a.kind] - priority[b.kind] || a.name.localeCompare(b.name),
+    );
   }, [rows]);
 
   if (!user) {
@@ -339,20 +388,21 @@ export function DocumentsPage() {
       {documents.isSuccess && groups.length > 0 && (
         <div className="space-y-6">
           {groups.map((group) => {
-            const unattached = group.key === UNATTACHED;
+            const warning =
+              group.kind === "needs-workplace" || group.kind === "failed";
 
             return (
               <section
                 key={group.key}
                 className={[
                   "overflow-hidden rounded-3xl border bg-white/95 shadow-sm backdrop-blur-xl",
-                  unattached ? "border-amber-300" : "border-sky-200/90",
+                  warning ? "border-amber-300" : "border-sky-200/90",
                 ].join(" ")}
               >
                 <header
                   className={[
                     "flex flex-wrap items-center justify-between gap-3 border-b px-6 py-4",
-                    unattached
+                    warning
                       ? "border-amber-200 bg-amber-50/80"
                       : "border-slate-200 bg-slate-50/90",
                   ].join(" ")}
@@ -361,15 +411,17 @@ export function DocumentsPage() {
                     <div
                       className={[
                         "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border",
-                        unattached
+                        warning
                           ? "border-amber-300 bg-white text-amber-700"
                           : "border-sky-200 bg-white text-sky-700",
                       ].join(" ")}
                     >
-                      {unattached ? (
-                        <AlertTriangle className="h-4.5 w-4.5" />
-                      ) : (
+                      {group.kind === "workplace" ? (
                         <Building2 className="h-4.5 w-4.5" />
+                      ) : group.kind === "processing" ? (
+                        <ScanLine className="h-4.5 w-4.5 animate-pulse" />
+                      ) : (
+                        <AlertTriangle className="h-4.5 w-4.5" />
                       )}
                     </div>
 
@@ -402,12 +454,16 @@ export function DocumentsPage() {
                   )}
                 </header>
 
-                {unattached && (
-                  <p className="border-b border-amber-200 bg-amber-50/40 px-6 py-3 text-xs leading-relaxed text-amber-950">
-                    The workplace name on these documents could not be read clearly
-                    enough to attach them. Nothing is assessed until they are
-                    attached. Open one to attach it, or upload it again choosing the
-                    workplace yourself.
+                {group.note && (
+                  <p
+                    className={[
+                      "border-b px-6 py-3 text-xs leading-relaxed",
+                      warning
+                        ? "border-amber-200 bg-amber-50/40 text-amber-950"
+                        : "border-sky-100 bg-sky-50/40 text-slate-700",
+                    ].join(" ")}
+                  >
+                    {group.note}
                   </p>
                 )}
 

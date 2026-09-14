@@ -8,7 +8,6 @@ from typing import Annotated, Any
 
 from fastapi import (
     APIRouter,
-    BackgroundTasks,
     Depends,
     File,
     Form,
@@ -20,6 +19,7 @@ from fastapi import (
 )
 from pydantic import BaseModel, Field
 from sqlalchemy import desc, select
+from starlette.concurrency import run_in_threadpool
 
 from app.deps import Access, CurrentUser, DbSession, client_ip, require_roles
 from app.models.document import Document, DocumentPage, Job
@@ -34,7 +34,7 @@ from app.models.enums import (
 from app.models.establishment import Establishment
 from app.models.extraction import ExtractedField
 from app.services import audit as audit_service
-from app.services import pipeline
+from app.services import jobs as job_service
 from app.services import upload_guard
 from app.services.storage import get_store
 
@@ -70,6 +70,7 @@ class DocumentSummary(BaseModel):
             DocumentStatus.NEEDS_REVIEW,
             DocumentStatus.NEEDS_BINDING,
             DocumentStatus.FAILED,
+            DocumentStatus.REJECTED,
         }
 
 
@@ -130,7 +131,6 @@ class BindRequest(BaseModel):
 async def upload_document(
     session: DbSession,
     user: CurrentUser,
-    background: BackgroundTasks,
     ip: Annotated[str | None, Depends(client_ip)],
     file: Annotated[UploadFile, File(description="PDF, image, or structured text")],
     establishment_id: Annotated[str | None, Form()] = None,
@@ -146,10 +146,16 @@ async def upload_document(
     # Written to storage first so validation can inspect real bytes. Sniffing type
     # from a filename is how a parser exploit gets reached, and page count cannot
     # be checked without opening the file.
-    stored = store.put_stream(file.file, prefix="uploads", suffix=_suffix(file.filename))
+    stored = await run_in_threadpool(
+        store.put_stream,
+        file.file,
+        prefix="uploads",
+        suffix=_suffix(file.filename),
+    )
 
     try:
-        inspection = upload_guard.inspect(
+        inspection = await run_in_threadpool(
+            upload_guard.inspect,
             store._path(stored.key),  # noqa: SLF001  the guard needs a real path
             original_filename=file.filename or "upload",
             byte_size=stored.byte_size,
@@ -247,18 +253,10 @@ async def upload_document(
             "supersedes": previous.id if previous else None,
         },
     )
+    job_service.enqueue_document(session, document.id)
     session.commit()
 
-    background.add_task(pipeline.process_document, document.id)
-
-    message = (
-        "Received. The document is being read; check back for its status."
-        if previous is None
-        else (
-            "Received. This file matches one uploaded earlier, which will be "
-            "superseded. It is being read again from scratch."
-        )
-    )
+    message = "Received. The document is queued and will be read in order."
 
     return UploadResponse(
         document_id=document.id,
@@ -513,7 +511,6 @@ def reprocess_document(
     session: DbSession,
     user: CurrentUser,
     access: Access,
-    background: BackgroundTasks,
 ) -> dict[str, str]:
     """Read a document again from its stored bytes.
 
@@ -528,14 +525,19 @@ def reprocess_document(
             status_code=status.HTTP_409_CONFLICT,
             detail="this document was rejected at upload and has nothing to reprocess",
         )
+    if job_service.has_active_document_job(session, document.id):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="this document is already queued or being read",
+        )
 
     document.status = DocumentStatus.RECEIVED
     document.review_reasons = []
     document.rejection_reason = None
     document.processed_at = None
+    job_service.enqueue_document(session, document.id)
     session.commit()
 
-    background.add_task(pipeline.process_document, document.id)
     return {"document_id": document.id, "status": "queued"}
 
 
@@ -550,7 +552,6 @@ def bind_document(
     session: DbSession,
     user: CurrentUser,
     access: Access,
-    background: BackgroundTasks,
     ip: Annotated[str | None, Depends(client_ip)],
 ) -> DocumentSummary:
     """Attach a document to an establishment and period by hand.
@@ -598,9 +599,8 @@ def bind_document(
             "reason": payload.reason,
         },
     )
+    job_service.enqueue_document(session, document.id)
     session.commit()
-
-    background.add_task(pipeline.process_document, document.id)
 
     names = _establishment_names(session, [document])
     return _summary(document, names)

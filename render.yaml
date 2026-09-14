@@ -1,18 +1,8 @@
-# Render blueprint for the API.
+# Render blueprint for the API. The frontend is deployed separately on Vercel.
 #
-# The frontend is not here — it is a static site and goes to Vercel.
-#
-# Two things to know before relying on this beyond a prototype:
-#
-# 1. Render's filesystem is ephemeral on the free plan. Uploaded documents and
-#    rendered page images are written to disk, so they disappear on every deploy
-#    and restart. Findings, scores and audit entries survive because they live in
-#    Postgres, but the page images behind the evidence viewer will not. Attach a
-#    persistent disk, or move object storage to S3 behind the existing interface.
-#
-# 2. Free instances sleep after inactivity, and Neon scales its compute to zero.
-#    The first request after a pause takes several seconds while both wake up,
-#    which is why the database connect timeout is generous.
+# Expensive document work is consumed one job at a time from Postgres. Uploaded
+# bytes and rendered evidence images are mirrored to Neon because the free Render
+# filesystem is only a cache and disappears on restarts/deployments.
 
 services:
   - type: web
@@ -24,10 +14,10 @@ services:
 
     buildCommand: pip install --upgrade pip && pip install -r requirements.txt
 
-    # $PORT is assigned by Render. One worker on the free plan: the pipeline holds
-    # a page image and its OCR result in memory while reading, and two workers on
-    # 512 MB will be killed by the OOM reaper on a large register.
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
+    # Create newly added tables idempotently before serving, then run one API
+    # process. Pipeline concurrency is controlled by the database-backed worker,
+    # not by spawning request background threads.
+    startCommand: python -m app.cli init-db && uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1
 
     healthCheckPath: /healthz
 
@@ -41,8 +31,6 @@ services:
       - key: LOG_FORMAT
         value: json
 
-      # Set these in the Render dashboard, not here. sync:false keeps them out of
-      # the repository, which is the whole point.
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
@@ -52,8 +40,6 @@ services:
       - key: OCR_SPACE_API_KEY
         sync: false
 
-      # The Vercel origin that is allowed to call this API. Without it the browser
-      # blocks every request as a cross-origin violation.
       - key: CORS_ALLOWED_ORIGINS
         sync: false
 
@@ -63,9 +49,5 @@ services:
       - key: LLM_BUDGET_PER_DOC_USD
         value: "0.50"
 
-      # Acknowledges that page images are sent to a third-party OCR service. The
-      # application refuses to start in production without this, on purpose: it is
-      # a decision that should be made deliberately rather than inherited from a
-      # default. Point OCR_SPACE_BASE_URL at a self-hosted instance to avoid it.
       - key: ALLOW_CLOUD_OCR_IN_PRODUCTION
         value: "true"

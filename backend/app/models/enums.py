@@ -182,6 +182,9 @@ class DocumentStatus(StrEnum):
 
     VERIFIED = "VERIFIED"
     EVALUATED = "EVALUATED"
+    SUPERSEDED = "SUPERSEDED"
+    """A later filing for the same workplace, type and period replaced it."""
+
     FAILED = "FAILED"
 
 

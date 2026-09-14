@@ -43,6 +43,7 @@ export type DocumentStatus =
   | "NEEDS_REVIEW"
   | "VERIFIED"
   | "EVALUATED"
+  | "SUPERSEDED"
   | "FAILED";
 
 export type DocumentType =
@@ -567,6 +568,7 @@ export const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
   NEEDS_REVIEW: "Needs review",
   VERIFIED: "Verified",
   EVALUATED: "Assessed",
+  SUPERSEDED: "Replaced",
   FAILED: "Failed",
 };
 

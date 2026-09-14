@@ -159,6 +159,7 @@ const DOC_STATUS_TONES: Record<DocumentStatus, Tone> = {
   NEEDS_REVIEW: "medium",
   VERIFIED: "good",
   EVALUATED: "good",
+  SUPERSEDED: "neutral",
   FAILED: "critical",
 };
 

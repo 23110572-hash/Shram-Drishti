@@ -25,6 +25,7 @@ from app.models.extraction import (
     WorkerIdentity,
 )
 from app.models.finding import Finding, FindingEvidence, Scorecard
+from app.models.infrastructure import ObjectBlob, PipelineMutex
 from app.models.user import Organisation, RefreshToken, User
 
 __all__ = [
@@ -41,7 +42,9 @@ __all__ = [
     "IncidentRecord",
     "Job",
     "MinimumWageRate",
+    "ObjectBlob",
     "Organisation",
+    "PipelineMutex",
     "ProseAssertion",
     "RefreshToken",
     "Registration",

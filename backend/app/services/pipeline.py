@@ -1,27 +1,9 @@
-"""Pipeline orchestration: upload to findings.
+"""Serialized document extraction and establishment evaluation.
 
-Two entry points, both safe to hand to FastAPI's ``BackgroundTasks``:
-
-* ``process_document`` — read one uploaded file and store what it says.
-* ``evaluate_establishment`` — check everything held for one establishment and
-  one period against the rules, then score and alert.
-
-They are separate on purpose. Reading is per document and expensive; evaluation is
-per establishment and period and must consider documents that arrived at
-different times. A wage register uploaded on Tuesday and the EPF filing uploaded
-on Friday only contradict each other once both are in, and it is that
-contradiction that catches concealed workers. Re-evaluating on every upload is
-what makes the cross-document checks work at all.
-
-Both are ordinary synchronous functions that open their own event loop for the
-network calls. ``BackgroundTasks`` runs a sync callable in a worker thread, so
-``asyncio.run`` there is safe and the blocking database work does not occupy the
-request loop. There is no Celery and no Redis: a job row plus a background task
-covers this workload, and a broker would be infrastructure to operate for no gain.
-
-Every stage records its outcome on the ``job`` row. Fire-and-forget background
-work with no job record is indistinguishable from work that silently died, and
-"is my document still processing?" has to have an answer.
+Requests create durable QUEUED rows; ``app.services.jobs`` runs these entry points
+one at a time. Keeping scheduling outside FastAPI responses prevents concurrent
+PDF/OCR/model work from exhausting the web process and lets interrupted work be
+resumed after a restart.
 """
 
 from __future__ import annotations
@@ -32,7 +14,7 @@ from dataclasses import dataclass
 from datetime import date
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -101,17 +83,24 @@ class PipelineError(Exception):
 
 
 # ------------------------------------------------------------------- job rows
-def _start_job(session: Session, *, kind: str, subject_type: str, subject_id: str) -> Job:
-    job = Job(
-        kind=kind,
-        subject_type=subject_type,
-        subject_id=subject_id,
-        status=JobStatus.RUNNING,
-        attempts=1,
-        started_at=utcnow(),
-    )
-    session.add(job)
-    session.flush()
+def _load_job(
+    session: Session,
+    job_id: str,
+    *,
+    kind: str,
+    subject_type: str,
+    subject_id: str,
+) -> Job:
+    job = session.get(Job, job_id)
+    if (
+        job is None
+        or job.kind != kind
+        or job.subject_type != subject_type
+        or job.subject_id != subject_id
+    ):
+        raise PipelineError(f"queue job {job_id} does not match {kind} {subject_id}")
+    if job.status != JobStatus.RUNNING:
+        raise PipelineError(f"queue job {job_id} is not running")
     return job
 
 
@@ -128,30 +117,38 @@ def _finish_job(
 # =============================================================================
 # Document reading
 # =============================================================================
-def process_document(document_id: str) -> None:
-    """Read one document end to end. Safe as a background task."""
+def process_document(job_id: str, document_id: str) -> None:
+    """Read one queued document end to end."""
     try:
-        asyncio.run(_process_document(document_id))
-    except Exception:
-        # A background task that raises disappears into the thread pool, so the
-        # failure is logged here where it can actually be seen.
-        logger.exception("document processing failed", extra={"document_id": document_id})
+        asyncio.run(_process_document(job_id, document_id))
+    except Exception as exc:  # last guard for failures before the normal handler
+        logger.exception(
+            "document processing failed",
+            extra={"document_id": document_id, "job_id": job_id},
+        )
+        try:
+            _fail_document(None, document_id, job_id, f"unexpected error: {exc}")
+        except Exception:
+            logger.exception("could not record document failure", extra={"job_id": job_id})
 
 
-async def _process_document(document_id: str) -> None:
+async def _process_document(job_id: str, document_id: str) -> None:
     settings = get_settings()
     factory = get_session_factory()
 
     with factory() as session:
+        job = _load_job(
+            session,
+            job_id,
+            kind="process_document",
+            subject_type="document",
+            subject_id=document_id,
+        )
         document = session.get(Document, document_id)
         if document is None:
-            logger.warning("document vanished before processing", extra={"document_id": document_id})
+            _finish_job(session, job, error="document no longer exists")
+            session.commit()
             return
-
-        job = _start_job(
-            session, kind="process_document", subject_type="document", subject_id=document.id
-        )
-        session.commit()
 
         budget = BudgetTracker(limit_usd=settings.llm_budget_per_doc_usd)
 
@@ -216,24 +213,28 @@ async def _process_document(document_id: str) -> None:
                     classification.header.period_end or classification.header.period_start
                 )
 
-            if not binding.is_bound:
-                document.status = DocumentStatus.NEEDS_BINDING
-                _add_review(
-                    document,
-                    binding.failed_reason
-                    or binding.reason
-                    or "the establishment this document belongs to could not be determined",
-                )
-                _finish_job(
-                    session,
-                    job,
-                    unbound=True,
-                    cost_usd=round(budget.spent_usd, 6),
-                )
-                session.commit()
-                return
+            # A workplace chosen by the uploader is authoritative. The binder may
+            # still read the reporting period, but it must not overwrite or reject
+            # an explicit selection.
+            if document.establishment_id is None:
+                if not binding.is_bound:
+                    document.status = DocumentStatus.NEEDS_BINDING
+                    _add_review(
+                        document,
+                        binding.failed_reason
+                        or binding.reason
+                        or "the establishment this document belongs to could not be determined",
+                    )
+                    _finish_job(
+                        session,
+                        job,
+                        unbound=True,
+                        cost_usd=round(budget.spent_usd, 6),
+                    )
+                    session.commit()
+                    return
 
-            document.establishment_id = binding.establishment_id
+                document.establishment_id = binding.establishment_id
 
             result = await extractor.extract(
                 doc_type=classification.doc_type, pages=pages, budget=budget
@@ -282,6 +283,19 @@ async def _process_document(document_id: str) -> None:
                 llm_calls=budget.calls,
                 review_reasons=len(document.review_reasons),
             )
+
+            # The evaluation is another durable queue row in the same commit as
+            # the extraction. If this process stops immediately afterward, the
+            # worker resumes it instead of losing a fire-and-forget callback.
+            if document.establishment_id and document.period_start:
+                from app.services.jobs import enqueue_evaluation
+
+                enqueue_evaluation(
+                    session,
+                    document.establishment_id,
+                    period_start=document.period_start,
+                    period_end=document.period_end or document.period_start,
+                )
             session.commit()
 
         except (LlmError, OcrError, IdentityResolutionFailed, PipelineError) as exc:
@@ -294,17 +308,8 @@ async def _process_document(document_id: str) -> None:
             _fail_document(session, document_id, job.id, f"unexpected error: {exc}")
             return
 
-    # Evaluation runs in its own transaction, after the document is safely
-    # committed. A failure to evaluate must not roll back a good extraction.
-    if document.establishment_id and document.period_start:
-        evaluate_establishment(
-            document.establishment_id,
-            period_start=document.period_start,
-            period_end=document.period_end or document.period_start,
-        )
 
-
-def _fail_document(session: Session, document_id: str, job_id: str, error: str) -> None:
+def _fail_document(_session: Session | None, document_id: str, job_id: str, error: str) -> None:
     """Mark a document failed in a fresh transaction."""
     with get_session_factory()() as fresh:
         document = fresh.get(Document, document_id)
@@ -627,6 +632,13 @@ def _supersede_earlier(session: Session, document: Document) -> None:
                 Document.doc_type == document.doc_type,
                 Document.period_start == document.period_start,
                 Document.id != document.id,
+                or_(
+                    Document.created_at < document.created_at,
+                    and_(
+                        Document.created_at == document.created_at,
+                        Document.id < document.id,
+                    ),
+                ),
                 Document.status.notin_(
                     [DocumentStatus.REJECTED, DocumentStatus.FAILED]
                 ),
@@ -638,7 +650,7 @@ def _supersede_earlier(session: Session, document: Document) -> None:
 
     for stale in earlier:
         _clear_previous(session, stale.id)
-        stale.status = DocumentStatus.RECEIVED
+        stale.status = DocumentStatus.SUPERSEDED
         stale.rejection_reason = (
             f"superseded by {document.original_filename} filed later for the same "
             "period"
@@ -1058,16 +1070,18 @@ def _add_review(document: Document, reason: str) -> None:
 # Evaluation
 # =============================================================================
 def evaluate_establishment(
+    job_id: str,
     establishment_id: str,
     *,
     period_start: date | None = None,
     period_end: date | None = None,
     actor_id: str | None = None,
 ) -> None:
-    """Evaluate, analyse, score and alert. Safe as a background task."""
+    """Evaluate one queued establishment period."""
     try:
         asyncio.run(
             _evaluate_establishment(
+                job_id,
                 establishment_id,
                 period_start=period_start,
                 period_end=period_end,
@@ -1076,11 +1090,13 @@ def evaluate_establishment(
         )
     except Exception:
         logger.exception(
-            "evaluation failed", extra={"establishment_id": establishment_id}
+            "evaluation failed",
+            extra={"establishment_id": establishment_id, "job_id": job_id},
         )
 
 
 async def _evaluate_establishment(
+    job_id: str,
     establishment_id: str,
     *,
     period_start: date | None,
@@ -1090,17 +1106,18 @@ async def _evaluate_establishment(
     settings = get_settings()
 
     with get_session_factory()() as session:
-        establishment = session.get(Establishment, establishment_id)
-        if establishment is None:
-            return
-
-        job = _start_job(
+        job = _load_job(
             session,
+            job_id,
             kind="evaluate_establishment",
             subject_type="establishment",
             subject_id=establishment_id,
         )
-        session.commit()
+        establishment = session.get(Establishment, establishment_id)
+        if establishment is None:
+            _finish_job(session, job, error="establishment no longer exists")
+            session.commit()
+            return
 
         try:
             # Merge duplicate worker records before building any facts. Upload order

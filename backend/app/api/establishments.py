@@ -6,7 +6,7 @@ import logging
 from datetime import date
 from typing import Annotated, Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy import desc, func, select
 
@@ -24,7 +24,7 @@ from app.models.enums import (
 )
 from app.models.establishment import Contractor, Establishment, MinimumWageRate, Registration
 from app.models.finding import Finding, Scorecard
-from app.services import pipeline
+from app.services import jobs as job_service
 from app.services.wage_rates import lookup_rate
 
 logger = logging.getLogger(__name__)
@@ -441,7 +441,6 @@ def evaluate(
     session: DbSession,
     user: CurrentUser,
     access: Access,
-    background: BackgroundTasks,
 ) -> dict[str, str]:
     """Re-run rules, scoring and alerts for one period."""
     establishment = session.get(Establishment, establishment_id)
@@ -452,14 +451,19 @@ def evaluate(
     if payload.period_end < payload.period_start:
         raise HTTPException(status_code=422, detail="the period ends before it begins")
 
-    background.add_task(
-        pipeline.evaluate_establishment,
+    job = job_service.enqueue_evaluation(
+        session,
         establishment_id,
         period_start=payload.period_start,
         period_end=payload.period_end,
         actor_id=user.id,
     )
-    return {"establishment_id": establishment_id, "status": "queued"}
+    session.commit()
+    return {
+        "establishment_id": establishment_id,
+        "job_id": job.id,
+        "status": "queued",
+    }
 
 
 # -------------------------------------------------------------------- helpers

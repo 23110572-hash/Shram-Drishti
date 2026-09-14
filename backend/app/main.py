@@ -14,6 +14,7 @@ from app.config import Settings, get_settings
 from app.db import check_connection
 from app.logging_setup import configure_logging
 from app.middleware import REQUEST_ID_HEADER, RequestContextMiddleware
+from app.services import jobs as job_service
 
 logger = logging.getLogger(__name__)
 
@@ -73,9 +74,12 @@ async def lifespan(app: FastAPI):
     except Exception:
         logger.exception("rule packs could not be loaded")
 
-    yield
-
-    logger.info("shutting down")
+    job_service.start_worker()
+    try:
+        yield
+    finally:
+        job_service.stop_worker()
+        logger.info("shutting down")
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
