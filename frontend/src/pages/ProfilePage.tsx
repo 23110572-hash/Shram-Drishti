@@ -249,110 +249,110 @@ export function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-8">
       <header className="border-b border-sky-100/80 pb-6">
-        <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-100/70 px-3 py-1 text-xs font-semibold text-sky-800">
-          <ShieldCheck className="h-3.5 w-3.5 text-sky-600" />
+        <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-100/80 px-4 py-1.5 text-sm font-bold text-sky-900">
+          <ShieldCheck className="h-4 w-4 text-sky-600" />
           Signed in
         </div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
+        <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
           Profile
         </h1>
-        <p className="mt-1 text-sm text-slate-600">
+        <p className="mt-2 text-base font-medium text-slate-700 sm:text-lg">
           Your identity, role and the scope of what you can see.
         </p>
       </header>
 
-      <div className="space-y-6 rounded-3xl border border-sky-200/90 bg-white/95 p-6 shadow-sm backdrop-blur-xl sm:p-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-md">
-                <User className="h-8 w-8" />
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-slate-900">
-                  {user.full_name}
-                </h2>
-                <p className="text-sm font-semibold text-sky-700">
-                  {ROLE_LABELS[user.role]}
-                </p>
-                <p className="mt-0.5 text-xs text-slate-500">{user.email}</p>
-              </div>
+      <div className="space-y-7 rounded-3xl border border-sky-200/90 bg-white/95 p-8 shadow-sm backdrop-blur-xl sm:p-10">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
+          <div className="flex items-center gap-5">
+            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-md">
+              <User className="h-10 w-10" />
             </div>
-
-            <Badge tone="good" dot>
-              Active session
-            </Badge>
-          </div>
-
-          {/* Jurisdiction. Stated exactly, because an empty list means no access. */}
-          <div className="border-t border-slate-100 pt-4">
-            <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              <MapPin aria-hidden="true" className="h-3.5 w-3.5 text-slate-400" />
-              Jurisdiction
+            <div className="space-y-1">
+              <h2 className="text-2xl font-extrabold text-slate-950 sm:text-3xl">
+                {user.full_name}
+              </h2>
+              <p className="text-base font-bold text-sky-700 sm:text-lg">
+                {ROLE_LABELS[user.role]}
+              </p>
+              <p className="text-sm font-medium text-slate-600 sm:text-base">{user.email}</p>
             </div>
-
-            {user.role === "ADMIN" && (
-              <p className="text-sm text-slate-700">
-                Administrator — every establishment, in every state.
-              </p>
-            )}
-
-            {user.role === "EMPLOYER" && (
-              <p className="text-sm text-slate-700">
-                Scoped to the establishments registered under your organisation.
-              </p>
-            )}
-
-            {jurisdictionScoped && hasScope && (
-              <div className="flex flex-wrap gap-2">
-                {user.jurisdictions.map((code) => (
-                  <span
-                    key={code}
-                    className="rounded-lg border border-sky-200/80 bg-sky-50 px-3 py-1 text-xs font-medium text-sky-800"
-                  >
-                    {stateName(code)}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {jurisdictionScoped && !hasScope && (
-              <Caution title="No jurisdiction assigned">
-                Your account has no state assigned to it, so no establishment is
-                visible to you. This is deliberate: an unassigned account is given
-                no access rather than full access. Ask an administrator to assign
-                your jurisdiction.
-              </Caution>
-            )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
-            {(user.role === "INSPECTOR" ||
-              user.role === "ADMIN" ||
-              user.role === "ANALYST") && (
-              <Link
-                to="/worklist"
-                className="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-700"
-              >
-                Open worklist
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            )}
-            <Link
-              to="/documents"
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 transition-colors hover:bg-slate-50"
-            >
-              Documents
-            </Link>
-            <button
-              type="button"
-              onClick={() => void handleSignOut()}
-              className="ml-auto inline-flex cursor-pointer items-center gap-2 rounded-xl border border-rose-200 bg-white px-5 py-2.5 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-50"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign out
-            </button>
-          </div>
+          <Badge tone="good" dot className="px-3.5 py-1.5 text-sm font-bold">
+            Active session
+          </Badge>
         </div>
+
+        {/* Jurisdiction. Stated exactly, because an empty list means no access. */}
+        <div className="border-t border-slate-100 pt-6">
+          <div className="mb-3 flex items-center gap-2.5 text-sm font-bold uppercase tracking-wider text-slate-600 sm:text-base">
+            <MapPin aria-hidden="true" className="h-4 w-4 text-slate-400" />
+            Jurisdiction
+          </div>
+
+          {user.role === "ADMIN" && (
+            <p className="text-base font-medium leading-relaxed text-slate-800 sm:text-lg">
+              Administrator — every establishment, in every state.
+            </p>
+          )}
+
+          {user.role === "EMPLOYER" && (
+            <p className="text-base font-medium leading-relaxed text-slate-800 sm:text-lg">
+              Scoped to the establishments registered under your organisation.
+            </p>
+          )}
+
+          {jurisdictionScoped && hasScope && (
+            <div className="flex flex-wrap gap-2.5 pt-1">
+              {user.jurisdictions.map((code) => (
+                <span
+                  key={code}
+                  className="rounded-xl border border-sky-200/80 bg-sky-50 px-4 py-2 text-sm font-bold text-sky-800"
+                >
+                  {stateName(code)}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {jurisdictionScoped && !hasScope && (
+            <Caution title="No jurisdiction assigned">
+              Your account has no state assigned to it, so no establishment is
+              visible to you. This is deliberate: an unassigned account is given
+              no access rather than full access. Ask an administrator to assign
+              your jurisdiction.
+            </Caution>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3.5 border-t border-slate-100 pt-6">
+          {(user.role === "INSPECTOR" ||
+            user.role === "ADMIN" ||
+            user.role === "ANALYST") && (
+            <Link
+              to="/worklist"
+              className="inline-flex items-center gap-2.5 rounded-2xl bg-sky-600 px-6 py-3.5 text-base font-bold text-white shadow-sm transition-colors hover:bg-sky-700"
+            >
+              Open worklist
+              <ArrowRight className="h-5 w-5" />
+            </Link>
+          )}
+          <Link
+            to="/documents"
+            className="inline-flex items-center gap-2 rounded-2xl border border-slate-300 bg-white px-6 py-3.5 text-base font-bold text-slate-800 transition-colors hover:bg-slate-50"
+          >
+            Documents
+          </Link>
+          <button
+            type="button"
+            onClick={() => void handleSignOut()}
+            className="ml-auto inline-flex cursor-pointer items-center gap-2.5 rounded-2xl border border-rose-200 bg-white px-6 py-3.5 text-base font-bold text-rose-700 transition-colors hover:bg-rose-50"
+          >
+            <LogOut className="h-5 w-5" />
+            Sign out
+          </button>
+        </div>
+      </div>
       </div>
   );
 }
