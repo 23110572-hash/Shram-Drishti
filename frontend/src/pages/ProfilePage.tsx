@@ -4,13 +4,11 @@ import {
   ArrowRight,
   BarChart3,
   Building2,
-  CheckCircle2,
   Key,
   Lock,
   LogOut,
   Mail,
   MapPin,
-  ShieldAlert,
   ShieldCheck,
   User,
 } from "lucide-react";
@@ -263,8 +261,8 @@ export function ProfilePage() {
         </p>
       </header>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="space-y-6 rounded-2xl border border-sky-100 bg-white/95 p-6 shadow-sm backdrop-blur-xl sm:p-8 lg:col-span-2">
+      <div className="max-w-4xl">
+        <div className="space-y-6 rounded-2xl border border-sky-100 bg-white/95 p-6 shadow-sm backdrop-blur-xl sm:p-8">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <div className="flex items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-md">
@@ -284,16 +282,6 @@ export function ProfilePage() {
             <Badge tone="good" dot>
               Active session
             </Badge>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 border-t border-slate-100 pt-4 sm:grid-cols-2">
-            <Detail icon={Key} label="Account identifier" value={user.id} mono />
-            <Detail
-              icon={Building2}
-              label="Organisation"
-              value={user.organisation_id}
-              mono
-            />
           </div>
 
           {/* Jurisdiction. Stated exactly, because an empty list means no access. */}
@@ -366,88 +354,7 @@ export function ProfilePage() {
             </button>
           </div>
         </div>
-
-        <div className="space-y-6">
-          <div className="space-y-3 rounded-2xl border border-sky-100 bg-white/95 p-6 shadow-sm backdrop-blur-xl">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900">
-              What is recorded
-            </h3>
-            <p className="text-xs leading-relaxed text-slate-600">
-              Reading a document or a finding means reading a worker's pay record,
-              so each access is written to a hash-chained audit log with its purpose
-              — a requirement of purpose limitation, not an optional extra.
-            </p>
-            <ul className="space-y-1.5 text-xs text-slate-700">
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  aria-hidden="true"
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-600"
-                />
-                Document and finding access, with purpose
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  aria-hidden="true"
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-600"
-                />
-                Every status change, with the reason given
-              </li>
-              <li className="flex items-start gap-2">
-                <CheckCircle2
-                  aria-hidden="true"
-                  className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sky-600"
-                />
-                Notices dispatched, so a cure period is provable
-              </li>
-            </ul>
-          </div>
-
-          {(user.role === "INSPECTOR" || user.role === "ADMIN") && (
-            <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-5 text-xs leading-relaxed text-amber-950">
-              <p className="mb-1 flex items-center gap-1.5 font-bold">
-                <ShieldAlert aria-hidden="true" className="h-4 w-4" />
-                Before you enforce
-              </p>
-              <p>
-                A finding marked "awaiting notification" turns on a figure the Act
-                does not state — Parliament left it to the appropriate Government,
-                and that notification has not been obtained. The figure applied
-                came from a secondary source. Check the notified Rules before
-                acting on one.
-              </p>
-            </div>
-          )}
-        </div>
       </div>
-    </div>
-  );
-}
-
-function Detail({
-  icon: Icon,
-  label,
-  value,
-  mono = false,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-4">
-      <div className="mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-        <Icon className="h-3.5 w-3.5 text-slate-400" />
-        {label}
-      </div>
-      <p
-        className={[
-          "break-all font-bold text-slate-800",
-          mono ? "font-mono text-sm" : "text-sm",
-        ].join(" ")}
-      >
-        {value}
-      </p>
     </div>
   );
 }

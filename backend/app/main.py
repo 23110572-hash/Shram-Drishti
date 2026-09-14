@@ -13,7 +13,7 @@ from app.api import auth, documents, establishments, findings, health, rules
 from app.config import Settings, get_settings
 from app.db import check_connection
 from app.logging_setup import configure_logging
-from app.middleware import RequestContextMiddleware
+from app.middleware import REQUEST_ID_HEADER, RequestContextMiddleware
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +98,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         openapi_url="/openapi.json",
     )
     app.state.settings = settings
+
+    # ------------------------------------------------------------- middleware
+    # Order matters and is not arbitrary. Starlette treats the last middleware
+    # added as the outermost, so CORS must be registered *after* the request
+    # context middleware to end up wrapping it.
+    #
+    # That is what lets a 500 reach a browser on another origin. Unhandled
+    # exceptions are converted to a response inside RequestContextMiddleware; CORS
+    # then adds its headers to that response on the way out. Reverse these two and
+    # every server error becomes an opaque "cannot reach the API" in the UI,
+    # because the browser blocks a cross-origin response with no CORS headers and
+    # fetch cannot tell that apart from the host being down.
     app.add_middleware(RequestContextMiddleware)
 
     # Only added when origins are configured. Deployed split across two hosts —
@@ -110,6 +122,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             allow_credentials=True,
             allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
             allow_headers=["Authorization", "Content-Type"],
+            expose_headers=[REQUEST_ID_HEADER],
         )
         logger.info(
             "CORS enabled", extra={"origins": settings.cors_origins}
