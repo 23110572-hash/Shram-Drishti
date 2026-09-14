@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
   Building2,
@@ -56,6 +56,31 @@ export function Navbar() {
   const location = useLocation();
   const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [navigationVisible, setNavigationVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
+  useEffect(() => {
+    lastScrollY.current = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const movement = currentScrollY - lastScrollY.current;
+
+      if (currentScrollY <= 24) {
+        setNavigationVisible(true);
+      } else if (movement > 4) {
+        setNavigationVisible(false);
+        setMobileOpen(false);
+      } else if (movement < -4) {
+        setNavigationVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const visible = NAV.filter((item) => {
     if (!item.roles) return true;
@@ -71,7 +96,14 @@ export function Navbar() {
   return (
     <>
       {/* Identity, top-left. Fixed branding. */}
-      <div className="pointer-events-auto fixed left-4 top-3.5 z-50 sm:left-7">
+      <div
+        className={[
+          "fixed left-4 top-3.5 z-50 transition-[transform,opacity] duration-200 sm:left-7",
+          navigationVisible
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-28 opacity-0",
+        ].join(" ")}
+      >
         <Link
           to="/"
           className="group flex items-center gap-3.5 transition-transform duration-200 hover:scale-[1.01] focus:outline-none"
@@ -97,7 +129,12 @@ export function Navbar() {
       </div>
 
       {/* Centred capsule */}
-      <header className="pointer-events-none fixed left-1/2 top-4 z-50 hidden -translate-x-1/2 xl:block">
+      <header
+        className={[
+          "pointer-events-none fixed left-1/2 top-4 z-50 hidden -translate-x-1/2 transition-[transform,opacity] duration-200 xl:block",
+          navigationVisible ? "translate-y-0 opacity-100" : "-translate-y-28 opacity-0",
+        ].join(" ")}
+      >
         <nav
           aria-label="Main"
           className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-sky-200/90 bg-white/95 px-4 py-2.5 text-slate-900 shadow-[0_10px_35px_rgba(56,189,248,0.16)] backdrop-blur-2xl transition-all duration-300 hover:border-sky-300 hover:bg-white"
@@ -142,7 +179,14 @@ export function Navbar() {
       </header>
 
       {/* Mobile */}
-      <div className="pointer-events-auto fixed right-4 top-4 z-50 sm:right-7 xl:hidden">
+      <div
+        className={[
+          "fixed right-4 top-4 z-50 transition-[transform,opacity] duration-200 sm:right-7 xl:hidden",
+          navigationVisible
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-20 opacity-0",
+        ].join(" ")}
+      >
         <button
           type="button"
           onClick={() => setMobileOpen((open) => !open)}

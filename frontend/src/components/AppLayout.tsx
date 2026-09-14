@@ -18,17 +18,11 @@ export function AppLayout() {
         <div className="absolute inset-0 bg-white/50 backdrop-blur-[1px]" />
       </div>
 
-      {/* Keeps scrolling content below the fixed navigation without changing it. */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-x-0 top-0 z-40 h-24 bg-[#f4f9fd] sm:h-28"
-      />
-
       {/* Transparent Circular Floating Navigation Bar */}
       <Navbar />
 
       {/* Main Content Area */}
-      <main id="main" className="relative z-10 flex-1 pt-28 sm:pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+      <main id="main" className="relative z-10 flex-1 pt-28 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         <Outlet />
       </main>
 
