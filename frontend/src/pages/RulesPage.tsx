@@ -116,11 +116,11 @@ export function RulesPage() {
     <div className="space-y-8 pb-16">
       {/* Clean Hero Header */}
       <header className="rounded-3xl border border-sky-100 bg-gradient-to-br from-white via-sky-50/40 to-blue-50/30 p-8 shadow-sm md:p-12">
-        <div className="max-w-4xl space-y-4">
+        <div className="space-y-4">
           <h1 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-6xl">
             Labour Law Compliance Rules
           </h1>
-          <p className="text-lg leading-relaxed text-slate-800 sm:text-xl">
+          <p className="text-base leading-relaxed text-slate-800 sm:text-lg lg:text-xl lg:whitespace-nowrap">
             Simplifying labour compliance requirements under the four Labour Codes through clear, actionable guidance.
           </p>
         </div>

@@ -247,7 +247,7 @@ export function ProfilePage() {
   const hasScope = (user.jurisdictions ?? []).length > 0;
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-3xl space-y-8">
       <header className="border-b border-sky-100/80 pb-6">
         <div className="mb-2 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-100/70 px-3 py-1 text-xs font-semibold text-sky-800">
           <ShieldCheck className="h-3.5 w-3.5 text-sky-600" />
@@ -261,8 +261,7 @@ export function ProfilePage() {
         </p>
       </header>
 
-      <div className="max-w-4xl">
-        <div className="space-y-6 rounded-2xl border border-sky-100 bg-white/95 p-6 shadow-sm backdrop-blur-xl sm:p-8">
+      <div className="space-y-6 rounded-3xl border border-sky-200/90 bg-white/95 p-6 shadow-sm backdrop-blur-xl sm:p-8">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <div className="flex items-center gap-4">
               <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white shadow-md">
@@ -355,7 +354,6 @@ export function ProfilePage() {
           </div>
         </div>
       </div>
-    </div>
   );
 }
 
