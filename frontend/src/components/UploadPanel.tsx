@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   Building2,
@@ -14,15 +14,71 @@ import {
 } from "lucide-react";
 
 import { api, apiBaseUrl, refreshAccessToken } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { getAccessToken } from "@/lib/tokens";
 import { bytes } from "@/lib/format";
-import type { EstablishmentSummary, UploadResponse } from "@/lib/types";
+import type {
+  EstablishmentDetail,
+  EstablishmentInput,
+  EstablishmentSummary,
+  UploadResponse,
+} from "@/lib/types";
 
 /** Upload many documents for one explicitly selected establishment. */
 
 const ACCEPT = ".pdf,.png,.jpg,.jpeg,.tif,.tiff,.webp,.bmp,.txt,.csv,.ecr";
 const MAX_BYTES = 20 * 1024 * 1024;
 const MAX_VISIBLE_ESTABLISHMENTS = 8;
+
+const SUPPORTED_STATES = [
+  ["AP", "Andhra Pradesh"],
+  ["AR", "Arunachal Pradesh"],
+  ["AS", "Assam"],
+  ["BR", "Bihar"],
+  ["CH", "Chandigarh"],
+  ["CG", "Chhattisgarh"],
+  ["DL", "Delhi"],
+  ["GA", "Goa"],
+  ["GJ", "Gujarat"],
+  ["HR", "Haryana"],
+  ["HP", "Himachal Pradesh"],
+  ["JK", "Jammu & Kashmir"],
+  ["JH", "Jharkhand"],
+  ["KA", "Karnataka"],
+  ["KL", "Kerala"],
+  ["MP", "Madhya Pradesh"],
+  ["MH", "Maharashtra"],
+  ["MN", "Manipur"],
+  ["ML", "Meghalaya"],
+  ["MZ", "Mizoram"],
+  ["NL", "Nagaland"],
+  ["OD", "Odisha"],
+  ["PY", "Puducherry"],
+  ["PB", "Punjab"],
+  ["RJ", "Rajasthan"],
+  ["SK", "Sikkim"],
+  ["TN", "Tamil Nadu"],
+  ["TG", "Telangana"],
+  ["TR", "Tripura"],
+  ["UP", "Uttar Pradesh"],
+  ["UK", "Uttarakhand"],
+  ["WB", "West Bengal"],
+] as const;
+
+const EMPTY_ESTABLISHMENT_PROFILE = {
+  worker_count: 0,
+  worker_count_peak_12m: 0,
+  women_worker_count: 0,
+  contract_worker_count: 0,
+  interstate_migrant_count: 0,
+  is_factory: false,
+  is_mine: false,
+  is_plantation: false,
+  is_construction: false,
+  has_hazardous_process: false,
+  engages_contract_labour: false,
+  has_night_shift: false,
+} satisfies Omit<EstablishmentInput, "name" | "state_code">;
 
 type ItemStatus = "queued" | "uploading" | "done" | "error";
 
@@ -46,6 +102,7 @@ interface UploadPanelProps {
 }
 
 export function UploadPanel({ onUploaded }: UploadPanelProps) {
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -53,10 +110,14 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
   const [dragging, setDragging] = useState(false);
   const [filter, setFilter] = useState("");
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [registering, setRegistering] = useState(false);
+  const [newStateCode, setNewStateCode] = useState("");
   const [selectedEstablishment, setSelectedEstablishment] =
     useState<EstablishmentSummary | null>(null);
   const [selectionError, setSelectionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const canRegister = user?.role === "EMPLOYER" || user?.role === "ADMIN";
 
   const searchTerm = filter.trim();
   const establishments = useQuery({
@@ -75,6 +136,51 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
   });
 
   const matches = establishments.data ?? [];
+
+  const registerEstablishment = useMutation({
+    mutationFn: ({ name, stateCode }: { name: string; stateCode: string }) =>
+      api.post<EstablishmentDetail>("/establishments", {
+        ...EMPTY_ESTABLISHMENT_PROFILE,
+        name,
+        state_code: stateCode,
+      } satisfies EstablishmentInput),
+    onSuccess: (created) => {
+      setSelectedEstablishment(created);
+      setFilter(created.name);
+      setSelectionError(null);
+      setRegistering(false);
+      setNewStateCode("");
+      setPickerOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["establishments"] });
+    },
+    onError: (error) => {
+      setSelectionError(
+        error instanceof Error
+          ? error.message
+          : "This establishment could not be registered.",
+      );
+    },
+  });
+
+  function startRegistration() {
+    setSelectionError(null);
+    setNewStateCode("");
+    setRegistering(true);
+    setPickerOpen(false);
+  }
+
+  function createAndSelect() {
+    const name = filter.trim();
+    if (name.length < 2) {
+      setSelectionError("Enter at least two characters for the establishment name.");
+      return;
+    }
+    if (!newStateCode) {
+      setSelectionError("Choose the State or Union Territory for this establishment.");
+      return;
+    }
+    registerEstablishment.mutate({ name, stateCode: newStateCode });
+  }
 
   const addFiles = useCallback((files: FileList | File[]) => {
     const incoming = Array.from(files);
@@ -120,13 +226,32 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
   async function uploadAll() {
     const pending = queue.filter((item) => item.status === "queued");
     if (!pending.length) return;
-    if (!selectedEstablishment) {
-      setSelectionError("Select an existing establishment before uploading.");
-      setPickerOpen(true);
+
+    let target = selectedEstablishment;
+    if (!target && searchTerm) {
+      const exactMatches = matches.filter(
+        (item) => item.name.trim().toLocaleLowerCase() === searchTerm.toLocaleLowerCase(),
+      );
+      if (exactMatches.length === 1) {
+        target = exactMatches[0] ?? null;
+        if (target) {
+          setSelectedEstablishment(target);
+          setFilter(target.name);
+          setPickerOpen(false);
+        }
+      }
+    }
+
+    if (!target) {
+      setSelectionError(
+        canRegister
+          ? "Select a matching establishment, or register this new name first."
+          : "Select an existing establishment before uploading.",
+      );
+      setPickerOpen(!registering);
       return;
     }
 
-    const target = selectedEstablishment;
     setSelectionError(null);
     setBusy(true);
     const uploaded: string[] = [];
@@ -206,11 +331,13 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
               setFilter(event.target.value);
               setSelectedEstablishment(null);
               setSelectionError(null);
+              setRegistering(false);
+              setNewStateCode("");
               setPickerOpen(true);
             }}
             placeholder="Start typing the establishment name"
             autoComplete="off"
-            disabled={busy}
+            disabled={busy || registerEstablishment.isPending}
             className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-11 text-sm text-slate-900 transition-colors focus:border-sky-600 disabled:opacity-60"
           />
           {selectedEstablishment && (
@@ -236,7 +363,19 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
           pickerOpen &&
           searchTerm.length >= 2 &&
           matches.length === 0 && (
-            <p className="mt-2 text-xs text-slate-600">No establishment matches this name.</p>
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5">
+              <p className="text-xs text-slate-600">No establishment matches this name.</p>
+              {canRegister && (
+                <button
+                  type="button"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={startRegistration}
+                  className="cursor-pointer rounded-full bg-sky-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-sky-800"
+                >
+                  Register new
+                </button>
+              )}
+            </div>
           )}
 
         {pickerOpen && matches.length > 0 && (
@@ -259,11 +398,73 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
                   className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-slate-900 hover:bg-sky-50"
                 >
                   <Building2 aria-hidden="true" className="h-4 w-4 shrink-0 text-sky-700" />
-                  <span className="truncate">{establishment.name}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{establishment.name}</span>
+                    <span className="block truncate text-xs font-medium text-slate-500">
+                      {establishment.state_code}
+                      {establishment.district && ` · ${establishment.district}`}
+                      {establishment.lin && ` · LIN ${establishment.lin}`}
+                    </span>
+                  </span>
                 </button>
               </li>
             ))}
           </ul>
+        )}
+        {registering && (
+          <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50/70 p-4">
+            <p className="text-sm font-bold text-slate-900">
+              Register “{searchTerm}”
+            </p>
+            <p className="mt-1 text-xs text-slate-600">
+              Choose its State or Union Territory so the correct jurisdiction is used.
+            </p>
+            <label className="mt-3 block text-xs font-bold text-slate-700">
+              State or Union Territory
+              <select
+                value={newStateCode}
+                onChange={(event) => {
+                  setNewStateCode(event.target.value);
+                  setSelectionError(null);
+                }}
+                disabled={registerEstablishment.isPending}
+                className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 focus:border-sky-600 disabled:opacity-60"
+              >
+                <option value="">Choose State / UT</option>
+                {SUPPORTED_STATES.map(([code, name]) => (
+                  <option key={code} value={code}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="mt-3 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setRegistering(false);
+                  setNewStateCode("");
+                  setSelectionError(null);
+                  setPickerOpen(true);
+                }}
+                disabled={registerEstablishment.isPending}
+                className="cursor-pointer rounded-full border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={createAndSelect}
+                disabled={registerEstablishment.isPending}
+                className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:cursor-wait disabled:opacity-60"
+              >
+                {registerEstablishment.isPending && (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                )}
+                {registerEstablishment.isPending ? "Registering…" : "Register and select"}
+              </button>
+            </div>
+          </div>
         )}
       </div>
 
@@ -346,7 +547,7 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
               <button
                 type="button"
                 onClick={() => void uploadAll()}
-                disabled={busy || pendingCount === 0 || !selectedEstablishment}
+                disabled={busy || registerEstablishment.isPending || pendingCount === 0}
                 className="cursor-pointer inline-flex items-center gap-2 rounded-full bg-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-md transition-all hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {busy ? (

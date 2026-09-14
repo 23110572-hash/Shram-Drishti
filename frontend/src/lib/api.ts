@@ -86,27 +86,42 @@ async function extractErrorMessage(response: Response): Promise<string> {
   return response.statusText || `request failed with ${response.status}`;
 }
 
+const REFRESH_TIMEOUT_MS = 20_000;
+
 async function performRefresh(): Promise<boolean> {
   const refreshToken = getRefreshToken();
   if (!refreshToken) return false;
 
-  const response = await fetch(`${BASE_URL}/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh_token: refreshToken }),
-  });
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REFRESH_TIMEOUT_MS);
 
-  if (!response.ok) {
-    // Refresh failed: the token is expired, revoked, or was reused. Either way
-    // the session is over — clear it so the router redirects to login rather
-    // than looping on retries.
+  try {
+    const response = await fetch(`${BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      // Refresh failed: the token is expired, revoked, or was reused. Either way
+      // the session is over — clear it so the router redirects to login rather
+      // than looping on retries.
+      clearTokens();
+      return false;
+    }
+
+    const tokens = (await response.json()) as TokenResponse;
+    setTokens(tokens.access_token, tokens.refresh_token);
+    return true;
+  } catch {
+    // A stale browser profile must not wait forever on a refresh request. This
+    // also makes refreshAccessToken a total boolean API for XHR retry callers.
     clearTokens();
     return false;
+  } finally {
+    window.clearTimeout(timeout);
   }
-
-  const tokens = (await response.json()) as TokenResponse;
-  setTokens(tokens.access_token, tokens.refresh_token);
-  return true;
 }
 
 export function refreshAccessToken(): Promise<boolean> {
