@@ -154,15 +154,32 @@ function describe(
         detail: "Wait a moment and try again.",
       };
     }
+    if (error.status >= 500) {
+      // Named as a server fault, not as a loading failure. The API reports a
+      // request id on these; quoting it is what makes the server log findable.
+      return {
+        title: "The server could not complete this request",
+        detail:
+          `${error.message} This is a fault on the server, not something wrong ` +
+          "with your account or your documents.",
+      };
+    }
     return {
       title: `Could not load ${subject}`,
       detail: error.message,
     };
   }
 
-  // Not an ApiError, so the request never completed: wrong address, or a CORS
-  // block. Naming the address this build is actually using distinguishes the two
-  // immediately — and catches the case where the API URL never reached the build.
+  // Not an ApiError, so the request never completed. Three causes, and the
+  // address is named because it distinguishes them: a wrong or missing
+  // VITE_API_BASE_URL, an origin the API does not allow, or a host that is down.
+  //
+  // Worth knowing while reading this: a server-side 500 used to land here too,
+  // because Starlette generates its error response above the CORS middleware and
+  // the browser blocks a cross-origin response with no CORS headers. That made
+  // every backend fault look like a deployment misconfiguration. Fixed in
+  // RequestContextMiddleware, which now converts unhandled exceptions inside the
+  // CORS layer — so if this message appears, the network really is the problem.
   return {
     title: "Cannot reach the service",
     detail:

@@ -369,6 +369,20 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("init-db", help="create tables from model metadata").set_defaults(
         func=cmd_init_db
     )
+
+    rebuild = sub.add_parser(
+        "rebuild-derived",
+        help=(
+            "drop and recreate the findings and scorecard tables after a model "
+            "change (destructive, but only to regenerable output)"
+        ),
+    )
+    rebuild.add_argument(
+        "--yes",
+        action="store_true",
+        help="skip the typed confirmation, for non-interactive shells",
+    )
+    rebuild.set_defaults(func=cmd_rebuild_derived)
     sub.add_parser("load-wages", help="load the state minimum wage table").set_defaults(
         func=cmd_load_wages
     )
