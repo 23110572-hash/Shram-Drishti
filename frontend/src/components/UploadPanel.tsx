@@ -713,6 +713,7 @@ function uploadOne(
   batchId: string,
   ordinal: number,
   onProgress: (progress: number) => void,
+  isRetry = false,
 ): Promise<UploadResponse> {
   return new Promise((resolve, reject) => {
     const form = new FormData();
@@ -736,7 +737,10 @@ function uploadOne(
 
     request.onload = async () => {
       if (request.status === 401 && !isRetry && (await refreshAccessToken())) {
-        uploadOne(file, establishmentId, onProgress, true).then(resolve, reject);
+        uploadOne(file, establishmentId, batchId, ordinal, onProgress, true).then(
+          resolve,
+          reject,
+        );
         return;
       }
 
