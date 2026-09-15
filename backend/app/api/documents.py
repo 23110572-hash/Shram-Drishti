@@ -111,6 +111,7 @@ class UploadResponse(BaseModel):
     status: DocumentStatus
     message: str
     supersedes_document_id: str | None = None
+    batch_id: str | None = None
 
 
 class BindRequest(BaseModel):
@@ -134,6 +135,8 @@ async def upload_document(
     ip: Annotated[str | None, Depends(client_ip)],
     file: Annotated[UploadFile, File(description="PDF, image, or structured text")],
     establishment_id: Annotated[str, Form()],
+    batch_id: Annotated[str | None, Form()] = None,
+    ordinal: Annotated[int | None, Form()] = None,
 ) -> UploadResponse:
     """Accept a document and queue it for reading.
 
@@ -141,6 +144,30 @@ async def upload_document(
     roll take minutes, and an HTTP request that blocks for minutes will be killed
     by a proxy long before it finishes.
     """
+    # Authorise the selected establishment and durable batch before any bytes are
+    # written. An invalid target must not leave an orphaned private object.
+    establishment = session.get(Establishment, establishment_id)
+    if establishment is None:
+        raise HTTPException(status_code=404, detail="establishment not found")
+    if establishment.organisation_id != user.organisation_id and user.role is not Role.ADMIN:
+        raise HTTPException(status_code=404, detail="establishment not found")
+    bound_establishment_id = establishment.id
+
+    batch = None
+    if batch_id:
+        from app.models.document import UploadBatch
+
+        batch = session.get(UploadBatch, batch_id)
+        if (
+            batch is None
+            or batch.establishment_id != bound_establishment_id
+            or (batch.organisation_id != user.organisation_id and user.role is not Role.ADMIN)
+            or batch.sealed_at is not None
+        ):
+            raise HTTPException(status_code=404, detail="open upload batch not found")
+        if ordinal is None or ordinal < 0:
+            raise HTTPException(status_code=422, detail="batch document ordinal is required")
+
     store = get_store()
 
     # Written to storage first so validation can inspect real bytes. Sniffing type
@@ -163,6 +190,7 @@ async def upload_document(
     except upload_guard.UploadRejected as exc:
         document = Document(
             organisation_id=user.organisation_id,
+            establishment_id=bound_establishment_id,
             uploaded_by_id=user.id,
             original_filename=(file.filename or "upload")[:512],
             content_sha256=stored.sha256,
@@ -233,6 +261,18 @@ async def upload_document(
     session.add(document)
     session.flush()
 
+    if batch is not None:
+        from app.models.document import UploadBatchDocument
+
+        session.add(
+            UploadBatchDocument(
+                batch_id=batch.id,
+                document_id=document.id,
+                ordinal=ordinal or 0,
+            )
+        )
+        session.flush()
+
     audit_service.record(
         session,
         action=AuditAction.DOCUMENT_UPLOADED,
@@ -261,6 +301,7 @@ async def upload_document(
         status=document.status,
         message=message,
         supersedes_document_id=previous.id if previous else None,
+        batch_id=batch.id if batch is not None else None,
     )
 
 
@@ -716,3 +757,115 @@ def _row_counts(session: DbSession, document_id: str) -> dict[str, int]:
             ).scalar_one()
         )
     return counts
+
+
+# ------------------------------------------------------- establishment batches
+class UploadBatchCreate(BaseModel):
+    establishment_id: str
+    expected_file_count: int = Field(ge=1, le=100)
+    client_idempotency_key: str = Field(min_length=8, max_length=128)
+
+
+class UploadBatchOut(BaseModel):
+    id: str
+    establishment_id: str
+    expected_file_count: int
+    uploaded_file_count: int
+    sealed: bool
+    completed: bool
+
+
+@router.post("/batches", response_model=UploadBatchOut, status_code=status.HTTP_201_CREATED)
+def create_upload_batch(
+    payload: UploadBatchCreate,
+    session: DbSession,
+    user: CurrentUser,
+) -> UploadBatchOut:
+    from app.models.document import UploadBatch, UploadBatchDocument
+
+    establishment = session.get(Establishment, payload.establishment_id)
+    if establishment is None or (
+        establishment.organisation_id != user.organisation_id and user.role is not Role.ADMIN
+    ):
+        raise HTTPException(status_code=404, detail="establishment not found")
+
+    existing = session.execute(
+        select(UploadBatch).where(
+            UploadBatch.organisation_id == user.organisation_id,
+            UploadBatch.client_idempotency_key == payload.client_idempotency_key,
+        )
+    ).scalar_one_or_none()
+    if existing is not None:
+        count = len(
+            session.execute(
+                select(UploadBatchDocument).where(
+                    UploadBatchDocument.batch_id == existing.id
+                )
+            ).scalars().all()
+        )
+        return UploadBatchOut(
+            id=existing.id,
+            establishment_id=existing.establishment_id,
+            expected_file_count=existing.expected_file_count,
+            uploaded_file_count=count,
+            sealed=existing.sealed_at is not None,
+            completed=existing.completed_at is not None,
+        )
+
+    batch = UploadBatch(
+        organisation_id=user.organisation_id,
+        establishment_id=establishment.id,
+        uploaded_by_id=user.id,
+        expected_file_count=payload.expected_file_count,
+        client_idempotency_key=payload.client_idempotency_key,
+    )
+    session.add(batch)
+    session.commit()
+    return UploadBatchOut(
+        id=batch.id,
+        establishment_id=batch.establishment_id,
+        expected_file_count=batch.expected_file_count,
+        uploaded_file_count=0,
+        sealed=False,
+        completed=False,
+    )
+
+
+@router.post("/batches/{batch_id}/seal", response_model=UploadBatchOut)
+def seal_upload_batch(
+    batch_id: str,
+    session: DbSession,
+    user: CurrentUser,
+) -> UploadBatchOut:
+    from app.models.base import utcnow
+    from app.models.document import UploadBatch, UploadBatchDocument
+    from app.services.batches import maybe_release_batch
+
+    batch = session.get(UploadBatch, batch_id)
+    if batch is None or (
+        batch.organisation_id != user.organisation_id and user.role is not Role.ADMIN
+    ):
+        raise HTTPException(status_code=404, detail="upload batch not found")
+
+    memberships = list(
+        session.execute(
+            select(UploadBatchDocument).where(UploadBatchDocument.batch_id == batch.id)
+        ).scalars().all()
+    )
+    batch.expected_file_count = len(memberships)
+    if batch.sealed_at is None:
+        batch.sealed_at = utcnow()
+    if not memberships:
+        batch.completed_at = batch.completed_at or utcnow()
+    else:
+        maybe_release_batch(session, batch.id)
+    session.commit()
+
+    return UploadBatchOut(
+        id=batch.id,
+        establishment_id=batch.establishment_id,
+        expected_file_count=batch.expected_file_count,
+        uploaded_file_count=len(memberships),
+        sealed=True,
+        completed=batch.completed_at is not None,
+    )

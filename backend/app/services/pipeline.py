@@ -199,10 +199,28 @@ async def _process_document(job_id: str, document_id: str) -> None:
 
             pages = await _prepare_pages(session, document, job.id)
             session.commit()
-            _set_job_progress(job.id, 62, "Identifying document")
+            _set_job_progress(job.id, 62, "OCR and Gemini are reading documents")
+
+            pdf_source_url: str | None = None
+            if document.detected_mime == "application/pdf":
+                capabilities = client.capabilities
+                if capabilities is None or not capabilities.accepts_file:
+                    raise PipelineError(
+                        f"configured model {client.model} does not accept native PDF files"
+                    )
+                pdf_source_url = get_store().presigned_get_url(
+                    document.storage_key,
+                    expires_in=settings.s3_presigned_url_ttl_seconds,
+                    response_content_type="application/pdf",
+                )
 
             extractor = DocumentExtractor(client)
-            classification = await extractor.classify(pages, budget)
+            classification = await extractor.classify(
+                pages,
+                budget,
+                pdf_url=pdf_source_url,
+                filename=document.original_filename,
+            )
             document.doc_type = classification.doc_type
             document.doc_type_confidence = classification.confidence
             document.contains_redacted_pii = classification.contains_worker_identifiers
@@ -233,6 +251,11 @@ async def _process_document(job_id: str, document_id: str) -> None:
                     progress=100,
                     stage="Needs document details",
                 )
+                from app.services import batches as batch_service
+
+                batch_id = batch_service.batch_id_for_document(session, document.id)
+                if batch_id:
+                    batch_service.maybe_release_batch(session, batch_id)
                 session.commit()
                 return
 
@@ -273,14 +296,23 @@ async def _process_document(job_id: str, document_id: str) -> None:
                         progress=100,
                         stage="Choose a workplace",
                     )
+                    from app.services import batches as batch_service
+
+                    batch_id = batch_service.batch_id_for_document(session, document.id)
+                    if batch_id:
+                        batch_service.maybe_release_batch(session, batch_id)
                     session.commit()
                     return
 
                 document.establishment_id = binding.establishment_id
 
-            _set_job_progress(job.id, 72, "Extracting records")
+            _set_job_progress(job.id, 72, "Reconciling extracted information")
             result = await extractor.extract(
-                doc_type=classification.doc_type, pages=pages, budget=budget
+                doc_type=classification.doc_type,
+                pages=pages,
+                budget=budget,
+                pdf_url=pdf_source_url,
+                filename=document.original_filename,
             )
             result.header.merge(classification.header)
 
@@ -330,10 +362,14 @@ async def _process_document(job_id: str, document_id: str) -> None:
                 stage="Waiting for assessment",
             )
 
-            # The evaluation is another durable queue row in the same commit as
-            # the extraction. If this process stops immediately afterward, the
-            # worker resumes it instead of losing a fire-and-forget callback.
-            if document.establishment_id and document.period_start:
+            # A sealed upload batch is the assessment barrier. Initial batched
+            # documents never release an evaluation independently.
+            from app.services import batches as batch_service
+
+            batch_id = batch_service.batch_id_for_document(session, document.id)
+            if batch_id:
+                batch_service.maybe_release_batch(session, batch_id)
+            elif document.establishment_id and document.period_start:
                 from app.services.jobs import enqueue_evaluation
 
                 enqueue_evaluation(
@@ -371,6 +407,11 @@ def _fail_document(_session: Session | None, document_id: str, job_id: str, erro
                 progress=100,
                 stage="Processing failed",
             )
+        from app.services import batches as batch_service
+
+        batch_id = batch_service.batch_id_for_document(fresh, document_id)
+        if batch_id:
+            batch_service.maybe_release_batch(fresh, batch_id)
         fresh.commit()
     logger.error("document failed", extra={"document_id": document_id, "error": error})
 
@@ -754,6 +795,28 @@ def _store_header_fields(
                 value_text=str(value)[:2000] if value is not None else None,
                 source_page=1,
                 agreement="model_only",
+            )
+        )
+
+    if result.source_counts:
+        session.add(
+            ExtractedField(
+                document_id=document.id,
+                name="dual_source_counts",
+                value_text=__import__("json").dumps(result.source_counts)[:2000],
+                agreement="agreed" if not result.disagreements else "disagreed",
+                needs_review=bool(result.disagreements),
+            )
+        )
+    for index, disagreement in enumerate(result.disagreements[:20], start=1):
+        session.add(
+            ExtractedField(
+                document_id=document.id,
+                name=f"source_disagreement_{index}",
+                value_text=__import__("json").dumps(disagreement, ensure_ascii=False)[:2000],
+                source_page=disagreement.get("page"),
+                agreement="disagreed",
+                needs_review=True,
             )
         )
 
@@ -1150,18 +1213,24 @@ async def _evaluate_establishment(
                 )
                 session.flush()
 
+            batch_id = (job.detail or {}).get("batch_id")
+            if batch_id:
+                from app.services import batches as batch_service
+
+                session.info["assessment_document_ids"] = [
+                    document.id
+                    for document in batch_service.batch_documents(session, batch_id)
+                    if document.status in batch_service.USABLE
+                ]
+
             context = facts_service.build_facts(
                 session,
                 establishment=establishment,
                 period_start=period_start,
                 period_end=period_end,
             )
-            _adopt_documented_workforce(
-                session,
-                establishment=establishment,
-                context=context,
-                actor_id=actor_id,
-            )
+            # Extracted headcounts remain assessment evidence only. OCR/model
+            # disagreement must never permanently mutate the establishment profile.
             _set_job_progress(job.id, 92, "Assessing compliance")
             for source_document in context.documents:
                 _set_document_progress(source_document.id, 92, "Assessing compliance")
@@ -1199,23 +1268,39 @@ async def _evaluate_establishment(
                 period_end=period_end,
                 report=report,
             )
-            score_service.persist_score(
-                session,
-                establishment=establishment,
-                period_start=period_start,
-                period_end=period_end,
-                result=score,
-                actor_id=actor_id,
-                review_summary=_combined_analyst_summary(analyst_notes),
-                records_quality=analyst_notes.records_quality,
-            )
+            score_available = bool(score.computation.get("score_available"))
+            if score_available:
+                score_service.persist_score(
+                    session,
+                    establishment=establishment,
+                    period_start=period_start,
+                    period_end=period_end,
+                    result=score,
+                    actor_id=actor_id,
+                    review_summary=_combined_analyst_summary(analyst_notes),
+                    records_quality=analyst_notes.records_quality,
+                )
 
-            # 5. Tell the employer and the inspector.
-            current = _current_findings(session, establishment_id, period_start, period_end)
-            queued = alert_service.build_alerts(
-                session, establishment=establishment, findings=current, score=score
-            )
-            alert_service.record_alerts(session, queued, actor_id=actor_id)
+                # Alerts use only the deterministic findings that contributed to
+                # this uploaded-record score.
+                contributing_ids = {
+                    finding_id
+                    for ids in score.computation.get("contributing_findings", {}).values()
+                    for finding_id in ids
+                }
+                current = [
+                    finding
+                    for finding in _current_findings(
+                        session, establishment_id, period_start, period_end
+                    )
+                    if finding.id in contributing_ids
+                ]
+                queued = alert_service.build_alerts(
+                    session, establishment=establishment, findings=current, score=score
+                )
+                alert_service.record_alerts(session, queued, actor_id=actor_id)
+            else:
+                queued = []
 
             for document in context.documents:
                 if document.status in {
@@ -1235,13 +1320,20 @@ async def _evaluate_establishment(
                 anomalies=len(anomalies),
                 model_observations=analyst_notes.observations_stored,
                 severities_adjusted=analyst_notes.severities_adjusted,
-                score=score.overall_score,
-                risk_band=str(score.risk_band),
+                score=score.overall_score if score_available else None,
+                score_available=score_available,
+                assessed_rules=score.computation.get("assessed_rule_count", 0),
+                risk_band=str(score.risk_band) if score_available else None,
                 completeness=score.completeness.overall,
                 alerts=len(queued),
                 errors=report.errors[:10],
                 progress=100,
                 stage="Complete",
+            )
+            from app.services import batches as batch_service
+
+            batch_service.mark_batch_complete(
+                session, (job.detail or {}).get("batch_id")
             )
             session.commit()
             for source_document in context.documents:
@@ -1253,6 +1345,11 @@ async def _evaluate_establishment(
                 stale = fresh.get(Job, job.id)
                 if stale is not None:
                     _finish_job(fresh, stale, error=str(exc)[:2000])
+                    from app.services import batches as batch_service
+
+                    batch_service.mark_batch_complete(
+                        fresh, (stale.detail or {}).get("batch_id")
+                    )
                 fresh.commit()
             raise
 

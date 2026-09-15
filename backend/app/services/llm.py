@@ -79,7 +79,7 @@ class BudgetTracker:
     limit_usd: float
     spent_usd: float = 0.0
     calls: int = 0
-    max_calls: int = 24
+    max_calls: int = 64
 
     def assert_can_spend(self) -> None:
         if self.spent_usd >= self.limit_usd:
@@ -130,6 +130,13 @@ def image_part(jpeg_bytes: bytes) -> ContentPart:
 
     encoded = base64.b64encode(jpeg_bytes).decode("ascii")
     return ContentPart(kind="image", data_url=f"data:image/jpeg;base64,{encoded}")
+
+
+def pdf_url_part(url: str, filename: str = "document.pdf") -> ContentPart:
+    """Reference a private PDF without downloading or base64-encoding it on Render."""
+    if not url.lower().startswith("https://"):
+        raise ValueError("PDF URLs must use HTTPS")
+    return ContentPart(kind="file", filename=filename, data_url=url)
 
 
 def pdf_part(pdf_bytes: bytes, filename: str = "document.pdf") -> ContentPart:

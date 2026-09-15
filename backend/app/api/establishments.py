@@ -111,6 +111,8 @@ class ScorecardOut(BaseModel):
     #: Never part of the calculation.
     review_summary: str | None
     records_quality: str | None
+    assessed_rule_count: int
+    scope_statement: str
     computation: dict[str, Any] | None = None
 
 
@@ -661,6 +663,11 @@ def _scorecard_out(
         evidence_note=scorecard.evidence_note,
         review_summary=scorecard.review_summary,
         records_quality=scorecard.records_quality,
+        assessed_rule_count=int((scorecard.computation or {}).get("assessed_rule_count", 0)),
+        scope_statement=str(
+            (scorecard.computation or {}).get("scope_statement")
+            or "This result covers only the uploaded records and is not a complete compliance certificate for the establishment."
+        ),
         # The full computation is large. Returned only on the detail view, where
         # somebody is actually inspecting how a score was produced.
         computation=dict(scorecard.computation or {}) if include_computation else None,
@@ -765,3 +772,138 @@ def _minimum_wage(
             "checks cannot run. They are skipped rather than guessed."
         ),
     }
+
+
+# ------------------------------------------------ aggregate batch processing UI
+class EstablishmentProcessingOut(BaseModel):
+    establishment_id: str
+    establishment_name: str
+    batch_id: str | None
+    stage: str
+    progress: int
+    terminal: bool
+    successful: bool
+    needs_action: bool
+    total_documents: int
+    finished_documents: int
+    failed_documents: int
+    review_documents: int
+
+
+@router.get("/{establishment_id}/processing", response_model=EstablishmentProcessingOut)
+def establishment_processing(
+    establishment_id: str,
+    session: DbSession,
+    access: Access,
+) -> EstablishmentProcessingOut:
+    from app.models.document import Job, UploadBatch
+    from app.models.enums import JobStatus
+    from app.services import batches as batch_service
+
+    establishment = session.get(Establishment, establishment_id)
+    if establishment is None:
+        raise HTTPException(status_code=404, detail="establishment not found")
+    access.assert_can_access(establishment)
+
+    batch = session.execute(
+        select(UploadBatch)
+        .where(UploadBatch.establishment_id == establishment.id)
+        .order_by(desc(UploadBatch.created_at))
+        .limit(1)
+    ).scalar_one_or_none()
+    if batch is None:
+        return EstablishmentProcessingOut(
+            establishment_id=establishment.id,
+            establishment_name=establishment.name,
+            batch_id=None,
+            stage="No current upload",
+            progress=0,
+            terminal=True,
+            successful=True,
+            needs_action=False,
+            total_documents=0,
+            finished_documents=0,
+            failed_documents=0,
+            review_documents=0,
+        )
+
+    documents = batch_service.batch_documents(session, batch.id)
+    terminal_documents = [
+        document
+        for document in documents
+        if document.status in batch_service.EXTRACTION_TERMINAL
+    ]
+    failed_documents = [
+        document
+        for document in documents
+        if document.status in {DocumentStatus.FAILED, DocumentStatus.REJECTED}
+    ]
+    review_documents = [
+        document
+        for document in documents
+        if document.status in {DocumentStatus.NEEDS_REVIEW, DocumentStatus.NEEDS_BINDING}
+    ]
+
+    document_ids = [document.id for document in documents]
+    process_jobs = list(
+        session.execute(
+            select(Job)
+            .where(Job.kind == "process_document", Job.subject_id.in_(document_ids or ["-"]))
+            .order_by(Job.created_at)
+        ).scalars().all()
+    )
+    latest_progress: dict[str, int] = {}
+    for job in process_jobs:
+        raw = (job.detail or {}).get("progress", 0)
+        try:
+            latest_progress[job.subject_id] = max(0, min(100, int(raw)))
+        except (TypeError, ValueError):
+            latest_progress[job.subject_id] = 0
+
+    extraction_progress = (
+        sum(latest_progress.get(document.id, 0) for document in documents)
+        / len(documents)
+        if documents
+        else 0
+    )
+    evaluations = batch_service.evaluation_jobs(session, batch)
+    evaluation_failed = any(job.status is JobStatus.FAILED for job in evaluations)
+    evaluation_done = bool(evaluations) and all(
+        job.status in {JobStatus.SUCCEEDED, JobStatus.FAILED} for job in evaluations
+    )
+    terminal = batch.completed_at is not None or evaluation_done
+
+    if terminal:
+        progress = 100
+        stage = "Could not complete" if evaluation_failed or (documents and len(failed_documents) == len(documents)) else "Completed"
+    elif batch.sealed_at is None:
+        progress = min(10, round(10 * len(documents) / max(1, batch.expected_file_count)))
+        stage = "Uploading documents"
+    elif len(terminal_documents) < len(documents):
+        progress = min(85, round(extraction_progress * 0.85))
+        stage = "OCR and Gemini reading documents" if extraction_progress < 70 else "Reconciling extracted information"
+    else:
+        progress = 90
+        if evaluations:
+            raw = max((job.detail or {}).get("progress", 90) for job in evaluations)
+            try:
+                progress = max(90, min(99, int(raw)))
+            except (TypeError, ValueError):
+                pass
+        stage = "Checking all documents together"
+
+    successful = terminal and stage == "Completed"
+    return EstablishmentProcessingOut(
+        establishment_id=establishment.id,
+        establishment_name=establishment.name,
+        batch_id=batch.id,
+        stage=stage,
+        progress=progress,
+        terminal=terminal,
+        successful=successful,
+        needs_action=bool(review_documents or failed_documents),
+        total_documents=len(documents),
+        finished_documents=len(terminal_documents),
+        failed_documents=len(failed_documents),
+        review_documents=len(review_documents),
+    )

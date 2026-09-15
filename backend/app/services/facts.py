@@ -256,6 +256,10 @@ def _documents(
     )
     for condition in _in_period(Document.period_start, Document.period_end, start, end):
         query = query.where(condition)
+    assessment_ids = session.info.get("assessment_document_ids")
+    if assessment_ids is not None:
+        query = query.where(Document.id.in_(assessment_ids or ["-"]))
+
     return list(
         session.execute(query.order_by(Document.created_at, Document.id)).scalars().all()
     )
@@ -273,6 +277,7 @@ def _wage_lines(
     query = select(WageLine).where(
         WageLine.establishment_id == establishment_id,
         WageLine.document_id.in_(document_ids),
+            WageLine.needs_review.is_(False),
     )
     for condition in _in_period(WageLine.period_start, WageLine.period_end, start, end):
         query = query.where(condition)
@@ -291,6 +296,7 @@ def _attendance(
     query = select(AttendanceRecord).where(
         AttendanceRecord.establishment_id == establishment_id,
         AttendanceRecord.document_id.in_(document_ids),
+            AttendanceRecord.needs_review.is_(False),
     )
     for condition in _in_period(
         AttendanceRecord.period_start, AttendanceRecord.period_end, start, end
@@ -311,6 +317,7 @@ def _contributions(
     query = select(ContributionLine).where(
         ContributionLine.establishment_id == establishment_id,
         ContributionLine.document_id.in_(document_ids),
+            ContributionLine.needs_review.is_(False),
     )
     for condition in _in_period(
         ContributionLine.period_start, ContributionLine.period_end, start, end

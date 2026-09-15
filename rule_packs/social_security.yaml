@@ -1,339 +1,363 @@
 pack: social_security
-version: "2026.01"
+version: '2026.2'
 jurisdiction: IN
-description: >
-  Code on Social Security, 2020 (Act 36 of 2020). This pack divides more sharply
-  than the others, because the Code sets out the obligations while the operative
-  figures live in the schemes made under it.
+description: 'Code on Social Security, 2020 (Act 36 of 2020). This pack divides more sharply than the others, because the
+  Code sets out the obligations while the operative figures live in the schemes made under it.
 
-  Coverage and reconciliation rules compare the establishment's own documents
-  against each other — the employee and wage registers against the EPF challan,
-  declared headcounts against each other — so they need no external figure and
-  carry basis: RECONCILIATION. They are sound as they stand, and the EPF coverage
-  check is the single highest-value rule in the system.
+  Coverage and reconciliation rules compare the establishment''s own documents against each other — the employee and wage
+  registers against the EPF challan, declared headcounts against each other — so they need no external figure and carry basis:
+  RECONCILIATION. They are sound as they stand, and the EPF coverage check is the single highest-value rule in the system.
 
-  The contribution rate (12%, EPF Act s.6 and the 1952 Scheme), the deposit
-  deadline (para 38 of that Scheme), the ESIC wage ceiling (₹21,000, ESI (Central)
-  Rules r.50) and the aggregator rate (s.114 gives a 1–2% range, the rate itself is
-  notified) are none of them in the Code. Those rules carry basis: RULES_PENDING.
+  The contribution rate (12%, EPF Act s.6 and the 1952 Scheme), the deposit deadline (para 38 of that Scheme), the ESIC wage
+  ceiling (₹21,000, ESI (Central) Rules r.50) and the aggregator rate (s.114 gives a 1–2% range, the rate itself is notified)
+  are none of them in the Code. Those rules carry basis: RULES_PENDING.
 
+  '
 rules:
-  # -------------------------------------------------------- coverage / ghosting
-  - id: SS.EPF.WORKERS_NOT_COVERED
-    code: SOCIAL_SECURITY
-    kind: DISCREPANCY
-    severity: CRITICAL
-    weight: 10
-    title: Workers in the wage register are absent from the EPF filing
-    citation: "Code on Social Security, 2020 — Chapter III"
-    source_ref: "Cross-document reconciliation: employee and wage registers against the EPF electronic challan cum return"
-    basis: RECONCILIATION
-    requires: [wage_register, epf]
-    # This is the single highest-value check in the system. Each document looks
-    # correct alone; the violation only appears when they are compared.
-    expression: >
-      count(difference(pluck(wage_register, 'worker_key'), pluck(epf, 'worker_key'))) == 0
-    observe:
-      workers_in_wage_register: "unique_count(wage_register, 'worker_key')"
-      workers_in_epf: "unique_count(epf, 'worker_key')"
-      uncovered_workers: "count(difference(pluck(wage_register, 'worker_key'), pluck(epf, 'worker_key')))"
-    expect:
-      uncovered_workers: "0"
-    message:
-      en: "One or more workers appear in the wage register but not in the provident fund filing for the same period."
-      hi: "एक या अधिक श्रमिक मजदूरी रजिस्टर में हैं परन्तु उसी अवधि के भविष्य निधि विवरण में नहीं हैं।"
-    remediation:
-      en: "File a revised return covering the omitted workers and deposit the arrears of both employee and employer contributions with applicable interest."
-      hi: "छोड़े गए श्रमिकों को सम्मिलित करते हुए संशोधित विवरणी दाखिल करें और कर्मचारी व नियोजक अंशदान का बकाया लागू ब्याज सहित जमा करें।"
-    fixtures:
-      - name: everyone_covered
-        should_pass: true
-        facts:
-          wage_register:
-            - worker_key: "W1"
-            - worker_key: "W2"
-          epf:
-            - worker_key: "W1"
-            - worker_key: "W2"
-      - name: two_workers_missing_from_epf
-        should_pass: false
-        facts:
-          wage_register:
-            - worker_key: "W1"
-            - worker_key: "W2"
-            - worker_key: "W3"
-          epf:
-            - worker_key: "W1"
+- id: SS.EPF.WORKERS_NOT_COVERED
+  code: SOCIAL_SECURITY
+  kind: DISCREPANCY
+  severity: HIGH
+  weight: 10
+  title: Workers in payroll are not present in the uploaded EPF filing
+  citation: Code on Social Security, 2020 — First Schedule and Chapter III
+  source_ref: storage/the code of social security 2020.md, First Schedule and Chapter III; cross-document reconciliation applies
+    only to the uploaded payroll and EPF records
+  basis: RECONCILIATION
+  requires:
+  - wage_register
+  - epf
+  expression: 'count(difference(pluck(wage_register, ''worker_key''), pluck(epf, ''worker_key''))) == 0
 
-  - id: SS.ESIC.WORKERS_NOT_COVERED
-    code: SOCIAL_SECURITY
-    kind: DISCREPANCY
-    severity: HIGH
-    weight: 8
-    title: Workers within the ESIC wage ceiling are absent from the ESIC filing
-    citation: "Code on Social Security, 2020 — Chapter IV"
-    source_ref: "Compares the wage register against the ESIC contribution statement, but only for workers at or below the wage ceiling — and that ceiling is not in the Code. NEEDS: ESI (Central) Rules, 1950 — r.50 wage ceiling (₹21,000 as presently notified)"
-    basis: RULES_PENDING
-    requires: [wage_register, esic]
-    # Only workers at or below the ceiling are compared, so a well-paid employee
-    # legitimately outside ESIC is not reported as uncovered.
-    expression: >
-      count(difference(pluck(wage_register, 'esic_eligible_worker_key'), pluck(esic, 'worker_key'))) == 0
-    observe:
-      eligible_workers: "count(pluck(wage_register, 'esic_eligible_worker_key'))"
-      workers_in_esic: "unique_count(esic, 'worker_key')"
-      uncovered_workers: "count(difference(pluck(wage_register, 'esic_eligible_worker_key'), pluck(esic, 'worker_key')))"
-    expect:
-      uncovered_workers: "0"
-    message:
-      en: "One or more workers within the ESIC wage ceiling are missing from the ESIC contribution statement."
-      hi: "ईएसआईसी मजदूरी सीमा के भीतर एक या अधिक श्रमिक ईएसआईसी अंशदान विवरण से अनुपस्थित हैं।"
-    remediation:
-      en: "Register the omitted workers and deposit the arrears of contributions for the affected period."
-      hi: "छोड़े गए श्रमिकों का पंजीकरण करें और प्रभावित अवधि के अंशदान का बकाया जमा करें।"
-    fixtures:
-      - name: all_eligible_covered
-        should_pass: true
-        facts:
-          wage_register:
-            - esic_eligible_worker_key: "W1"
-          esic:
-            - worker_key: "W1"
-      - name: eligible_worker_omitted
-        should_pass: false
-        facts:
-          wage_register:
-            - esic_eligible_worker_key: "W1"
-            - esic_eligible_worker_key: "W2"
-          esic:
-            - worker_key: "W1"
+    '
+  observe:
+    workers_in_wage_register: unique_count(wage_register, 'worker_key')
+    workers_in_epf: unique_count(epf, 'worker_key')
+    uncovered_workers: count(difference(pluck(wage_register, 'worker_key'), pluck(epf, 'worker_key')))
+  expect:
+    uncovered_workers: '0'
+  message:
+    en: One or more workers appear in the wage register but not in the provident fund filing for the same period.
+    hi: एक या अधिक श्रमिक मजदूरी रजिस्टर में हैं परन्तु उसी अवधि के भविष्य निधि विवरण में नहीं हैं।
+  remediation:
+    en: File a revised return covering the omitted workers and deposit the arrears of both employee and employer contributions
+      with applicable interest.
+    hi: छोड़े गए श्रमिकों को सम्मिलित करते हुए संशोधित विवरणी दाखिल करें और कर्मचारी व नियोजक अंशदान का बकाया लागू ब्याज सहित
+      जमा करें।
+  fixtures:
+  - name: everyone_covered
+    should_pass: true
+    facts:
+      wage_register:
+      - worker_key: W1
+      - worker_key: W2
+      epf:
+      - worker_key: W1
+      - worker_key: W2
+  - name: two_workers_missing_from_epf
+    should_pass: false
+    facts:
+      wage_register:
+      - worker_key: W1
+      - worker_key: W2
+      - worker_key: W3
+      epf:
+      - worker_key: W1
+- id: SS.EPF.WAGE_BASE_UNDERSTATED
+  code: SOCIAL_SECURITY
+  kind: DISCREPANCY
+  severity: HIGH
+  weight: 9
+  title: EPF wage base is lower than the statutory wages in the wage register
+  citation: Code on Social Security, 2020 — s.2(88) read with Chapter III
+  source_ref: 'Cross-document reconciliation: wage register basic plus dearness allowance against the EPF wage base. Both
+    figures come from the employer''s own documents, so no notification is needed'
+  basis: RECONCILIATION
+  requires:
+  - epf
+  for_each: epf
+  expression: 'is_missing(row.wage_base_paise) or is_missing(row.register_wages_paise) or row.wage_base_paise >= row.register_wages_paise
+    or within_tolerance(row.wage_base_paise, row.register_wages_paise, 100)
 
-  # -------------------------------------------------------- wage base integrity
-  - id: SS.EPF.WAGE_BASE_UNDERSTATED
-    code: SOCIAL_SECURITY
-    kind: DISCREPANCY
-    severity: HIGH
-    weight: 9
-    title: EPF wage base is lower than the statutory wages in the wage register
-    citation: "Code on Social Security, 2020 — s.2(88) read with Chapter III"
-    source_ref: "Cross-document reconciliation: wage register basic plus dearness allowance against the EPF wage base. Both figures come from the employer's own documents, so no notification is needed"
-    basis: RECONCILIATION
-    requires: [epf]
-    for_each: epf
-    # Wage suppression: contributions computed on an artificially small base while
-    # the register shows higher statutory wages.
-    expression: >
-      is_missing(row.wage_base_paise) or is_missing(row.register_wages_paise)
-      or row.wage_base_paise >= row.register_wages_paise
-      or within_tolerance(row.wage_base_paise, row.register_wages_paise, 100)
-    observe:
-      workers_with_understated_base: "count(epf)"
-    expect:
-      tolerance_paise: "100"
-    message:
-      en: "The provident fund wage base is below the basic and dearness allowance recorded in the wage register."
-      hi: "भविष्य निधि मजदूरी आधार, मजदूरी रजिस्टर में दर्ज मूल वेतन और महंगाई भत्ते से कम है।"
-    remediation:
-      en: "Recompute contributions on the full statutory wage base and deposit the shortfall with interest."
-      hi: "पूर्ण सांविधिक मजदूरी आधार पर अंशदान की पुनर्गणना करें और कमी ब्याज सहित जमा करें।"
-    fixtures:
-      - name: base_matches_register
-        should_pass: true
-        facts:
-          epf:
-            - wage_base_paise: 1500000
-              register_wages_paise: 1500000
-      - name: base_understated
-        should_pass: false
-        facts:
-          epf:
-            - wage_base_paise: 900000
-              register_wages_paise: 1500000
+    '
+  observe:
+    workers_with_understated_base: count(epf)
+  expect:
+    tolerance_paise: '100'
+  message:
+    en: The provident fund wage base is below the basic and dearness allowance recorded in the wage register.
+    hi: भविष्य निधि मजदूरी आधार, मजदूरी रजिस्टर में दर्ज मूल वेतन और महंगाई भत्ते से कम है।
+  remediation:
+    en: Recompute contributions on the full statutory wage base and deposit the shortfall with interest.
+    hi: पूर्ण सांविधिक मजदूरी आधार पर अंशदान की पुनर्गणना करें और कमी ब्याज सहित जमा करें।
+  fixtures:
+  - name: base_matches_register
+    should_pass: true
+    facts:
+      epf:
+      - wage_base_paise: 1500000
+        register_wages_paise: 1500000
+  - name: base_understated
+    should_pass: false
+    facts:
+      epf:
+      - wage_base_paise: 900000
+        register_wages_paise: 1500000
+- id: SS.HEADCOUNT.RECONCILIATION
+  code: SOCIAL_SECURITY
+  kind: ANOMALY
+  severity: MEDIUM
+  weight: 7
+  title: Worker totals differ across uploaded records
+  citation: Cross-document data reconciliation
+  source_ref: Project advisory comparison across the employee register, wage register, EPF, ESIC and annual return; the five-percent
+    tolerance is not a statutory safe harbour
+  basis: RECONCILIATION
+  requires:
+  - counts
+  expression: 'is_missing(counts.register) or is_missing(counts.epf) or ratio(abs_value(counts.register - counts.epf), counts.register)
+    <= 0.05
 
-  # ----------------------------------------------------------- deposit timing
-  - id: SS.EPF.DEPOSIT_TIMELINESS
-    code: SOCIAL_SECURITY
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 7
-    title: Provident fund contributions deposited after the due date
-    citation: "Code on Social Security, 2020 — s.29"
-    source_ref: "s.29 requires timely deposit but states no date; the fifteenth used here comes from the scheme. NEEDS: Employees' Provident Funds Scheme, 1952 — para 38 deposit deadline"
-    basis: RULES_PENDING
-    requires: [epf]
-    for_each: epf
-    expression: >
-      is_missing(row.deposited_on) or day_of_month(row.deposited_on) <= 15
-    observe:
-      contributions_checked: "count(epf)"
-    expect:
-      deposit_by_day_of_month: "15"
-    message:
-      en: "Provident fund contributions were deposited after the due date for the month."
-      hi: "भविष्य निधि अंशदान माह की नियत तिथि के बाद जमा किया गया।"
-    remediation:
-      en: "Deposit contributions by the due date each month and pay interest and damages on any delayed remittance."
-      hi: "प्रत्येक माह नियत तिथि तक अंशदान जमा करें और विलंबित प्रेषण पर ब्याज तथा हर्जाना अदा करें।"
-    fixtures:
-      - name: deposited_on_twelfth
-        should_pass: true
-        facts:
-          epf:
-            - deposited_on: 2026-04-12
-      - name: deposited_on_twenty_eighth
-        should_pass: false
-        facts:
-          epf:
-            - deposited_on: 2026-04-28
-
-  # ------------------------------------------------------- contribution maths
-  - id: SS.EPF.CONTRIBUTION_ARITHMETIC
-    code: SOCIAL_SECURITY
-    kind: DISCREPANCY
-    severity: MEDIUM
-    weight: 5
-    title: Employee contribution does not match the declared wage base
-    citation: "Code on Social Security, 2020 — Chapter III"
-    source_ref: "Checks the challan's own arithmetic, but against a contribution rate the Code does not state; the twelve per cent used here is external to it. NEEDS: EPF & MP Act, 1952 — s.6 contribution rate, with the current notification"
-    basis: RULES_PENDING
-    requires: [epf]
-    for_each: epf
-    # Twelve per cent of the declared base, within one rupee. This catches
-    # transcription errors and selectively reduced contributions alike.
-    expression: >
-      is_missing(row.employee_share_paise) or is_missing(row.wage_base_paise)
-      or within_tolerance(row.employee_share_paise, row.wage_base_paise * 0.12, 100)
-    observe:
-      lines_checked: "count(epf)"
-    expect:
-      contribution_rate: "0.12"
-      tolerance_paise: "100"
-    message:
-      en: "The employee provident fund contribution does not match twelve per cent of the declared wage base."
-      hi: "कर्मचारी भविष्य निधि अंशदान घोषित मजदूरी आधार के बारह प्रतिशत से मेल नहीं खाता।"
-    remediation:
-      en: "Correct the return so each contribution equals the prescribed rate applied to the declared wage base."
-      hi: "विवरणी सुधारें ताकि प्रत्येक अंशदान घोषित मजदूरी आधार पर निर्धारित दर के बराबर हो।"
-    fixtures:
-      - name: twelve_percent_exact
-        should_pass: true
-        facts:
-          epf:
-            - wage_base_paise: 1500000
-              employee_share_paise: 180000
-      - name: contribution_short
-        should_pass: false
-        facts:
-          epf:
-            - wage_base_paise: 1500000
-              employee_share_paise: 90000
-
-  # -------------------------------------------------------- headcount agreement
-  - id: SS.HEADCOUNT.RECONCILIATION
-    code: SOCIAL_SECURITY
-    kind: DISCREPANCY
-    severity: HIGH
-    weight: 7
-    title: Headcount differs across the register, EPF filing and annual return
-    citation: "Code on Social Security, 2020 — s.123 read with the prescribed returns"
-    source_ref: "Cross-document reconciliation of declared headcounts"
-    basis: RECONCILIATION
-    requires: [counts]
-    # A small difference is normal — joiners and leavers mid-month. A large gap
-    # is not, so the tolerance is proportional rather than absolute.
-    expression: >
-      is_missing(counts.register) or is_missing(counts.epf)
-      or ratio(abs_value(counts.register - counts.epf), counts.register) <= 0.05
-    observe:
-      register_count: "counts.register"
-      epf_count: "counts.epf"
-      esic_count: "counts.esic"
-      annual_return_count: "counts.annual_return"
-      gap: "abs_value(counts.register - counts.epf)"
-    expect:
-      maximum_variance_share: "0.05"
-    message:
-      en: "The number of workers differs materially between the employee register and the provident fund filing."
-      hi: "कर्मचारी रजिस्टर और भविष्य निधि विवरण के बीच श्रमिकों की संख्या में सारवान अंतर है।"
-    remediation:
-      en: "Reconcile the registers and returns for the period and explain or correct the difference."
-      hi: "अवधि के रजिस्टरों और विवरणियों का मिलान करें और अंतर स्पष्ट करें या सुधारें।"
-    fixtures:
-      - name: counts_agree
-        should_pass: true
-        facts:
-          counts: {register: 100, epf: 98, esic: 95, annual_return: 100}
-      - name: nine_workers_unaccounted
-        should_pass: false
-        facts:
-          counts: {register: 87, epf: 78, esic: 74, annual_return: 80}
-
-  # ------------------------------------------------------------------ gratuity
-  - id: SS.GRATUITY.FIXED_TERM_ELIGIBILITY
-    code: SOCIAL_SECURITY
-    kind: NON_COMPLIANCE
-    severity: MEDIUM
-    weight: 5
-    title: Gratuity not accrued for eligible fixed-term employees
-    citation: "Code on Social Security, 2020 — s.53"
-    source_ref: "s.53 extends gratuity to fixed term employees on a pro rata basis without stating the qualifying period for them. NEEDS: Code on Social Security (Central) Rules, 2020 — qualifying period under s.53"
-    basis: RULES_PENDING
-    requires: [prose]
-    applicability: "prose.fixed_term_employee_count > 0"
-    expression: >
-      is_missing(prose.fixed_term_gratuity_accrued) or prose.fixed_term_gratuity_accrued == True
-    observe:
-      fixed_term_employees: "prose.fixed_term_employee_count"
-      accrual_recorded: "prose.fixed_term_gratuity_accrued"
-    expect:
-      accrual_required: "True"
-    message:
-      en: "Gratuity does not appear to be accrued for fixed-term employees."
-      hi: "नियत अवधि कर्मचारियों के लिए उपदान का उपचय प्रतीत नहीं होता।"
-    remediation:
-      en: "Accrue gratuity for fixed-term employees on a pro rata basis and record the liability."
-      hi: "नियत अवधि कर्मचारियों हेतु यथानुपात उपदान का उपचय करें और दायित्व अभिलिखित करें।"
-    fixtures:
-      - name: accrued
-        should_pass: true
-        facts:
-          prose: {fixed_term_employee_count: 15, fixed_term_gratuity_accrued: true}
-      - name: not_accrued
-        should_pass: false
-        facts:
-          prose: {fixed_term_employee_count: 15, fixed_term_gratuity_accrued: false}
-
-  # ------------------------------------------------------- gig and platform work
-  - id: SS.AGGREGATOR.CONTRIBUTION
-    code: SOCIAL_SECURITY
-    kind: NON_COMPLIANCE
-    severity: MEDIUM
-    weight: 5
-    title: Aggregator contribution for gig and platform workers not recorded
-    citation: "Code on Social Security, 2020 — s.114"
-    source_ref: "s.114 sets a range of one to two per cent of turnover, capped at five per cent of amounts paid to gig workers, but not the operative rate. NEEDS: notification fixing the aggregator contribution rate under s.114"
-    basis: RULES_PENDING
-    requires: [prose]
-    applicability: "prose.is_aggregator == True and prose.gig_worker_count > 0"
-    expression: >
-      is_missing(prose.aggregator_contribution_paise) or prose.aggregator_contribution_paise > 0
-    observe:
-      gig_workers: "prose.gig_worker_count"
-      contribution_paise: "prose.aggregator_contribution_paise"
-    expect:
-      minimum_contribution_paise: "1"
-    message:
-      en: "No aggregator contribution is recorded despite gig or platform workers being engaged."
-      hi: "गिग अथवा प्लेटफॉर्म श्रमिक नियोजित होने के बावजूद कोई एग्रीगेटर अंशदान अभिलिखित नहीं है।"
-    remediation:
-      en: "Compute and deposit the aggregator contribution at the notified rate on turnover for the period."
-      hi: "अवधि के कारोबार पर अधिसूचित दर से एग्रीगेटर अंशदान की गणना करें और जमा करें।"
-    fixtures:
-      - name: contribution_recorded
-        should_pass: true
-        facts:
-          prose: {is_aggregator: true, gig_worker_count: 200, aggregator_contribution_paise: 4500000}
-      - name: no_contribution
-        should_pass: false
-        facts:
-          prose: {is_aggregator: true, gig_worker_count: 200, aggregator_contribution_paise: 0}
+    '
+  observe:
+    register_count: counts.register
+    epf_count: counts.epf
+    esic_count: counts.esic
+    annual_return_count: counts.annual_return
+    gap: abs_value(counts.register - counts.epf)
+  expect:
+    maximum_variance_share: '0.05'
+  message:
+    en: Worker totals differ across the uploaded records and should be reconciled; this advisory comparison is not by itself
+      a legal violation.
+    hi: कर्मचारी रजिस्टर और भविष्य निधि विवरण के बीच श्रमिकों की संख्या में सारवान अंतर है।
+  remediation:
+    en: Reconcile the registers and returns for the period and explain or correct the difference.
+    hi: अवधि के रजिस्टरों और विवरणियों का मिलान करें और अंतर स्पष्ट करें या सुधारें।
+  fixtures:
+  - name: counts_agree
+    should_pass: true
+    facts:
+      counts:
+        register: 100
+        epf: 98
+        esic: 95
+        annual_return: 100
+  - name: nine_workers_unaccounted
+    should_pass: false
+    facts:
+      counts:
+        register: 87
+        epf: 78
+        esic: 74
+        annual_return: 80
+- id: SS.EPF.WAGE_BASE_RECORDED
+  code: SOCIAL_SECURITY
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: EPF wage base is blank in an uploaded member row
+  citation: Code on Social Security, 2020 — Chapter III and prescribed contribution return
+  source_ref: 'storage/the code of social security 2020.md and storage/the code of social security 2020 central rule.md: uploaded
+    EPF contribution particulars'
+  basis: STATUTE
+  requires:
+  - epf
+  for_each: epf
+  expression: not is_missing(row.wage_base_paise)
+  observe:
+    rows_checked: count(epf)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: The uploaded EPF record has a member row with no contribution wage base.
+    hi: null
+  remediation:
+    en: Complete the verified EPF contribution particulars in the applicable return.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      epf:
+      - wage_base_paise: 100000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      epf:
+      - wage_base_paise: null
+- id: SS.EPF.EMPLOYEE_SHARE_RECORDED
+  code: SOCIAL_SECURITY
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Employee EPF share is blank in an uploaded member row
+  citation: Code on Social Security, 2020 — Chapter III and prescribed contribution return
+  source_ref: 'storage/the code of social security 2020.md and storage/the code of social security 2020 central rule.md: uploaded
+    EPF contribution particulars'
+  basis: STATUTE
+  requires:
+  - epf
+  for_each: epf
+  expression: not is_missing(row.employee_share_paise)
+  observe:
+    rows_checked: count(epf)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: The uploaded EPF record has a member row with no employee contribution amount.
+    hi: null
+  remediation:
+    en: Complete the verified EPF contribution particulars in the applicable return.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      epf:
+      - employee_share_paise: 100000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      epf:
+      - employee_share_paise: null
+- id: SS.EPF.EMPLOYER_SHARE_RECORDED
+  code: SOCIAL_SECURITY
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Employer EPF share is blank in an uploaded member row
+  citation: Code on Social Security, 2020 — Chapter III and prescribed contribution return
+  source_ref: 'storage/the code of social security 2020.md and storage/the code of social security 2020 central rule.md: uploaded
+    EPF contribution particulars'
+  basis: STATUTE
+  requires:
+  - epf
+  for_each: epf
+  expression: not is_missing(row.employer_share_paise)
+  observe:
+    rows_checked: count(epf)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: The uploaded EPF record has a member row with no employer contribution amount.
+    hi: null
+  remediation:
+    en: Complete the verified EPF contribution particulars in the applicable return.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      epf:
+      - employer_share_paise: 100000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      epf:
+      - employer_share_paise: null
+- id: SS.ESIC.WAGE_BASE_RECORDED
+  code: SOCIAL_SECURITY
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: ESIC wage base is blank in an uploaded member row
+  citation: Code on Social Security, 2020 — Chapter IV and prescribed contribution return
+  source_ref: 'storage/the code of social security 2020.md and storage/the code of social security 2020 central rule.md: uploaded
+    ESIC contribution particulars'
+  basis: STATUTE
+  requires:
+  - esic
+  for_each: esic
+  expression: not is_missing(row.wage_base_paise)
+  observe:
+    rows_checked: count(esic)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: The uploaded ESIC record has a member row with no contribution wage base.
+    hi: null
+  remediation:
+    en: Complete the verified ESIC contribution particulars in the applicable return.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      esic:
+      - wage_base_paise: 100000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      esic:
+      - wage_base_paise: null
+- id: SS.ESIC.EMPLOYEE_SHARE_RECORDED
+  code: SOCIAL_SECURITY
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Employee ESIC share is blank in an uploaded member row
+  citation: Code on Social Security, 2020 — Chapter IV and prescribed contribution return
+  source_ref: 'storage/the code of social security 2020.md and storage/the code of social security 2020 central rule.md: uploaded
+    ESIC contribution particulars'
+  basis: STATUTE
+  requires:
+  - esic
+  for_each: esic
+  expression: not is_missing(row.employee_share_paise)
+  observe:
+    rows_checked: count(esic)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: The uploaded ESIC record has a member row with no employee contribution amount.
+    hi: null
+  remediation:
+    en: Complete the verified ESIC contribution particulars in the applicable return.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      esic:
+      - employee_share_paise: 100000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      esic:
+      - employee_share_paise: null
+- id: SS.ESIC.EMPLOYER_SHARE_RECORDED
+  code: SOCIAL_SECURITY
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Employer ESIC share is blank in an uploaded member row
+  citation: Code on Social Security, 2020 — Chapter IV and prescribed contribution return
+  source_ref: 'storage/the code of social security 2020.md and storage/the code of social security 2020 central rule.md: uploaded
+    ESIC contribution particulars'
+  basis: STATUTE
+  requires:
+  - esic
+  for_each: esic
+  expression: not is_missing(row.employer_share_paise)
+  observe:
+    rows_checked: count(esic)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: The uploaded ESIC record has a member row with no employer contribution amount.
+    hi: null
+  remediation:
+    en: Complete the verified ESIC contribution particulars in the applicable return.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      esic:
+      - employer_share_paise: 100000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      esic:
+      - employer_share_paise: null

@@ -1,26 +1,18 @@
-jftLVªh lañ Mhñ ,yñ—(,u)04@0007@2003—20
-REGISTERED NO. DL—(N)04/0007/2003—20
-सी.जी.-डी.एल.-अ.-29092020-222112
-xxxGIDHxxx
-xxxGIDExxx
+ftLVªh lañ Mhñ ,yñ—(,u)04@0007@2003—20
+..-..-.-29092020-222112
 CG-DL-E-29092020-222112
-vlk/kkj.k
 EXTRAORDINARY
-Hkkx  II — [k.M 1
-PART II — Section 1
-izkf/kdkj ls izdkf'kr
-PUBLISHED  BY  AUTHORITY
-lañ 
-  62]
-No. 62] 
+PUBLISHED BY AUTHORITY
+lañ
+62]
+No. 62]
 ubZ fnYyh] eaxyokj] flrEcj 29] 2020@vkf'ou 7] 1942 ¼'kd½
 NEW DELHI, TUESDAY, SEPTEMBER 29, 2020/ASVINA 7, 1942 (SAKA)
-bl Hkkx esa fHkUu i`"B la[;k nh tkrh gS ftlls fd ;g vyx ladyu ds :i esa j[kk tk ldsA
 Separate paging is given to this Part in order that it may be filed as a separate compilation.
 MINISTRY OF LAW AND JUSTICE
 (Legislative Department)
 New Delhi, the 29th September, 2020/Asvina 7, 1942 (Saka)
-The following Act of  Parliament received the assent of the President on the
+The following Act of Parliament received the assent of the President on the
 28th September, 2020 and is hereby published for general information:—
 THE OCCUPATIONAL SAFETY, HEALTH AND WORKING
 CONDITIONS CODE, 2020
@@ -31,7 +23,7 @@ and working conditions of the persons employed in an establishment and for
 matters connected therewith or incidental thereto.
 BE it enacted by Parliament in the Seventy-first Year of the Republic of India as
 follows:—
-CHAPTER I
+## CHAPTER I
 PRELIMINARY
 1. (1) This Act may be called the Occupational Safety, Health and Working Conditions
 Code, 2020.
@@ -44,8 +36,6 @@ commencement
 and
 application.
 2
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (3) It shall not apply to the offices of the Central Government, offices of the State
 Government and any ship of war of any nationality:
 Provided that the Code shall apply in case of contract labour employed through
@@ -97,8 +87,6 @@ shows, reality shows and sport shows;
 (f) "audio-visual worker" means a person, who is employed, directly or through
 any contractor, in or in connection with the audio-visual production to work as an
 61 of 1986.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 3
 artist including actor, musician, singer, anchor, news reader, dancer, dubbing artist or
 stunt person or to do any work, skilled, unskilled, manual, supervisory, technical,
@@ -156,8 +144,6 @@ or perform any work, or to supervise the operation of machinery, plant or
 equipment and is responsible for such duties assigned to him and also includes
 a shot firer or blaster;
 4
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (m) "contract labour" means a worker who shall be deemed to be employed in or
 in connection with the work of an establishment when he is hired in or in connection
 with such work by or through a contractor, with or without the knowledge of the
@@ -204,8 +190,6 @@ activity of an establishment;
 or the Deputy Commissioner, as the case may be, who is vested with the executive
 powers of maintaining law and order in the revenue district in which the mine is
 situated:
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 5
 Provided that in case of a mine, which is situated partly in one district and partly
 in another, the District Magistrate for the purpose shall be the District Magistrate
@@ -256,8 +240,6 @@ person, or on his behalf, or on behalf of any person, one or more employees in h
 establishment and where the establishment is carried on by any Department of the
 Central Government or the State Government, the authority specified, by the head of
 6
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 such Department, in this behalf or where no authority, is so specified, the head of the
 Department and in relation to an establishment carried on by a local authority, the
 Chief Executive of that authority, and includes,—
@@ -278,7 +260,7 @@ occupation is carried on in which ten or more workers are employed; or
 production, building and other construction work or plantation, in which ten or
 more workers are employed; or
 (iii) factory, for the purpose of Chapter II, in which ten or more workers
-are  employed,  notwithstanding  the  threshold  of  workers  provided  in
+are employed, notwithstanding the threshold of workers provided in
 clause (w); or
 (iv) a mine or port or vicinity of port where dock work is carried out:
 Provided that in sub-clauses (i) and (ii), the threshold of worker specified
@@ -304,8 +286,6 @@ Provided that where under any law for the time being in force in a State immedia
 before the commencement of this Code, the number of workers specified is more or less than
 the number specified in clause (i) or clause (ii), then, the number specified under the law of
 the State shall prevail in that State till it is amended by the competent Legislature.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 7
 Explanation I.—For computing the number of workers for the purposes of this
 clause all the workers (in different groups and relays) in a day shall be taken into
@@ -355,8 +335,6 @@ whether or not,—
 (i) any capital has been invested for the purpose of carrying on such
 activity; or
 8
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (ii) such activity is carried on with a motive to make any gain or profit,
 but does not include—
 (a) institutions owned or managed by organisations wholly or
@@ -382,7 +360,7 @@ exceeding the amount of rupees eighteen thousand per month or such higher amount
 may be notified by the Central Government from time to time;
 (zg) "machinery" means any article or combination of articles assembled,
 arranged or connected and which is used or intended to be used for converting any
-form of energy to perform work, or which is used or intended to be used, whether
+### form of energy to perform work, or which is used or intended to be used, whether
 incidental thereto or not, for developing, receiving, storing, containing, confining,
 transforming, transmitting, transferring or controlling any form of energy;
 (zh) "major port" means a major port as defined in clause (8) of section 3 of the
@@ -402,8 +380,6 @@ up ships or vessels; or
 (vi) preserving or storing any article in cold storage; or
 (vii) such other processes as the Central Government may notify;
 15 of 1908.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 9
 (zj) "medical officer" means the medical officer appointed under sub-section (1)
 of section 42;
@@ -453,8 +429,6 @@ clerk, cash clerk, depot clerk, time-keeper, watchman or attendant, but does not
 any such person—
 (i) who is employed in a factory;
 10
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (ii) to whom the provisions of any other law for the time being in force
 regulating the conditions of service of persons employed in shops or commercial
 establishments apply;
@@ -503,8 +477,6 @@ establishment if the principal business thereof is to print newspaper;
 (zr) "notification" means a notification published in the Gazette of India or the
 Official Gazette of a State, as the case may be, and the expression "notify" with its
 grammatical variations and cognate expressions shall be construed accordingly;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 11
 (zs) "occupier" of a factory means the person who has ultimate control over the
 affairs of the factory:
@@ -557,8 +529,6 @@ Government, the State Government, by notification, so directs.
 Explanation.—Where any piece of land used for growing any plant
 referred to in this sub-clause admeasures less than five hectares and is
 12
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 contiguous to any other piece of land not being so used, but capable of
 being so used, and both such pieces of land are under the management of
 the same employer, then, for the purposes of this sub-clause, the former
@@ -612,8 +582,6 @@ notified by the Central Government from time to time; or
 9 of 1932.
 102 of 1956.
 24 of 1989.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 13
 (ii) is employed or engaged mainly in a managerial or administrative
 capacity.
@@ -662,8 +630,6 @@ employment:
 Provided that, for calculating the wages under this clause, if payments
 made by the employer to the employee under sub-clauses (a) to (i) exceeds
 14
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 one-half, or such other per cent. as may be notified by the Central Government,
 of the all remuneration calculated under this clause, the amount which exceeds
 such one-half, or the per cent. so notified, shall be deemed as remuneration and
@@ -688,7 +654,7 @@ person—
 Navy Act, 1957; or
 (ii) who is employed in the police service or as an officer or other employee
 of a prison; or
-(iii) who  is  employed  mainly  in  a  managerial  or  administrative
+(iii) who is employed mainly in a managerial or administrative
 capacity; or
 (iv) who is employed in a supervisory capacity drawing wage exceeding
 eighteen thousand rupees per month or an amount as may be notified by the
@@ -711,10 +677,8 @@ manner not specified in clause (a).
 45 of 1950.
 46 of 1950.
 62 of 1957.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 15
-CHAPTER II
+## CHAPTER II
 REGISTRATION
 3. (1) Every employer of any establishment,—
 (a) which comes into existence after the commencement of this Code; and
@@ -767,8 +731,6 @@ Registration
 of certain
 establishments.
 16
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (b) has obtained the registration of his establishment so fraudulently or otherwise
 that the registration has become useless or ineffective to run the establishment,
 then, in case of clause (a) such misrepresentation or suppression of any material fact shall
@@ -818,13 +780,11 @@ sending notice of such purpose in such form and manner and to such authority and
 such time as may be prescribed and shall also intimate the cessation thereof to the said
 authority in such manner as may be prescribed by the appropriate Government.
 (2) The notice or intimation under sub-section (1) shall be given electronically.
-CHAPTER III
+## CHAPTER III
 DUTIES OF EMPLOYER AND EMPLOYEES, ETC.
 6. (1) Every employer shall,—
 (a) ensure that workplace is free from hazards which cause or are likely to cause
 injury or occupational disease to the employees;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 17
 (b) comply with the occupational safety and health standards declared under
 section 18 or the rules, regulations, bye-laws or orders made under this Code;
@@ -881,8 +841,6 @@ manager in
 relation to
 mine.
 18
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 proves that he had used due diligence to secure compliance with the provisions and had
 taken reasonable means to prevent such contravention, namely:—
 (a) the official or officials appointed to perform duties of supervision in respect
@@ -933,8 +891,6 @@ for use in any factory, may carry out or arrange for the carrying out of necessa
 with a view to the discovery and, so far as is reasonably, practicable, the elimination or
 minimisation of any risks to the health or safety of the workers to which the design or
 manufacture of article and substance may give rise to such risk.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 19
 (4) Nothing contained in sub-sections (1) and (2) shall be construed to require a
 person to repeat the testing, examination or research which has been carried out otherwise
@@ -989,8 +945,6 @@ project
 engineer and
 designer.
 20
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (3) It shall also be the duty of the professionals, involved in designing the buildings
 structures or other construction projects, to take into account the safety aspects associated
 with the maintenance and upkeep of the structures and buildings where maintenance and
@@ -1030,7 +984,7 @@ within the said period.
 thereof to such authorities, and in such form and within such time, as may be prescribed by
 the appropriate Government.
 12. (1) Where any worker in an establishment contracts any disease specified in the
-Third Schedule, the employer of the establishment shall send notice thereof to such
+## Third Schedule, the employer of the establishment shall send notice thereof to such
 authorities, and in such form and within such time, as may be prescribed by the appropriate
 Government.
 (2) If any qualified medical practitioner attends on a person, who is or has been
@@ -1042,7 +996,7 @@ Government.
 (3) If any qualified medical practitioner fails to comply with the provisions of
 sub-section (2), he shall be punishable with penalty which may extend to ten thousand
 rupees.
-13.  Every employee at workplace shall,—
+13. Every employee at workplace shall,—
 (a) take reasonable care for the health and safety of himself and of other persons
 who may be affected by his acts or omissions at the workplace;
 (b) comply with the safety and health requirements specified in the standards;
@@ -1052,8 +1006,6 @@ employer under this Code;
 as practicable, report such situation to his employer or to the health and safety
 representative and in case of mine, agent or manager referred to in section 67, safety
 officers or an official for his workplace or section thereof, as the case may be, who
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 21
 shall report it to the employer in the manner as may be prescribed by the appropriate
 Government;
@@ -1064,7 +1016,7 @@ and welfare of workers;
 himself or others; and
 (g) perform such other duties as may be prescribed by the appropriate
 Government.
-14.  (1) Every employee in an establishment shall have the right to obtain from the
+14. (1) Every employee in an establishment shall have the right to obtain from the
 employer information relating to employee's health and safety at work and represent to the
 employer directly or through a member of the Safety Committee as constituted under
 section 22, if constituted by the employer for such purpose, regarding inadequate provision
@@ -1085,7 +1037,7 @@ matter forthwith to the Inspector-cum-Facilitator whose decision on the question
 existence of such imminent danger shall be final.
 15. No person shall intentionally or recklessly interfere with, damage or misuse anything
 which is provided in the interest of health, safety or welfare under this Code.
-CHAPTER IV
+## CHAPTER IV
 OCCUPATIONAL SAFETY AND HEALTH
 16. (1) The Central Government shall, by notification, constitute the National
 Occupational Safety and Health Advisory Board (hereinafter in this Code referred to as the
@@ -1113,8 +1065,6 @@ Health
 Advisory
 Board.
 22
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (b) Director General, Factory Advice Service and Labour Institutes, Mumbai—
 Member ex officio;
 (c) Director General, Mines Safety, Dhanbad—Member ex officio;
@@ -1167,8 +1117,6 @@ Board") to advise the State Government on such matters arising out of the admini
 this Code as may be referred to it by the State Government.
 (2) The constitution, procedure and other matters relating to State Advisory Board
 shall be such as may be prescribed by the State Government.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 23
 (3) The State Government may constitute as many technical committees or advisory
 committees of the State Advisory Board including site appraisal committees, consisting of
@@ -1219,8 +1167,6 @@ safety and
 health
 standards.
 24
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Research
 related
 activities.
@@ -1281,8 +1227,6 @@ State and are self-employed in that other State may also register themselves on 
 Explanation.—For the purposes of this sub-section, the expression "Aadhaar" shall
 have the same meaning as assigned to it in clause (a) of section 2 of the Aadhaar (Targeted
 Delivery of Financial and Other Subsidies, Benefits and Services) Act, 2016.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 25
 22. (1) The appropriate Government may, by general or special order, require any
 establishment or class of establishments to constitute in the prescribed manner a Safety
@@ -1301,7 +1245,7 @@ more; or
 the employer shall also appoint such number of safety officers, who shall possess such
 qualifications and perform such duties, as may be prescribed by appropriate
 Government.
-CHAPTER V
+## CHAPTER V
 HEALTH, SAFETY AND WORKING CONDITIONS
 23. (1) The employer shall be responsible to maintain in his establishment such
 health, safety and working conditions for the employees as may be prescribed by the
@@ -1322,7 +1266,7 @@ space to employees or other persons, as the case may be, employed therein;
 and transgender employee separately and maintaining hygiene therein;
 (ix) effective arrangements for treatment of wastes and effluents; and
 (x) any other arrangement which the Central Government considers appropriate.
-CHAPTER VI
+## CHAPTER VI
 WELFARE PROVISIONS
 24. (1) The employer shall be responsible to provide and maintain in his establishment
 such welfare facilities for the employees as may be prescribed by the Central Government,
@@ -1344,8 +1288,6 @@ the
 establishment,
 etc.
 26
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (i) adequate and suitable facilities for washing to male and female employees
 separately;
 (ii) bathing places and locker rooms for male, female and transgender employees
@@ -1393,10 +1335,8 @@ Government, State Government, municipality or private entity or provided by
 non-Governmental organisation or by any other organisation or group of establishments
 may pool their resources for setting up of common crèche in the manner as they may agree
 for such purpose.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 27
-CHAPTER VII
+## CHAPTER VII
 HOURS OF WORK AND ANNUAL LEAVE WITH WAGES
 25. (1) No worker shall be required or allowed to work, in any establishment or class
 of establishment for more than—
@@ -1445,8 +1385,6 @@ working hours,
 leave, etc.
 (v) the loading and unloading of the transport vehicle;
 28
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (c) "period of mere attendance" means the period during which a person remains
 at his post solely in order to reply to possible calls or to resume action at the time fixed
 in the duty schedule.
@@ -1497,8 +1435,6 @@ days consecutively without a holiday for a whole day intervening.
 thinks fit from the provisions of sub-section (1), subject to such conditions as may be
 prescribed.
 61 of 1986.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 29
 (3) Where, as a result of the passing of an order or the making of a rule under the
 provisions of this Code exempting an establishment or the workers therein from the provisions
@@ -1560,8 +1496,6 @@ Notice of
 periods of
 work.
 30
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Annual leave
 with wages,
 etc.
@@ -1612,8 +1546,6 @@ for encashment of leave at the end of calendar year;
 days under sub-clause (a) of clause (vii), to encash such exceeded leave.
 (2) The appropriate Government may, by notification, extend the provisions of
 sub-section (1) to any other establishment except railway establishment.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 31
 (3) The provisions of sub-section (1) shall not operate to the prejudice of any right to
 which a person employed in a mine may be entitled under any other law or under the terms
@@ -1629,9 +1561,9 @@ applicable to persons employed in any mine provide benefits which in its opinion
 less favourable than those provided for in sub-section (1) it may, by order in writing and
 subject to such conditions as may be specified therein exempt the mine from all or any of the
 provisions of sub-section (1).
-CHAPTER VIII
+## CHAPTER VIII
 MAINTENANCE OF REGISTERS, RECORDS AND RETURNS
-33.  An employer of an establishment shall—
+33. An employer of an establishment shall—
 (a) maintain register in prescribed form, electronically or otherwise, containing
 such particulars of workers as may be prescribed by the appropriate Government
 including,—
@@ -1648,7 +1580,7 @@ may be prescribed by the appropriate Government;
 (d) file such return electronically or otherwise to the Inspector-cum-Facilitator
 in such manner and during such periods as may be prescribed by the appropriate
 Government.
-CHAPTER IX
+## CHAPTER IX
 INSPECTOR-CUM-FACILITATORS AND OTHER AUTHORITY
 34. (1) The appropriate Government may, by notification, appoint Inspector-cum
 Facilitators for the purposes of this Code who shall exercise the powers conferred on them
@@ -1669,8 +1601,6 @@ of Inspector
 cum
 Facilitators.
 32
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 inspection and calling of information under this Code, electronically and such scheme
 shall, inter alia, have provisions to cater to special circumstances for assigning
 inspection and calling for information from establishment or any other person besides
@@ -1718,8 +1648,6 @@ as it thinks fit to be Inspector-cum-Facilitators in addition to existing Inspec
 Facilitator for exercising the powers and discharging the duties of Inspector-cum-Facilitator
 for all or any of the purposes of this Code within such local limits as may be specified in
 such notification.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 33
 (10) Without prejudice to the other functions of the Inspector-cum-Facilitator under
 this Code, an Inspector-cum-Facilitator may in respect of any establishment or class of
@@ -1776,8 +1704,6 @@ Inspector
 cum
 Facilitators.
 34
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (xi) in case of any article or substance found in any establishment or premises,
 being an article or substance which appears to him as having caused or is likely to
 cause danger to the health and safety of the employees, direct it to be dismantled or
@@ -1796,7 +1722,7 @@ by an Inspector-cum-Facilitator under sub-section (1) shall be deemed to be lega
 to do so within the meaning of section 175 and section 176 of the Indian Penal Code.
 (3) The provisions of the Code of Criminal Procedure, 1973, shall, so far as may be,
 apply to such search or seizure under sub-section (1) as they apply to any search or seizure
-made under the authority of a warrant issued under section 94 of  the said Code.
+made under the authority of a warrant issued under section 94 of the said Code.
 Powers and
 duties of
 District
@@ -1847,8 +1773,6 @@ sub-clause (a) shall have effect for a period of three days until extended by th
 Chief Inspector-cum-Facilitator by a subsequent order;
 45 of 1860.
 2 of 1974.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 35
 (c) any person aggrieved by an order of the Inspector-cum-Facilitator
 under sub-clause (a), and the Chief Inspector-cum-Facilitator under
@@ -1904,8 +1828,6 @@ Provided that the employer may instead of paying such full wages provide
 such person with an alternative employment at the same wages which such
 person was receiving in the employment which was prohibited;
 36
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (f) where a notice has been given under sub-clause (a) or an order is made
 under sub-clause (b) or sub-clause (c) or sub-clause (d) by an Inspector-cum
 Facilitator, the employer of the mine may, within ten days after the receipt of the
@@ -1959,8 +1881,6 @@ such person with an alternative employment at the same wages which such
 person was receiving in the employment which was prohibited under
 sub-clause (l);
 2 of 1974.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 37
 (n) the provisions of sub-clauses (g), (h) and (i) shall apply in relation to
 a notice issued under sub-clause (k) or an order made under sub-clause (l) as
@@ -2012,8 +1932,6 @@ a copy of the order to the Chief Inspector-cum-Facilitator;
 (c) such prohibition order made by the Inspector-cum-Facilitator shall be
 complied with by the employer forthwith.
 38
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (3) Any person aggrieved by an order under clause (a) of sub-section (2), may, within
 fifteen days from the date on which the order is communicated to him, prefer an appeal to
 the Chief Inspector-cum-Facilitator or where such order is by the Chief Inspector-cum
@@ -2085,8 +2003,6 @@ therefrom at any time by day or night:
 8 of 1923.
 22 of 2005.
 Provided that, where in the opinion of the Chief Inspector-cum-Facilitator or of an
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 39
 Inspector-cum-Facilitator an emergency exists, he may, by order in writing, authorise any
 such person to enter the mine for any of the aforesaid purposes without giving any such
@@ -2110,7 +2026,7 @@ conditions of work prevailing in such establishments;
 his fitness for employment in factory, plantation, motor transport undertakings and in
 any other establishment as may be prescribed by the appropriate Government in any
 work which is likely to cause injury to their health.
-CHAPTER X
+## CHAPTER X
 SPECIAL PROVISION RELATING TO EMPLOYMENT OF WOMEN
 43. Women shall be entitled to be employed in all establishments for all types of work
 under this Code and they may also be employed, with their consent before 6 a.m. and
@@ -2123,9 +2039,8 @@ any particular hazardous or dangerous processes in such establishment or class o
 establishments, due to the operation carried out therein, such Government may in the
 prescribed manner, require the employer to provide adequate safeguards prior to the
 employment of women for such operation.
-CHAPTER XI
+## CHAPTER XI
 SPECIAL PROVISIONS FOR CONTRACT LABOUR AND INTER-STATE MIGRANT WORKER, ETC.
-PART I
 CONTRACT LABOUR
 45. (1) This Part shall apply to—
 (i) every establishment in which fifty or more contract labour are employed or
@@ -2145,8 +2060,6 @@ operation.
 Applicability
 of this Part.
 40
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (2) This Part shall not apply to the establishment in which work only of an intermittent
 or casual nature is performed:
 Provided that if a question arises as to whether work performed in an establishment is
@@ -2199,8 +2112,6 @@ section 119 designated by that Government:
 Provided that where the contractor is desirous of obtaining licence for supplying or
 engaging contract labour or undertaking or executing the contract works under
 sub-section (1) or sub- section (2) in more than one States or for the whole of India, then, he
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 41
 may obtain the licence from the authority referred to in sub-section (1) of section 119 designated
 by the Central Government for such purpose and the provisions of that section shall apply:
@@ -2268,8 +2179,6 @@ and
 amendment
 of licence.
 42
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (2) Subject to any rules that may be made in this behalf, the authority referred to in
 sub-section (1) of section 119 may amend a licence granted for the purposes of this Part.
 Appeal.
@@ -2331,14 +2240,12 @@ wages from the amount deposited by such contractor as security deposit under the
 issued by the licensing officer to the contractor, in such manner as may be prescribed by
 such Government.
 56. Every concerned contractor shall issue, on demand, experience certificate, in such
-form as may be prescribed by the appropriate Government, to the contract labour giving
+### form as may be prescribed by the appropriate Government, to the contract labour giving
 details of the work performed by such contract labour.
 57. (1) Notwithstanding anything contained in this Part, employment of contract
 labour in core activities of any establishment is prohibited:
 Provided that the principal employer may engage contract labour through a contractor
 to any core activity, if—
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 43
 (a) the normal functioning of the establishment is such that the activity is
 ordinarily done through contractor; or
@@ -2362,7 +2269,6 @@ notification, that subject to such conditions and restrictions, if any, and for 
 may be specified in the notification, all or any of the provisions of this Code or the rules
 made thereunder shall not apply to any establishment or class of establishments or any
 class of contractors.
-PART II
 INTER-STATE MIGRANT WORKERS
 59. This Part shall apply to every establishment in which ten or more inter-State
 migrant workers are employed or were employed on any day of the preceding twelve months.
@@ -2405,8 +2311,6 @@ public
 distribution
 system, etc.
 44
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (b) for portability of the benefits of the inter-State migrant worker working for
 building or other construction work out of the building and other construction cess
 fund in the destination State where such inter-State migrant worker is employed.
@@ -2432,7 +2336,6 @@ recovery of debt or any part thereof relating to an inter-State migrant worker a
 completion of his employment where it remains unsettled obligation to the contractor or the
 principal employer and such debt or part thereof shall, on the completion of the period of
 employment of such worker, be deemed to have been extinguished.
-PART III
 AUDIO-VISUAL WORKERS
 66. (1) No person shall be employed as an audio-visual worker in or in connection
 with production of any audio-visual programme unless,—
@@ -2463,8 +2366,6 @@ such authority as may be prescribed by the appropriate Government.
 (4) Notwithstanding anything contained in Chapters V, VI and VII, the agreement
 referred to in sub-section (1) shall include,—
 (i) nature of assignment;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 45
 19 of 1952.
 14 of 1947.
@@ -2483,7 +2384,6 @@ Industrial Disputes Act, 1947 and for such purpose such dispute shall be deemed 
 industrial dispute within the meaning of that Act and it shall be the responsibility of the
 producer of the audio-visual programme to provide the facilities specified in the agreement
 to the audio-visual worker and the payment of wages shall be through electronic mode.
-PART IV
 MINES
 67. (1) Save as may be otherwise prescribed, every mine shall be under a sole manager
 who shall have such qualifications as may be prescribed by the Central Government and the
@@ -2499,7 +2399,7 @@ be confirmed in writing forthwith.
 behalf shall not give, otherwise than through the manager, instructions affecting the
 fulfilment of his statutory duties, to a person, employed in a mine, who is responsible to the
 manager.
-68.  (1) The provisions of this Code, except those contained in sections 35, 38, 40, 41
+68. (1) The provisions of this Code, except those contained in sections 35, 38, 40, 41
 and 44, shall not apply to—
 (a) any mine or part thereof in which excavation is being made for prospecting
 purposes only and not for the purpose of obtaining minerals for use or sale subject to
@@ -2519,8 +2419,6 @@ Code not to
 apply in
 certain cases.
 46
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (3) Without prejudice to the provisions contained in sub-section (2), if at any time
 any of the conditions specified in clause (a) or clause (b) of sub-section (1) is not fulfilled
 in relation to any mine referred to in that sub-section, the provisions of this Code not set out
@@ -2545,7 +2443,7 @@ of rescue
 services and
 vocational
 training.
-69.  (1) In case of an emergency involving serious risk to the safety of the mine or of
+69. (1) In case of an emergency involving serious risk to the safety of the mine or of
 persons employed therein, or in case of an accident, whether actual or apprehended, or in
 case of any act of God or in case of any urgent work to be done to machinery, plant or
 equipment of the mine as a result of breakdown of such machinery plant or equipment, the
@@ -2583,8 +2481,6 @@ section 25, sub-section (1) of section 26, section 30 and sub-section (1) of sec
 72. The Central Government may prescribe vocational training and rescue and recovery
 services for persons employed in a mine.
 52 of 1961.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 47
 73. If any question arises as to whether any excavation or working or premises in or
 adjacent to and belonging to a mine, on which any process ancillary to the getting, dressing
@@ -2592,7 +2488,6 @@ or preparation for sale of minerals or of coke is being carried on in a mine wit
 of this Code, the Central Government may decide the question, and a certificate signed by
 a Secretary to the Government of India in the Ministry of Labour and Employment shall be
 conclusive proof thereof.
-PART V
 BEEDI AND CIGAR WORKERS
 74. (1) Save as otherwise provided in this Part, no employer shall use or allow to use
 any place or premises as an industrial premises unless he holds a valid licence issued under
@@ -2645,8 +2540,6 @@ industrial
 premises and
 person.
 48
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Provided further that the authority referred to in sub-section (1) of section 119 shall
 renew or refuse to renew the licence within such period as may be prescribed by the State
 Government and in deciding whether to renew a licence or to refuse a renewal thereof shall
@@ -2706,16 +2599,12 @@ Explanation.—For the purposes of this section,—
 (ii) "private dwelling house" means a house in which persons engaged in the
 manufacture of beedi or cigar or both reside.
 61 of 1986.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 49
-PART VI
 BUILDING OR OTHER CONSTRUCTION WORKERS
 78. No person, about whom the employer knows or has reasons to believe that he is
 a deaf or he has a defective vision or he has a tendency to giddiness, shall be required or
 allowed to work in any such operation of building or other construction work which is likely
 to involve a risk of any accident either to the building worker himself or to any other person.
-PART VII
 FACTORIES
 79. (1) The appropriate Government may make rules in respect of factory or class or
 description of factories for—
@@ -2779,8 +2668,6 @@ apply Code to
 certain
 premises.
 50
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Explanation.—For the purposes of this section, "owner" shall include a lessee or
 mortgagee with possession of the premises.
 Dangerous
@@ -2840,8 +2727,6 @@ process at any time after the commencement of this Code, within a period of thir
 before the commencement of such process, inform the Chief Inspector-cum-Facilitator about
 the nature and details of the process in such form and in such manner as may be prescribed
 by the State Government.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 51
 (6) Where any occupier of a factory contravenes the provisions of sub-section (5),
 the licence issued under section 79 to such factory shall, notwithstanding any penalty to
@@ -2880,7 +2765,7 @@ the factory or the general public affected, or likely to be affected due to such
 neglect and for the prevention of recurrence of such extraordinary situations in future in
 such factory or elsewhere.
 (2) The recommendations of the National Board shall be advisory in the nature.
-87.  (1) Where the Central Government is satisfied that no standards of safety have
+87. (1) Where the Central Government is satisfied that no standards of safety have
 been prescribed in respect of a hazardous process or class of hazardous processes, or
 where the standards so prescribed are inadequate, it may direct the Directorate General
 Occupational Safety and Health formerly known as the Directorate General of Factory
@@ -2905,8 +2790,6 @@ situations.
 Emergency
 standards.
 52
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Permissible
 limits of
 exposure of
@@ -2952,7 +2835,7 @@ decision on the question of the existence of such imminent danger shall be final
 which and the appropriate authority to whom the manager or occupier of the factory may
 make appeal against the order of the Inspector-cum-Facilitator and the procedure for
 disposing of such appeals.
-91.  (1) The appropriate Government may make rules,—
+91. (1) The appropriate Government may make rules,—
 (a) specifying the persons who hold positions of supervision or management
 or are employed in a confidential position in a factory or empowering the Chief
 Inspector-cum-Facilitator to declare any person, other than a person so specified, as
@@ -2966,14 +2849,11 @@ to which such exemption may be given.
 (2) The appropriate Government or the Chief Inspector-cum-Facilitator may, by order
 in writing, exempt subject to such conditions as it may deem expedient, any or all of the
 adult workers in any establishment or class of establishments.
-PART VIII
 PLANTATION
 92. (1) Without prejudice to the generality of sections 23 and 24, the State Government
 may prescribe requiring every employer to make provisions in his plantation for—
 (a) necessary housing accommodation including drinking water, kitchen and
 toilet to every worker employed in the plantation (including his family);
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 53
 (b) crèches facilities where in the plantation fifty or more workers (including
 workers employed by any contractor) are employed or were employed on any day of
@@ -3024,8 +2904,6 @@ access to such record.
 (7) Every employer of a plantation shall provide—
 Safety.
 54
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (a) washing, bathing and clock room facilities; and
 (b) protective clothing and equipment,
 to every worker engaged in the handling insecticides, pesticides, chemicals and toxic
@@ -3037,7 +2915,7 @@ chemicals and toxic substances in the plantation.
 (9) Every employer of a plantation shall exhibit such precautionary notices in the
 plantation as may be prescribed by the State Government indicating the hazards of
 insecticides, pesticides, chemicals and toxic substances.
-CHAPTER XII
+## CHAPTER XII
 OFFENCES AND PENALTIES
 General
 penalty for
@@ -3086,12 +2964,10 @@ extend to one lakh rupees, or with both.
 again convicted of an offence under the same provision, then, he shall be punishable with
 imprisonment for a term which may extend to six months, or with fine which shall not be less
 than one lakh rupees but which may extend to two lakh rupees, or with both.
-96.  (1) Any person, who is required under this Code or the rules or regulations or
+96. (1) Any person, who is required under this Code or the rules or regulations or
 bye-laws or order made thereunder, to—
 (i) maintain any register or other document or to file returns, omits or fails to
 maintain such register or document or to file such returns; or
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 55
 (ii) produce any register or plan or record or report or any other document,
 omits or fails to produce such register or plan or record or report or such other
@@ -3113,7 +2989,7 @@ may extend to one lakh rupees.
 again convicted of an offence under the same provision, then, he shall be punishable with
 imprisonment for a term which may extend to three months, or with fine which may extend to
 two lakh rupees, or with both.
-98.  (1) Whoever—
+98. (1) Whoever—
 (a) produces false records or counterfeits or knowingly makes or produces or
 uses a false statement, declaration or evidence regarding any document in connection
 with compliance of any of the provisions of this Code or any rules, regulations or
@@ -3129,7 +3005,7 @@ with fine which may extend to one lakh rupees, or with both.
 again convicted of an offence under the same provision, then, he shall be punishable with
 imprisonment for a term which may extend to six months, or with fine which shall not be
 less than one lakh rupees but which may extend to two lakh rupees, or with both.
-99.  Any person who, without reasonable excuse the burden of proving which shall
+99. Any person who, without reasonable excuse the burden of proving which shall
 lies upon him, omits to make or furnish in the prescribed form or manner or at, or within, the
 prescribed time any plan, section, return, notice, register, record or report required by or
 under any provision of this Code to be made or furnished, he shall be liable to penalty which
@@ -3158,8 +3034,6 @@ for disclosure
 of
 information.
 56
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (2) No court shall proceed with the trial of any offence under this section except with
 the previous sanction of the appropriate Government.
 Punishment
@@ -3194,7 +3068,7 @@ Failure to
 appoint
 manager in
 mine.
-101.  Whoever, except in so far as it may be necessary for the purposes of a prosecution
+101. Whoever, except in so far as it may be necessary for the purposes of a prosecution
 for any offence punishable under this Code, publishes or discloses to any person the
 results of an analysis, of a sample of substance used or intended to be used in any process
 under this Code, shall be punishable with imprisonment for a term, which may extend to
@@ -3239,10 +3113,8 @@ than two lakh rupees without recording in the judgment the reasons for imposing 
 105. Whoever in compliance of the provisions of section 67, fails to appoint a manager
 shall be punishable with imprisonment for a term which may extend to three months, or with
 fine which may extend to one lakh rupees, or with both.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 57
- 106. (1) Subject to the provisions of section 13, except clause (d) thereof, if any
+106. (1) Subject to the provisions of section 13, except clause (d) thereof, if any
 employee employed in a workplace contravenes any provision of this Code or any rules or
 orders made thereunder, imposing any duty or liability on employee, he shall be punishable
 with penalty which may extend to ten thousand rupees.
@@ -3286,7 +3158,7 @@ prosecutor:
 Provided further that, if the person charged as the actual offender by the owner, agent
 or manager of the mine or occupier or manager of the factory, as the case may be, cannot be
 brought before the court at the time appointed for hearing the charge, the court shall
-adjourn the hearing from time to time for a period not exceeding three months and if  by the
+adjourn the hearing from time to time for a period not exceeding three months and if by the
 end of the said period the person charged as the actual offender cannot still be brought
 before the court, the court shall proceed to hear the charge against the owner, agent or
 manager of the mine or occupier or manager of the factory, as the case may be, and shall, if
@@ -3306,8 +3178,6 @@ factory from
 liability in
 certain cases.
 58
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Offences by
 companies,
 etc.
@@ -3361,8 +3231,6 @@ with reference to every point of time during which the offence continues;
 (b) where for the performance of any act, time is granted or extended on an
 application made by the employer of an establishment, the period of limitation shall
 be computed from the date on which the time so granted or extended expired.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 59
 111. (1) Notwithstanding anything contained in section 110, for the purpose of
 imposing penalty under sub-section (3) of section 12 or sections 94, 96, 97, 99, 106 and
@@ -3433,8 +3301,6 @@ Composition
 of certain
 offences.
 60
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 under sub-section (2) of section 97 or sub-section (1) of section 100 or section 101 or clause
 (b) of sub-section (1) of section 103 or section 105 or sub-section (2) of section 113 may
 either before or after the holding the enquiry or, as the case may be, of institution of
@@ -3459,7 +3325,7 @@ committed by a person for a second or subsequent time within a period of three y
 the date of penalty or offence, as the case may be,—
 (a) which was earlier compounded; or
 (b) for which such person was earlier convicted.
-CHAPTER XIII
+## CHAPTER XIII
 SOCIAL SECURITY FUND
 Social security
 fund.
@@ -3478,7 +3344,7 @@ being in force for the welfare of the unorganised workers.
 Explanation.—For the purpose of this section the expression "unorganised worker"
 shall have the same meaning as is assigned to it under clause (m) of section 2 of the
 Unorganised Workers Social Security Act, 2008.
-CHAPTER XIV
+## CHAPTER XIV
 MISCELLANEOUS
 116. The Central Government may, by notification, direct that any power exercisable
 by it under this Code or rules made thereunder shall, in relation to such matters and subject
@@ -3486,8 +3352,6 @@ to such conditions, if any, as may be specified in the notification, be exercisa
 State Government or by such officer or authority subordinate to the State Government as
 may be specified in the said notification.
 33 of 2008.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 61
 117. (1) When any offence is committed under this Code involving an issue of a
 certain age of a person and such person is in the opinion of the court prima facie under such
@@ -3551,8 +3415,6 @@ factories and
 to industrial
 premises, etc.
 62
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (6) Any person aggrieved by an order passed under this section by the authority
 referred to in sub-section (1) may file, within thirty days from the date of the order, an appeal
 in such form, accompanied with such fee to such appellate authority as may be prescribed
@@ -3625,8 +3487,6 @@ implementation of the provisions of this Code.
 relating to any manufacturing or commercial business or any working process which may
 come to his knowledge in the course of his official duties.
 5 of 1908.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 63
 (2) Nothing in sub-section (1) shall apply to any disclosure of information made with
 the previous consent in writing of the owner of the business or process or for the purposes
@@ -3668,7 +3528,7 @@ Explanation.—For the purpose of this sub-section, the expression "new factory 
 class or description of new Factories" means such factory or class or description of Factories
 which are established and whose commercial production start within such period as may be
 specified in the notification.
-128.  In case of a public emergency or disaster or pandemic in whole of India or part
+128. In case of a public emergency or disaster or pandemic in whole of India or part
 thereof, the appropriate Government may, by notification, exempt any workplace or work
 activity or class thereof from all or any of the provisions of this Code for such period and
 subject to such conditions as it may think fit:
@@ -3691,8 +3551,6 @@ exempt during
 public
 emergency.
 64
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Power to
 exempt public
 institution.
@@ -3706,7 +3564,7 @@ Power of
 Central
 Government
 to amend
-Schedule.
+## Schedule.
 Power to
 remove
 difficulties.
@@ -3730,7 +3588,7 @@ authority in relation to the provisions of this Code shall be legally bound to d
 meaning of section 176 of the Indian Penal Code.
 131. The Central Government may, by notification, amend any Schedule by way of
 addition, alteration or omission therein and on any such notification being issued, the
-Schedule shall be deemed to be amended accordingly.
+## Schedule shall be deemed to be amended accordingly.
 132. (1) If any difficulty arises in giving effect to the provisions of this Code, the
 Central Government may, by order published in the Official Gazette, make such provisions
 not inconsistent with the provisions of this Code, as appears to it to be necessary or
@@ -3760,8 +3618,6 @@ of section 6;
 (g) the information to be included in the letter of appointment and the form of
 such letter under clause (f) of sub-section (1) of section 6;
 45 of 1860.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 65
 (h) the nature of bodily injury and the manner of notice and the time within
 which the notice shall be sent and the authority to which notice shall be sent under
@@ -3808,8 +3664,6 @@ clause (A) of sub-section (1) of section 38;
 (zb) the qualification for the appointment of medical practitioner and other
 establishment under sub-section (1) of section 42;
 66
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (zc) other establishment engaged in the dangerous occupation or processes
 under clause (a) of sub-section (2) of section 42;
 (zd) medical supervision and other establishment under clause (b) of
@@ -3853,8 +3707,6 @@ section 64;
 (zx) authority to whom a copy of the agreement shall be forwarded by the
 producer under sub-section (3) of section 66;
 (zy) details under clause (vii) of sub-section (4) of section 66;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 67
 (zz) rules in respect of factory or class or description of factories under
 sub-section (1) of section 79;
@@ -3904,8 +3756,6 @@ Central
 Government
 to make rules.
 68
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (g) procedure for nomination and discharge of functions of Members of National
 Board under sub-section (3) of section 16;
 (h) the terms and conditions of service of officers and employees of the National
@@ -3950,8 +3800,6 @@ provisions of this Code under sub-section (2) of section 68;
 making such information under sub-section (3) of section 68;
 (zg) to provide for medical examination of apprentice, other trainee or employee
 under sub-section (3) of section 70;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 69
 (zh) to exempt certain persons or category of persons holding positions of
 supervision or management and the persons employed in mine and the persons
@@ -3998,8 +3846,6 @@ Power of State
 Government
 to make rules.
 70
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (p) the qualification and experience of persons handling hazardous substance
 and manner of providing necessary facilities for protecting the workers under
 clause (b) of section 85;
@@ -4052,8 +3898,6 @@ grant and renewal of such certificates;
 (g) for determining the circumstances in which and the conditions subject to
 which it shall be lawful for more mines than one to be under a single manager, or for
 any mines to be under a manager not having the specified qualifications;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 71
 5 of 1908.
 4 of 1884.
@@ -4108,8 +3952,6 @@ collapse of workings or irruptions of water or ignitions in mines;
 and for specifying the notices of accidents and dangerous occurrences, and the
 notices, reports and returns of mineral output, persons employed and other matters
 72
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 provided for by regulations, to be furnished by owners, agents and managers of
 mines, and for specifying the forms of such notices, returns and reports, the persons
 and authorities to whom they are to be furnished, the particulars to be contained in
@@ -4159,8 +4001,6 @@ and machineries used therein;
 mines or from virgin coal seam;
 24 of 1989.
 24 of 1989.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 73
 (zk) for specifying the forms of returns which shall be filed by the establishments
 or the class of establishments under this Code;
@@ -4208,8 +4048,6 @@ with such handling;
 (zzc) providing for the work in connection with cleaning, chipping, painting,
 operations and precautions to be taken in connection with such work;
 74
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (zzd) providing for the employment of persons for handling cargo, handling
 appliances, power operated hatch covers or other power operated ship's equipment,
 such as, door in the hull of a ship, ramp, retraceable car deck or similar equipment or
@@ -4265,8 +4103,6 @@ inconsistent with this Code or any rules or regulations or standards for the tim
 force, governing the use of any particular machinery or the adoption of a particular method
 of working in the mine, as the employer may deem necessary to prevent accidents and
 provide for the safety, convenience and discipline of the persons employed in the mine.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 75
 (2) If any such employer—
 (a) fails to submit within two months a draft of bye-laws after being called upon
@@ -4316,8 +4152,6 @@ or destroyed, shall cause them to be pasted again.
 (8) The Central Government may, by order in writing rescind, in whole or in part, any
 bye-law so made, and thereupon such bye-law shall cease to have effect accordingly.
 76
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Powers to
 regulate
 general safety
@@ -4387,8 +4221,6 @@ appointed under this Code for such purposes under this Code.
 50 of 1981.
 54 of 1986.
 27 of 1996.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 77
 (3) Notwithstanding repeal under sub-section (1), anything done or any action taken
 under the enactments so repealed (including any rule, regulation, bye-laws, notification,
@@ -4400,9 +4232,7 @@ by the Central Government.
 (4) Without prejudice to the provisions of sub-section (2), provisions of section 6 of
 the General Clauses Act, 1897 shall apply to the repeal of such enactments.
 78
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
-THE FIRST SCHEDULE
+## THE FIRST SCHEDULE
 [See section 2(za)]
 List of Industries involving hazardous processes:
 1. Ferrous Metallurgical Industries
@@ -4439,8 +4269,6 @@ sand and shot blasting.
 16. Electro-plating Industries.
 17. Chemical Industries.
 (a) Coke Oven by-products and Coaltar Distillation products:
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 79
 (b) Industrial Gases (nitrogen, oxygen, acetylene, argon, carbon dioxide,
 hydrogen, sulphur dioxide, nitrous oxide, halogenated hydrocarbon, ozone, or any like
@@ -4460,7 +4288,7 @@ Iodine);
 (l) Explosives (including industrial explosives and detonators and fuses).
 18. Insecticides, Fungicides, Herbicides and other Pesticides Industries.
 19. Synthetic Resin and plastics.
-20. Man made  Fibre (Cellulosic and non-cellulosic) industry.
+20. Man made Fibre (Cellulosic and non-cellulosic) industry.
 21. Manufacture and repair of electrical accumulators.
 22. Glass and Ceramics.
 23. Grinding or glazing of metals.
@@ -4482,19 +4310,15 @@ process.
 38. Styrene manufacturing, handling and processing industry.
 39. Nano-particles utilising industry.
 80
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 40. Manufacturing, processing, preparation and utilisation of Mercury or Compounds
 of Mercury, Lead Tetra-ethyl, Manganese, Arsenic, Chrome, Aliphatic series, Beryllium,
 Phosgene and Isocyanates.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 81
-THE SECOND SCHEDULE
+## THE SECOND SCHEDULE
 [See section 18(2)(f)]
 List of matters:
 (1) fencing of machinery;
-(2)  work on or near machinery in motion;
+(2) work on or near machinery in motion;
 (3) employment of adolescents on dangerous machines;
 (4) striking gear and devices for cutting off power;
 (5) self acting machines;
@@ -4529,8 +4353,6 @@ projects;
 working places where any dock work is carried on and of all approaches to such places to
 which dock workers are required to go in the course of their employment;
 82
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (30) adequate ventilation and suitable temperature in every building or an enclosure
 on ship where dock workers are employed;
 (31) the fire and explosion preventions and protection;
@@ -4575,8 +4397,6 @@ they are to be furnished, the particulars to be contained in them and the time w
 they are to be submitted;
 (51) the submission of statement of accidents, man-days lost, volume of cargo handled
 and particulars of dock workers.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 83
 (52) the safe means of access to, and the safety of, any working place, including the
 provision of suitable and sufficient scaffolding at various stages when work cannot be
@@ -4626,21 +4446,17 @@ underground construction and handling materials;
 (69) the safety policy, that is to say, a policy relating to steps to be taken to ensure the
 safety and health of the building workers, the administrative arrangements therefore and the
 84
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 matters connected therewith, to be framed by the employers and contractors for tile operations
 to be carried on in a building or other construction work;
-(70) emergency standards for enforcement of suitable standards in respect of  hazardous
+(70) emergency standards for enforcement of suitable standards in respect of hazardous
 processes in a factory;
 (71) the maximum permissible threshold limits of exposure of chemical and toxic
 substances in manufacturing processes (whether hazardous or otherwise) in any factory;
 (72) lightning; and
 (73) any other matter which the Central Government considers under the circumstance
 for better working condition for safety at the workplace.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 85
-THE THIRD SCHEDULE
+## THE THIRD SCHEDULE
 [See section 12(1)]
 List of Notifiable Diseases:
 1. Lead poisoning, including poisoning by any preparation or compound of lead or
@@ -4675,15 +4491,13 @@ paints. These are of two types, that is, primary irritants and allergic sensitiz
 23. Beriyllium poisoning.
 24. Carbon monoxide poisoning.
 86
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II— SEC. 1]
 25. Coal miners' pneumoconiosis.
 26. Phosgene poisoning.
 27. Occupational cancer.
 28. Isocyanates poisoning.
 29. Toxic nephritis.
-————
 DR. G. NARAYANA RAJU,
 Secretary to the Govt. of India.
-UPLOADED BY THE MANAGER, GOVERNMENT OF INDIA PRESS, MINTO ROAD,  NEW DELHI–110002
-AND PUBLISHED BY THE CONTROLLER OF  PUBLICATIONS, DELHI–110054
+UPLOADED BY THE MANAGER, GOVERNMENT OF INDIA PRESS, MINTO ROAD, NEW DELHI–110002
+AND PUBLISHED BY THE CONTROLLER OF PUBLICATIONS, DELHI–110054.
+MGIPMRND—875GI—29-09-2020

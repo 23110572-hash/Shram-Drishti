@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   CheckCircle2,
@@ -17,48 +17,14 @@ import {
 } from "@/components/UploadPanel";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import type { DocumentDetail, DocumentStatus } from "@/lib/types";
+import type { EstablishmentProcessingOut } from "@/lib/types";
 
-const ACTIVE_UPLOADS_KEY = "shram-drishti-active-establishments-v2";
-
-const TERMINAL = new Set<DocumentStatus>([
-  "REJECTED",
-  "NEEDS_BINDING",
-  "NEEDS_REVIEW",
-  "EVALUATED",
-  "FAILED",
-  "SUPERSEDED",
-]);
-
-const FALLBACK_PROGRESS: Record<DocumentStatus, number> = {
-  RECEIVED: 5,
-  REJECTED: 100,
-  NORMALISED: 60,
-  CLASSIFIED: 68,
-  NEEDS_BINDING: 100,
-  EXTRACTED: 90,
-  NEEDS_REVIEW: 100,
-  VERIFIED: 94,
-  EVALUATED: 100,
-  SUPERSEDED: 100,
-  FAILED: 100,
-};
-
-function documentProgress(document: DocumentDetail): number {
-  const raw = Number(document.latest_job?.detail.progress);
-  return Number.isFinite(raw)
-    ? Math.max(0, Math.min(100, raw))
-    : FALLBACK_PROGRESS[document.status];
-}
-
-function processingSettled(document: DocumentDetail): boolean {
-  return TERMINAL.has(document.status) && documentProgress(document) >= 100;
-}
+const ACTIVE_UPLOADS_KEY = "shram-drishti-active-establishments-v3";
 
 interface ActiveEstablishment {
   establishmentId: string;
   establishmentName: string;
-  documentIds: string[];
+  batchId: string;
 }
 
 function restoredUploads(): ActiveEstablishment[] {
@@ -67,15 +33,13 @@ function restoredUploads(): ActiveEstablishment[] {
       sessionStorage.getItem(ACTIVE_UPLOADS_KEY) ?? "[]",
     );
     if (!Array.isArray(value)) return [];
-
     return value.filter((item): item is ActiveEstablishment => {
       if (!item || typeof item !== "object") return false;
       const candidate = item as Partial<ActiveEstablishment>;
       return (
         typeof candidate.establishmentId === "string" &&
         typeof candidate.establishmentName === "string" &&
-        Array.isArray(candidate.documentIds) &&
-        candidate.documentIds.every((id) => typeof id === "string")
+        typeof candidate.batchId === "string"
       );
     });
   } catch {
@@ -95,7 +59,7 @@ export function DocumentsPage() {
         JSON.stringify(activeEstablishments),
       );
     } catch {
-      // Progress still works for this page even when browser storage is blocked.
+      // The current page still tracks progress when browser storage is blocked.
     }
   }, [activeEstablishments]);
 
@@ -121,24 +85,17 @@ export function DocumentsPage() {
   }
 
   function addUploads(batch: EstablishmentUploadBatch) {
-    setActiveEstablishments((current) => {
-      const existing = current.find(
-        (item) => item.establishmentId === batch.establishmentId,
-      );
-      if (!existing) return [batch, ...current];
-
-      const merged: ActiveEstablishment = {
-        establishmentId: batch.establishmentId,
-        establishmentName: batch.establishmentName,
-        documentIds: [...new Set([...batch.documentIds, ...existing.documentIds])],
-      };
-      return [
-        merged,
-        ...current.filter(
-          (item) => item.establishmentId !== batch.establishmentId,
-        ),
-      ];
-    });
+    const item: ActiveEstablishment = {
+      establishmentId: batch.establishmentId,
+      establishmentName: batch.establishmentName,
+      batchId: batch.batchId,
+    };
+    setActiveEstablishments((current) => [
+      item,
+      ...current.filter(
+        (existing) => existing.establishmentId !== batch.establishmentId,
+      ),
+    ]);
   }
 
   function dismiss(establishmentId: string) {
@@ -159,7 +116,7 @@ export function DocumentsPage() {
 
       <section className="space-y-4" aria-labelledby="processing-title">
         <h2 id="processing-title" className="text-xl font-extrabold text-slate-950">
-          Document status
+          Establishment processing
         </h2>
 
         {activeEstablishments.length === 0 ? (
@@ -190,50 +147,35 @@ function EstablishmentProgressCard({
   item: ActiveEstablishment;
   onDismiss: () => void;
 }) {
-  const queries = useQueries({
-    queries: item.documentIds.map((documentId) => ({
-      queryKey: ["document-progress", documentId],
-      queryFn: () => api.get<DocumentDetail>(`/documents/${documentId}`),
-      refetchInterval: (query: { state: { data?: unknown } }) => {
-        const current = query.state.data as DocumentDetail | undefined;
-        return current && processingSettled(current) ? false : 2000;
-      },
-      retry: 2,
-    })),
+  const queryClient = useQueryClient();
+  const progress = useQuery({
+    queryKey: ["establishment-processing", item.establishmentId, item.batchId],
+    queryFn: () =>
+      api.get<EstablishmentProcessingOut>(
+        `/establishments/${item.establishmentId}/processing`,
+      ),
+    refetchInterval: (query: { state: { data?: unknown } }) => {
+      const current = query.state.data as EstablishmentProcessingOut | undefined;
+      return current?.terminal ? false : 2000;
+    },
+    retry: 2,
   });
 
-  const documents = queries
-    .map((query) => query.data)
-    .filter((document): document is DocumentDetail => Boolean(document));
-  const progress = item.documentIds.length
-    ? queries.reduce(
-        (total, query) => total + (query.data ? documentProgress(query.data) : 0),
-        0,
-      ) / item.documentIds.length
-    : 0;
+  const status = progress.data;
+  useEffect(() => {
+    if (!status?.terminal) return;
+    void queryClient.invalidateQueries({ queryKey: ["establishments"] });
+    void queryClient.invalidateQueries({
+      queryKey: ["establishment", item.establishmentId],
+    });
+    void queryClient.invalidateQueries({ queryKey: ["findings"] });
+  }, [item.establishmentId, queryClient, status?.terminal]);
 
-  const unavailable = queries.some((query) => query.isError && !query.data);
-  const failed = documents.some(
-    (document) => document.status === "FAILED" || document.status === "REJECTED",
-  );
-  const needsAction = documents.some(
-    (document) =>
-      document.status === "NEEDS_BINDING" || document.status === "NEEDS_REVIEW",
-  );
-  const replaced = documents.some((document) => document.status === "SUPERSEDED");
-  const complete =
-    documents.length === item.documentIds.length &&
-    documents.every(processingSettled) &&
-    !failed;
-  const displayedProgress = complete ? 100 : progress;
-
-  const label = unavailable
-    ? "Status unavailable"
-    : failed
-      ? "Processing failed"
-      : complete
-        ? "Completed"
-        : "Processing";
+  const unavailable = progress.isError && !status;
+  const failed = Boolean(status?.terminal && !status.successful);
+  const complete = Boolean(status?.terminal && status.successful);
+  const value = status?.progress ?? 0;
+  const label = unavailable ? "Status unavailable" : status?.stage ?? "Uploading documents";
 
   return (
     <article
@@ -241,11 +183,11 @@ function EstablishmentProgressCard({
         "overflow-hidden rounded-3xl border bg-white/95 p-6 shadow-[0_10px_35px_rgba(15,23,42,0.07)]",
         failed || unavailable
           ? "border-rose-300"
-          : needsAction
-            ? "border-amber-300"
-            : complete
-              ? "border-emerald-300"
-              : "border-sky-300",
+          : complete
+            ? status?.needs_action
+              ? "border-amber-300"
+              : "border-emerald-300"
+            : "border-sky-300",
       ].join(" ")}
     >
       <div className="flex items-start gap-4">
@@ -286,7 +228,7 @@ function EstablishmentProgressCard({
           <div className="mt-4 flex items-center justify-between gap-3 text-sm">
             <span className="font-bold text-slate-800">{label}</span>
             <span className="font-black tabular-nums text-slate-700">
-              {Math.round(displayedProgress)}%
+              {Math.round(value)}%
             </span>
           </div>
           <div
@@ -294,7 +236,7 @@ function EstablishmentProgressCard({
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-valuenow={Math.round(displayedProgress)}
+            aria-valuenow={Math.round(value)}
             aria-label={`${item.establishmentName} processing progress`}
           >
             <div
@@ -302,31 +244,28 @@ function EstablishmentProgressCard({
                 "h-full rounded-full transition-[width] duration-700",
                 failed || unavailable
                   ? "bg-rose-500"
-                  : needsAction
-                    ? "bg-amber-500"
-                    : complete
-                      ? "bg-emerald-500"
-                      : "bg-gradient-to-r from-sky-500 to-cyan-400",
+                  : complete
+                    ? "bg-emerald-500"
+                    : "bg-gradient-to-r from-sky-500 to-cyan-400",
               ].join(" ")}
-              style={{ width: `${displayedProgress}%` }}
+              style={{ width: `${value}%` }}
             />
           </div>
 
-          {complete && needsAction && (
+          {status && status.total_documents > 0 && !status.terminal && (
+            <p className="mt-2 text-xs font-semibold text-slate-600">
+              {status.finished_documents} of {status.total_documents} documents finished
+            </p>
+          )}
+          {complete && status?.needs_action && (
             <p className="mt-3 text-xs font-semibold text-amber-800">
               Automated checks are complete. Some extracted details should be confirmed by a reviewer.
             </p>
           )}
-          {complete && replaced && (
-            <p className="mt-2 text-xs font-semibold text-slate-600">
-              A newer upload replaced an earlier file for this period.
-            </p>
-          )}
-
           {unavailable && (
             <button
               type="button"
-              onClick={() => queries.forEach((query) => void query.refetch())}
+              onClick={() => void progress.refetch()}
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-rose-700"
             >
               <RefreshCw className="h-3.5 w-3.5" />

@@ -1,520 +1,639 @@
 pack: osh
-version: "2026.01"
+version: '2026.3'
 jurisdiction: IN
-description: >
-  Occupational Safety, Health and Working Conditions Code, 2020 (Act 37 of 2020).
-  Registration validity, appointment letters, contractor licensing, accident
-  notification and the canteen threshold are stated in the Act itself and carry
-  basis: STATUTE. Attendance and overtime checks compare the muster roll against
-  the wage register and need no external figure, so they carry
-  basis: RECONCILIATION.
+description: 'Occupational Safety, Health and Working Conditions Code, 2020 (Act 37 of 2020). Registration validity, appointment
+  letters, contractor licensing, accident notification and the canteen threshold are stated in the Act itself and carry basis:
+  STATUTE. Attendance and overtime checks compare the muster roll against the wage register and need no external figure, so
+  they carry basis: RECONCILIATION.
 
-  The Code deliberately leaves several numbers to be notified. s.24(3) says only
-  that the Central Government "may make rules" for creches, with no headcount at
-  all; s.25 fixes eight hours of normal work but leaves intervals and spreadover
-  to notification, so the twelve-hour ceiling tested here comes from the Rules;
-  s.10 leaves the accident notification period to be prescribed. Those rules carry
-  basis: RULES_PENDING and must not be enforced until the notified Rules are held.
+  The Code deliberately leaves several numbers to be notified. s.24(3) says only that the Central Government "may make rules"
+  for creches, with no headcount at all; s.25 fixes eight hours of normal work but leaves intervals and spreadover to notification,
+  so the twelve-hour ceiling tested here comes from the Rules; s.10 leaves the accident notification period to be prescribed.
+  Those rules carry basis: RULES_PENDING and must not be enforced until the notified Rules are held.
 
+  '
 rules:
-  # ----------------------------------------------------- registration validity
-  - id: OSH.REGISTRATION.VALID
-    code: OSH
-    kind: NON_COMPLIANCE
-    severity: CRITICAL
-    weight: 10
-    title: Establishment registration missing or expired
-    citation: "OSH & Working Conditions Code, 2020 — Chapter II"
-    source_ref: "Act requires every establishment covered by the Code to be registered"
-    basis: STATUTE
-    requires: [registrations, period]
-    expression: >
-      registrations.has_establishment_registration == True
-      and not is_expired(registrations.establishment_valid_to, period.end)
-    observe:
-      registration_present: "registrations.has_establishment_registration"
-      valid_to: "registrations.establishment_valid_to"
-    expect:
-      valid_on: "period.end"
-    message:
-      en: "The establishment registration is missing or had expired during the period assessed."
-      hi: "प्रतिष्ठान पंजीकरण अनुपस्थित है अथवा मूल्यांकित अवधि में उसकी वैधता समाप्त हो गई थी।"
-    remediation:
-      en: "Obtain or renew the establishment registration and upload the current certificate."
-      hi: "प्रतिष्ठान पंजीकरण प्राप्त करें या नवीकृत कराएँ और वर्तमान प्रमाणपत्र अपलोड करें।"
-    fixtures:
-      - name: valid_registration
-        should_pass: true
-        facts:
-          period: {end: 2026-03-31}
-          registrations:
-            has_establishment_registration: true
-            establishment_valid_to: 2027-03-31
-      - name: expired_registration
-        should_pass: false
-        facts:
-          period: {end: 2026-03-31}
-          registrations:
-            has_establishment_registration: true
-            establishment_valid_to: 2025-12-31
-      - name: never_registered
-        should_pass: false
-        facts:
-          period: {end: 2026-03-31}
-          registrations:
-            has_establishment_registration: false
-            establishment_valid_to: null
+- id: OSH.CONTRACTOR.LICENCE_VALID
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: HIGH
+  weight: 8
+  title: Contract labour engaged through an unlicensed or lapsed contractor
+  citation: OSH & Working Conditions Code, 2020 — ss.45 and 47; OSHWC (Central) Rules, 2026 — rr.87-90
+  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, rr.87-90: licensing
+    applies where fifty or more contract labour are engaged; licence validity is five years'
+  basis: STATUTE
+  requires:
+  - estab
+  - contractors
+  applicability: estab.engages_contract_labour == True and estab.contract_worker_count >= 50
+  expression: 'is_missing(contractors.without_valid_licence) or contractors.without_valid_licence == 0
 
-  # --------------------------------------------------------- appointment letters
-  - id: OSH.APPOINTMENT_LETTER.ISSUED
-    code: OSH
-    kind: MISSING_DOCUMENT
-    severity: HIGH
-    weight: 7
-    title: Appointment letters not issued to all employees
-    citation: "OSH & Working Conditions Code, 2020 — s.6"
-    source_ref: "Act obliges every employer to issue an appointment letter to every employee"
-    basis: STATUTE
-    requires: [estab, docs]
-    applicability: "estab.worker_count > 0"
-    expression: "docs.appointment_letter_count >= estab.worker_count"
-    observe:
-      workers: "estab.worker_count"
-      letters_on_record: "docs.appointment_letter_count"
-      shortfall: "estab.worker_count - docs.appointment_letter_count"
-    expect:
-      letters_required: "estab.worker_count"
-    message:
-      en: "Appointment letters are not on record for every employee."
-      hi: "प्रत्येक कर्मचारी के लिए नियुक्ति पत्र अभिलेख में नहीं हैं।"
-    remediation:
-      en: "Issue an appointment letter in the prescribed form to every employee and retain copies."
-      hi: "प्रत्येक कर्मचारी को निर्धारित प्रपत्र में नियुक्ति पत्र जारी करें और प्रतियाँ रखें।"
-    fixtures:
-      - name: all_letters_present
-        should_pass: true
-        facts:
-          estab: {worker_count: 40}
-          docs: {appointment_letter_count: 40}
-      - name: letters_missing
-        should_pass: false
-        facts:
-          estab: {worker_count: 40}
-          docs: {appointment_letter_count: 12}
+    '
+  observe:
+    contractors_engaged: contractors.total
+    without_valid_licence: contractors.without_valid_licence
+    expired_licences: contractors.expired
+  expect:
+    without_valid_licence: '0'
+  message:
+    en: Contract labour is engaged through one or more contractors without a valid licence.
+    hi: एक या अधिक ठेकेदारों के माध्यम से वैध अनुज्ञप्ति के बिना ठेका श्रम नियोजित है।
+  remediation:
+    en: Ensure every contractor holds a current licence covering the number of workers deployed, and stop engaging unlicensed
+      contractors.
+    hi: सुनिश्चित करें कि प्रत्येक ठेकेदार के पास नियोजित श्रमिकों की संख्या हेतु वर्तमान अनुज्ञप्ति है, और अनुज्ञप्तिहीन
+      ठेकेदारों को नियोजित करना बंद करें।
+  fixtures:
+  - name: all_contractors_licensed
+    should_pass: true
+    facts:
+      estab:
+        engages_contract_labour: true
+        contract_worker_count: 60
+      contractors:
+        total: 3
+        without_valid_licence: 0
+        expired: 0
+  - name: one_expired_licence
+    should_pass: false
+    facts:
+      estab:
+        engages_contract_labour: true
+        contract_worker_count: 60
+      contractors:
+        total: 3
+        without_valid_licence: 1
+        expired: 1
+- id: OSH.CONTRACTOR.LICENCE_HEADCOUNT
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 5
+  title: More contract workers deployed than the licence permits
+  citation: OSHWC (Central) Rules, 2026 — r.89(2)(ii)
+  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.89(2)(ii): contractor
+    licence records the maximum number of contract labour'
+  basis: RECONCILIATION
+  requires:
+  - estab
+  - contractors
+  applicability: estab.engages_contract_labour == True and estab.contract_worker_count >= 50
+  expression: 'is_missing(contractors.over_deployed) or contractors.over_deployed == 0
 
-  # ------------------------------------------------------- contractor licensing
-  - id: OSH.CONTRACTOR.LICENCE_VALID
-    code: OSH
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 8
-    title: Contract labour engaged through an unlicensed or lapsed contractor
-    citation: "OSH & Working Conditions Code, 2020 — Chapter XI"
-    source_ref: "Act requires a licence for contractors supplying contract labour"
-    basis: STATUTE
-    requires: [estab, contractors]
-    applicability: "estab.engages_contract_labour == True"
-    expression: >
-      is_missing(contractors.without_valid_licence) or contractors.without_valid_licence == 0
-    observe:
-      contractors_engaged: "contractors.total"
-      without_valid_licence: "contractors.without_valid_licence"
-      expired_licences: "contractors.expired"
-    expect:
-      without_valid_licence: "0"
-    message:
-      en: "Contract labour is engaged through one or more contractors without a valid licence."
-      hi: "एक या अधिक ठेकेदारों के माध्यम से वैध अनुज्ञप्ति के बिना ठेका श्रम नियोजित है।"
-    remediation:
-      en: "Ensure every contractor holds a current licence covering the number of workers deployed, and stop engaging unlicensed contractors."
-      hi: "सुनिश्चित करें कि प्रत्येक ठेकेदार के पास नियोजित श्रमिकों की संख्या हेतु वर्तमान अनुज्ञप्ति है, और अनुज्ञप्तिहीन ठेकेदारों को नियोजित करना बंद करें।"
-    fixtures:
-      - name: all_contractors_licensed
-        should_pass: true
-        facts:
-          estab: {engages_contract_labour: true}
-          contractors: {total: 3, without_valid_licence: 0, expired: 0}
-      - name: one_expired_licence
-        should_pass: false
-        facts:
-          estab: {engages_contract_labour: true}
-          contractors: {total: 3, without_valid_licence: 1, expired: 1}
+    '
+  observe:
+    contractors_over_deployed: contractors.over_deployed
+  expect:
+    over_deployed: '0'
+  message:
+    en: One or more contractors have deployed more workers than their licence permits.
+    hi: एक या अधिक ठेकेदारों ने अपनी अनुज्ञप्ति में अनुमत संख्या से अधिक श्रमिक नियोजित किए हैं।
+  remediation:
+    en: Apply to amend the licence for the higher headcount, or reduce deployment to the licensed number.
+    hi: अधिक संख्या हेतु अनुज्ञप्ति संशोधन के लिए आवेदन करें, अथवा नियोजन को अनुज्ञप्त संख्या तक घटाएँ।
+  fixtures:
+  - name: within_licence
+    should_pass: true
+    facts:
+      estab:
+        engages_contract_labour: true
+        contract_worker_count: 60
+      contractors:
+        over_deployed: 0
+  - name: over_deployed
+    should_pass: false
+    facts:
+      estab:
+        engages_contract_labour: true
+        contract_worker_count: 60
+      contractors:
+        over_deployed: 2
+- id: OSH.ACCIDENT.NOTIFIED
+  code: OSH
+  kind: DISCREPANCY
+  severity: CRITICAL
+  weight: 9
+  title: Recorded accidents were not notified
+  citation: OSH & Working Conditions Code, 2020 — s.10
+  source_ref: Act requires notice of accidents causing death or bodily injury to the prescribed authority
+  basis: STATUTE
+  requires:
+  - incidents
+  expression: 'is_missing(incidents.total) or incidents.total == 0 or incidents.notified >= incidents.total
 
-  - id: OSH.CONTRACTOR.LICENCE_HEADCOUNT
-    code: OSH
-    kind: NON_COMPLIANCE
-    severity: MEDIUM
-    weight: 5
-    title: More contract workers deployed than the licence permits
-    citation: "OSH & Working Conditions Code, 2020 — Chapter XI"
-    source_ref: "Cross-document reconciliation: contract workers deployed against the maximum the contractor licence itself states"
-    basis: RECONCILIATION
-    requires: [estab, contractors]
-    applicability: "estab.engages_contract_labour == True"
-    expression: >
-      is_missing(contractors.over_deployed) or contractors.over_deployed == 0
-    observe:
-      contractors_over_deployed: "contractors.over_deployed"
-    expect:
-      over_deployed: "0"
-    message:
-      en: "One or more contractors have deployed more workers than their licence permits."
-      hi: "एक या अधिक ठेकेदारों ने अपनी अनुज्ञप्ति में अनुमत संख्या से अधिक श्रमिक नियोजित किए हैं।"
-    remediation:
-      en: "Apply to amend the licence for the higher headcount, or reduce deployment to the licensed number."
-      hi: "अधिक संख्या हेतु अनुज्ञप्ति संशोधन के लिए आवेदन करें, अथवा नियोजन को अनुज्ञप्त संख्या तक घटाएँ।"
-    fixtures:
-      - name: within_licence
-        should_pass: true
-        facts:
-          estab: {engages_contract_labour: true}
-          contractors: {over_deployed: 0}
-      - name: over_deployed
-        should_pass: false
-        facts:
-          estab: {engages_contract_labour: true}
-          contractors: {over_deployed: 2}
+    '
+  observe:
+    incidents_recorded: incidents.total
+    incidents_notified: incidents.notified
+    unnotified: incidents.total - incidents.notified
+  expect:
+    notified: incidents.total
+  message:
+    en: One or more accidents recorded in the accident register were not notified to the prescribed authority.
+    hi: दुर्घटना रजिस्टर में दर्ज एक या अधिक दुर्घटनाओं की सूचना निर्धारित प्राधिकारी को नहीं दी गई।
+  remediation:
+    en: File the outstanding accident notifications immediately and review the notification procedure.
+    hi: बकाया दुर्घटना सूचनाएँ तत्काल दाखिल करें और सूचना प्रक्रिया की समीक्षा करें।
+  fixtures:
+  - name: all_notified
+    should_pass: true
+    facts:
+      incidents:
+        total: 2
+        notified: 2
+  - name: one_unnotified
+    should_pass: false
+    facts:
+      incidents:
+        total: 2
+        notified: 1
+  - name: no_incidents
+    should_pass: true
+    facts:
+      incidents:
+        total: 0
+        notified: 0
+- id: OSH.HOURS.WEEKLY_CAP
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 5
+  title: Weekly working hours exceed the permitted maximum
+  citation: OSH & Working Conditions Code, 2020 — s.25; OSHWC (Central) Rules, 2026 — r.64
+  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.64: no worker
+    shall be required or allowed to work for more than forty-eight hours in any week'
+  basis: STATUTE
+  requires:
+  - attendance
+  for_each: attendance
+  expression: 'is_missing(row.max_weekly_hours) or row.max_weekly_hours <= 48
 
-  # ------------------------------------------------------- accident notification
-  - id: OSH.ACCIDENT.NOTIFIED
-    code: OSH
-    kind: DISCREPANCY
-    severity: CRITICAL
-    weight: 9
-    title: Recorded accidents were not notified
-    citation: "OSH & Working Conditions Code, 2020 — s.10"
-    source_ref: "Act requires notice of accidents causing death or bodily injury to the prescribed authority"
-    basis: STATUTE
-    requires: [incidents]
-    # Comparing the establishment's own accident register against the
-    # notifications it filed. Under-reporting is visible only by this comparison.
-    expression: >
-      is_missing(incidents.total) or incidents.total == 0
-      or incidents.notified >= incidents.total
-    observe:
-      incidents_recorded: "incidents.total"
-      incidents_notified: "incidents.notified"
-      unnotified: "incidents.total - incidents.notified"
-    expect:
-      notified: "incidents.total"
-    message:
-      en: "One or more accidents recorded in the accident register were not notified to the prescribed authority."
-      hi: "दुर्घटना रजिस्टर में दर्ज एक या अधिक दुर्घटनाओं की सूचना निर्धारित प्राधिकारी को नहीं दी गई।"
-    remediation:
-      en: "File the outstanding accident notifications immediately and review the notification procedure."
-      hi: "बकाया दुर्घटना सूचनाएँ तत्काल दाखिल करें और सूचना प्रक्रिया की समीक्षा करें।"
-    fixtures:
-      - name: all_notified
-        should_pass: true
-        facts:
-          incidents: {total: 2, notified: 2}
-      - name: one_unnotified
-        should_pass: false
-        facts:
-          incidents: {total: 2, notified: 1}
-      - name: no_incidents
-        should_pass: true
-        facts:
-          incidents: {total: 0, notified: 0}
+    '
+  observe:
+    highest_weekly_hours: maximum(pluck(attendance, 'max_weekly_hours'))
+  expect:
+    maximum_weekly_hours: '48'
+  message:
+    en: One or more workers exceeded the permitted maximum weekly hours.
+    hi: एक या अधिक श्रमिकों ने अनुमत अधिकतम साप्ताहिक घंटों से अधिक कार्य किया।
+  remediation:
+    en: Keep normal weekly hours within the statutory limit and treat additional hours as overtime.
+    hi: सामान्य साप्ताहिक घंटे सांविधिक सीमा के भीतर रखें और अतिरिक्त घंटों को अतिरिक्त समय मानें।
+  fixtures:
+  - name: within_weekly_limit
+    should_pass: true
+    facts:
+      attendance:
+      - max_weekly_hours: 46
+  - name: seventy_hour_week
+    should_pass: false
+    facts:
+      attendance:
+      - max_weekly_hours: 70
+- id: OSH.ATTENDANCE.DAYS_PAID_MATCH
+  code: OSH
+  kind: DISCREPANCY
+  severity: HIGH
+  weight: 7
+  title: Days paid are fewer than days recorded as present
+  citation: OSH & Working Conditions Code, 2020 — s.25 read with the Code on Wages
+  source_ref: 'Cross-document reconciliation: muster roll against the wage register'
+  basis: RECONCILIATION
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: 'is_missing(row.days_present) or is_missing(row.days_paid) or row.days_paid >= row.days_present
 
-  - id: OSH.ACCIDENT.NOTIFICATION_TIMELINESS
-    code: OSH
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 6
-    title: Accident notified later than the prescribed time
-    citation: "OSH & Working Conditions Code, 2020 — s.10"
-    source_ref: "s.10 requires notice but leaves the period to be prescribed. NEEDS: OSH Code (Central) Rules, 2020 — notification period under s.10"
-    basis: RULES_PENDING
-    requires: [incidents]
-    for_each: incidents
-    expression: >
-      is_missing(row.occurred_on) or is_missing(row.notified_on)
-      or days_between(row.occurred_on, row.notified_on) <= 2
-    observe:
-      slowest_notification_days: "maximum(pluck(incidents, 'notification_delay_days'))"
-    expect:
-      maximum_days: "2"
-    message:
-      en: "An accident was notified later than the prescribed period after it occurred."
-      hi: "दुर्घटना की सूचना उसके घटित होने के बाद निर्धारित अवधि से विलंब से दी गई।"
-    remediation:
-      en: "Notify accidents within the prescribed period and keep a dated record of each notification."
-      hi: "दुर्घटनाओं की सूचना निर्धारित अवधि के भीतर दें और प्रत्येक सूचना का दिनांकित अभिलेख रखें।"
-    fixtures:
-      - name: notified_next_day
-        should_pass: true
-        facts:
-          incidents:
-            - occurred_on: 2026-03-04
-              notified_on: 2026-03-05
-      - name: notified_after_three_weeks
-        should_pass: false
-        facts:
-          incidents:
-            - occurred_on: 2026-03-04
-              notified_on: 2026-03-25
+    '
+  observe:
+    workers_underpaid_days: count(wage_register)
+    highest_days_present: maximum(pluck(wage_register, 'days_present'))
+    lowest_days_paid: minimum(pluck(wage_register, 'days_paid'))
+  expect:
+    days_paid_at_least: maximum(pluck(wage_register, 'days_present'))
+  message:
+    en: One or more workers were paid for fewer days than the attendance record shows them present.
+    hi: एक या अधिक श्रमिकों को उपस्थिति अभिलेख में दर्शाए दिनों से कम दिनों का भुगतान किया गया।
+  remediation:
+    en: Reconcile the muster roll against the wage register and pay for all days worked.
+    hi: हाजिरी रजिस्टर और मजदूरी रजिस्टर का मिलान करें और सभी कार्य दिवसों का भुगतान करें।
+  fixtures:
+  - name: paid_for_all_days
+    should_pass: true
+    facts:
+      wage_register:
+      - days_present: 26
+        days_paid: 26
+  - name: four_days_unpaid
+    should_pass: false
+    facts:
+      wage_register:
+      - days_present: 26
+        days_paid: 22
+- id: OSH.OVERTIME.HOURS_PAID
+  code: OSH
+  kind: DISCREPANCY
+  severity: HIGH
+  weight: 8
+  title: Overtime hours recorded but no overtime paid
+  citation: OSH & Working Conditions Code, 2020 — s.25 read with Code on Wages s.14
+  source_ref: 'Cross-document reconciliation: attendance overtime hours against wage register overtime payment'
+  basis: RECONCILIATION
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: 'is_missing(row.overtime_hours) or row.overtime_hours == 0 or default(row.overtime_paise, 0) > 0
 
-  # -------------------------------------------------------------- working hours
-  - id: OSH.HOURS.DAILY_CAP
-    code: OSH
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 7
-    title: Daily working hours exceed the permitted maximum
-    citation: "OSH & Working Conditions Code, 2020 — s.25"
-    source_ref: "s.25(1)(a) fixes eight hours in a day for normal work, but this rule tests the total including overtime against twelve, and that ceiling is not in the Act. NEEDS: OSH Code (Central) Rules, 2020 — intervals and spreadover under s.25(1)(b)"
-    basis: RULES_PENDING
-    requires: [attendance]
-    for_each: attendance
-    expression: >
-      is_missing(row.max_daily_hours) or row.max_daily_hours <= 12
-    observe:
-      highest_daily_hours: "maximum(pluck(attendance, 'max_daily_hours'))"
-    expect:
-      maximum_daily_hours: "12"
-    message:
-      en: "One or more workers exceeded the permitted maximum hours in a single day, including overtime."
-      hi: "एक या अधिक श्रमिकों ने अतिरिक्त समय सहित एक दिन में अनुमत अधिकतम घंटों से अधिक कार्य किया।"
-    remediation:
-      en: "Roster shifts so total daily hours including overtime stay within the permitted limit."
-      hi: "पारियाँ इस प्रकार निर्धारित करें कि अतिरिक्त समय सहित कुल दैनिक घंटे अनुमत सीमा के भीतर रहें।"
-    fixtures:
-      - name: within_daily_limit
-        should_pass: true
-        facts:
-          attendance:
-            - max_daily_hours: 9.5
-      - name: sixteen_hour_day
-        should_pass: false
-        facts:
-          attendance:
-            - max_daily_hours: 16
-
-  - id: OSH.HOURS.WEEKLY_CAP
-    code: OSH
-    kind: NON_COMPLIANCE
-    severity: MEDIUM
-    weight: 5
-    title: Weekly working hours exceed the permitted maximum
-    citation: "OSH & Working Conditions Code, 2020 — s.25"
-    source_ref: "s.25 states no weekly figure; the forty-eight hours used here is the conventional value. NEEDS: OSH Code (Central) Rules, 2020 — hours notified under s.25"
-    basis: RULES_PENDING
-    requires: [attendance]
-    for_each: attendance
-    expression: >
-      is_missing(row.max_weekly_hours) or row.max_weekly_hours <= 48
-    observe:
-      highest_weekly_hours: "maximum(pluck(attendance, 'max_weekly_hours'))"
-    expect:
-      maximum_weekly_hours: "48"
-    message:
-      en: "One or more workers exceeded the permitted maximum weekly hours."
-      hi: "एक या अधिक श्रमिकों ने अनुमत अधिकतम साप्ताहिक घंटों से अधिक कार्य किया।"
-    remediation:
-      en: "Keep normal weekly hours within the statutory limit and treat additional hours as overtime."
-      hi: "सामान्य साप्ताहिक घंटे सांविधिक सीमा के भीतर रखें और अतिरिक्त घंटों को अतिरिक्त समय मानें।"
-    fixtures:
-      - name: within_weekly_limit
-        should_pass: true
-        facts:
-          attendance:
-            - max_weekly_hours: 46
-      - name: seventy_hour_week
-        should_pass: false
-        facts:
-          attendance:
-            - max_weekly_hours: 70
-
-  # ------------------------------------------------------- attendance vs payment
-  - id: OSH.ATTENDANCE.DAYS_PAID_MATCH
-    code: OSH
-    kind: DISCREPANCY
-    severity: HIGH
-    weight: 7
-    title: Days paid are fewer than days recorded as present
-    citation: "OSH & Working Conditions Code, 2020 — s.25 read with the Code on Wages"
-    source_ref: "Cross-document reconciliation: muster roll against the wage register"
-    basis: RECONCILIATION
-    requires: [wage_register]
-    for_each: wage_register
-    # Unpaid attendance. Each document is internally consistent; the shortfall
-    # only appears when the muster roll and the wage register are compared.
-    expression: >
-      is_missing(row.days_present) or is_missing(row.days_paid)
-      or row.days_paid >= row.days_present
-    observe:
-      workers_underpaid_days: "count(wage_register)"
-      highest_days_present: "maximum(pluck(wage_register, 'days_present'))"
-      lowest_days_paid: "minimum(pluck(wage_register, 'days_paid'))"
-    expect:
-      # Every expect value is an expression, evaluated and recorded on the
-      # finding. Prose here would be stored as an error string on a real finding
-      # shown to a real employer.
-      days_paid_at_least: "maximum(pluck(wage_register, 'days_present'))"
-    message:
-      en: "One or more workers were paid for fewer days than the attendance record shows them present."
-      hi: "एक या अधिक श्रमिकों को उपस्थिति अभिलेख में दर्शाए दिनों से कम दिनों का भुगतान किया गया।"
-    remediation:
-      en: "Reconcile the muster roll against the wage register and pay for all days worked."
-      hi: "हाजिरी रजिस्टर और मजदूरी रजिस्टर का मिलान करें और सभी कार्य दिवसों का भुगतान करें।"
-    fixtures:
-      - name: paid_for_all_days
-        should_pass: true
-        facts:
-          wage_register:
-            - days_present: 26
-              days_paid: 26
-      - name: four_days_unpaid
-        should_pass: false
-        facts:
-          wage_register:
-            - days_present: 26
-              days_paid: 22
-
-  - id: OSH.OVERTIME.HOURS_PAID
-    code: OSH
-    kind: DISCREPANCY
-    severity: HIGH
-    weight: 8
-    title: Overtime hours recorded but no overtime paid
-    citation: "OSH & Working Conditions Code, 2020 — s.25 read with Code on Wages s.14"
-    source_ref: "Cross-document reconciliation: attendance overtime hours against wage register overtime payment"
-    basis: RECONCILIATION
-    requires: [wage_register]
-    for_each: wage_register
-    expression: >
-      is_missing(row.overtime_hours) or row.overtime_hours == 0
-      or default(row.overtime_paise, 0) > 0
-    observe:
-      workers_with_unpaid_overtime: "count(wage_register)"
-      total_overtime_hours: "total(pluck(wage_register, 'overtime_hours'))"
-      total_overtime_paid_paise: "total(pluck(wage_register, 'overtime_paise'))"
-    expect:
-      minimum_overtime_paise: "1"
-    message:
-      en: "Overtime hours are recorded in the attendance register but no overtime payment appears in the wage register."
-      hi: "हाजिरी रजिस्टर में अतिरिक्त समय दर्ज है परन्तु मजदूरी रजिस्टर में अतिरिक्त समय का भुगतान नहीं दिखता।"
-    remediation:
-      en: "Pay overtime at not less than twice the ordinary rate for all recorded overtime hours."
-      hi: "दर्ज सभी अतिरिक्त समय घंटों के लिए सामान्य दर से कम से कम दोगुनी दर पर भुगतान करें।"
-    fixtures:
-      - name: overtime_paid
-        should_pass: true
-        facts:
-          wage_register:
-            - overtime_hours: 12
-              overtime_paise: 156000
-      - name: overtime_unpaid
-        should_pass: false
-        facts:
-          wage_register:
-            - overtime_hours: 18
-              overtime_paise: 0
-
-  # ------------------------------------------------------------------- welfare
-  - id: OSH.WELFARE.CRECHE
-    code: OSH
-    kind: MISSING_DOCUMENT
-    severity: MEDIUM
-    weight: 5
-    title: Creche facility not provided
-    citation: "OSH & Working Conditions Code, 2020 — s.24"
-    source_ref: "s.24(3) says only that the Central Government 'may make rules to provide for the facility of creche' — the Act states no headcount at all. The fifty used here is carried over from the Factories Act, 1948. NEEDS: OSH Code (Central) Rules, 2020 — creche threshold under s.24(3)"
-    basis: RULES_PENDING
-    requires: [estab, docs]
-    applicability: "estab.worker_count >= 50"
-    expression: "docs.creche_record_count > 0"
-    observe:
-      worker_count: "estab.worker_count"
-      records_received: "docs.creche_record_count"
-    expect:
-      threshold_workers: "50"
-    message:
-      en: "This establishment meets the creche threshold but no creche record was produced."
-      hi: "यह प्रतिष्ठान शिशु गृह सीमा पूरी करता है परन्तु शिशु गृह का कोई अभिलेख प्रस्तुत नहीं किया गया।"
-    remediation:
-      en: "Provide and maintain a creche facility, and keep records available for inspection."
-      hi: "शिशु गृह सुविधा उपलब्ध कराएँ और बनाए रखें, तथा निरीक्षण हेतु अभिलेख रखें।"
-    fixtures:
-      - name: creche_provided
-        should_pass: true
-        facts:
-          estab: {worker_count: 80}
-          docs: {creche_record_count: 1}
-      - name: creche_missing
-        should_pass: false
-        facts:
-          estab: {worker_count: 80}
-          docs: {creche_record_count: 0}
-
-  - id: OSH.WELFARE.CANTEEN
-    code: OSH
-    kind: MISSING_DOCUMENT
-    severity: LOW
-    weight: 3
-    title: Canteen facility not provided
-    citation: "OSH & Working Conditions Code, 2020 — s.24(2)(v)"
-    source_ref: "Occupational Safety, Health and Working Conditions Code, 2020.md, s.24(2)(v): facilities of canteen where one hundred or more workers including contract labourers are ordinarily employed"
-    basis: STATUTE
-    requires: [estab, docs]
-    applicability: "estab.worker_count >= 100"
-    expression: "docs.canteen_record_count > 0"
-    observe:
-      worker_count: "estab.worker_count"
-      records_received: "docs.canteen_record_count"
-    expect:
-      threshold_workers: "100"
-    message:
-      en: "This establishment meets the canteen threshold but no canteen record was produced."
-      hi: "यह प्रतिष्ठान कैंटीन सीमा पूरी करता है परन्तु कैंटीन का कोई अभिलेख प्रस्तुत नहीं किया गया।"
-    remediation:
-      en: "Provide a canteen as required and retain records for inspection."
-      hi: "यथावश्यक कैंटीन उपलब्ध कराएँ और निरीक्षण हेतु अभिलेख रखें।"
-    fixtures:
-      - name: canteen_provided
-        should_pass: true
-        facts:
-          estab: {worker_count: 150}
-          docs: {canteen_record_count: 1}
-      - name: canteen_missing
-        should_pass: false
-        facts:
-          estab: {worker_count: 150}
-          docs: {canteen_record_count: 0}
-
-  # ------------------------------------------------------------- health checks
-  - id: OSH.HEALTH_CHECKUP.ANNUAL
-    code: OSH
-    kind: MISSING_DOCUMENT
-    severity: HIGH
-    weight: 6
-    title: Annual health check-ups not recorded for hazardous work
-    citation: "OSH & Working Conditions Code, 2020 — s.18"
-    source_ref: "s.18 requires free annual health examinations, but for classes of employees left to be prescribed. NEEDS: OSH Code (Central) Rules, 2020 — prescribed classes under s.18"
-    basis: RULES_PENDING
-    requires: [estab, docs]
-    applicability: "estab.has_hazardous_process == True and estab.worker_count > 0"
-    expression: "docs.health_checkup_count > 0"
-    observe:
-      worker_count: "estab.worker_count"
-      records_received: "docs.health_checkup_count"
-    expect:
-      minimum_records: "1"
-    message:
-      en: "No annual health check-up records were produced despite hazardous processes being carried on."
-      hi: "संकटमय प्रक्रियाएँ संचालित होने के बावजूद वार्षिक स्वास्थ्य परीक्षण का कोई अभिलेख प्रस्तुत नहीं किया गया।"
-    remediation:
-      en: "Arrange free annual health examinations for the prescribed classes of employees and retain the records."
-      hi: "निर्धारित श्रेणियों के कर्मचारियों हेतु निःशुल्क वार्षिक स्वास्थ्य परीक्षण की व्यवस्था करें और अभिलेख रखें।"
-    fixtures:
-      - name: checkups_recorded
-        should_pass: true
-        facts:
-          estab: {has_hazardous_process: true, worker_count: 60}
-          docs: {health_checkup_count: 60}
-      - name: no_checkups
-        should_pass: false
-        facts:
-          estab: {has_hazardous_process: true, worker_count: 60}
-          docs: {health_checkup_count: 0}
+    '
+  observe:
+    workers_with_unpaid_overtime: count(wage_register)
+    total_overtime_hours: total(pluck(wage_register, 'overtime_hours'))
+    total_overtime_paid_paise: total(pluck(wage_register, 'overtime_paise'))
+  expect:
+    minimum_overtime_paise: '1'
+  message:
+    en: Overtime hours are recorded in the attendance register but no overtime payment appears in the wage register.
+    hi: हाजिरी रजिस्टर में अतिरिक्त समय दर्ज है परन्तु मजदूरी रजिस्टर में अतिरिक्त समय का भुगतान नहीं दिखता।
+  remediation:
+    en: Pay overtime at not less than twice the ordinary rate for all recorded overtime hours.
+    hi: दर्ज सभी अतिरिक्त समय घंटों के लिए सामान्य दर से कम से कम दोगुनी दर पर भुगतान करें।
+  fixtures:
+  - name: overtime_paid
+    should_pass: true
+    facts:
+      wage_register:
+      - overtime_hours: 12
+        overtime_paise: 156000
+  - name: overtime_unpaid
+    should_pass: false
+    facts:
+      wage_register:
+      - overtime_hours: 18
+        overtime_paise: 0
+- id: OSH.APPOINTMENT_LETTER.EMPLOYEE_NAME
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Uploaded appointment letter omits employee name
+  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
+    particulars
+  basis: STATUTE
+  requires:
+  - docs
+  - prose
+  applicability: docs.appointment_letter_count > 0
+  expression: prose.states_employee_name == True
+  observe:
+    recorded_value: prose.states_employee_name
+  expect:
+    required: 'True'
+  message:
+    en: The uploaded appointment letter does not state the employee name.
+    hi: null
+  remediation:
+    en: Record the employee's name in the appointment letter.
+    hi: null
+  fixtures:
+  - name: uploaded_record_complies
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_employee_name: true
+  - name: uploaded_record_is_incomplete
+    should_pass: false
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_employee_name: false
+  - name: document_not_uploaded_is_not_assessed
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 0
+      prose:
+        states_employee_name: false
+- id: OSH.APPOINTMENT_LETTER.DESIGNATION
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Uploaded appointment letter omits designation or post
+  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
+    particulars
+  basis: STATUTE
+  requires:
+  - docs
+  - prose
+  applicability: docs.appointment_letter_count > 0
+  expression: prose.states_designation == True
+  observe:
+    recorded_value: prose.states_designation
+  expect:
+    required: 'True'
+  message:
+    en: The uploaded appointment letter does not state the designation or post.
+    hi: null
+  remediation:
+    en: Add the employee's designation or post.
+    hi: null
+  fixtures:
+  - name: uploaded_record_complies
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_designation: true
+  - name: uploaded_record_is_incomplete
+    should_pass: false
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_designation: false
+  - name: document_not_uploaded_is_not_assessed
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 0
+      prose:
+        states_designation: false
+- id: OSH.APPOINTMENT_LETTER.JOINING_DATE
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Uploaded appointment letter omits date of joining
+  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
+    particulars
+  basis: STATUTE
+  requires:
+  - docs
+  - prose
+  applicability: docs.appointment_letter_count > 0
+  expression: prose.states_date_of_joining == True
+  observe:
+    recorded_value: prose.states_date_of_joining
+  expect:
+    required: 'True'
+  message:
+    en: The uploaded appointment letter does not state the date of joining.
+    hi: null
+  remediation:
+    en: Add the verified date of joining.
+    hi: null
+  fixtures:
+  - name: uploaded_record_complies
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_date_of_joining: true
+  - name: uploaded_record_is_incomplete
+    should_pass: false
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_date_of_joining: false
+  - name: document_not_uploaded_is_not_assessed
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 0
+      prose:
+        states_date_of_joining: false
+- id: OSH.APPOINTMENT_LETTER.WAGE_RATE
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Uploaded appointment letter omits wage or salary
+  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
+    particulars
+  basis: STATUTE
+  requires:
+  - docs
+  - prose
+  applicability: docs.appointment_letter_count > 0
+  expression: prose.states_wage_rate == True
+  observe:
+    recorded_value: prose.states_wage_rate
+  expect:
+    required: 'True'
+  message:
+    en: The uploaded appointment letter does not state the wage or salary.
+    hi: null
+  remediation:
+    en: Add the wage or salary payable.
+    hi: null
+  fixtures:
+  - name: uploaded_record_complies
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_wage_rate: true
+  - name: uploaded_record_is_incomplete
+    should_pass: false
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_wage_rate: false
+  - name: document_not_uploaded_is_not_assessed
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 0
+      prose:
+        states_wage_rate: false
+- id: OSH.APPOINTMENT_LETTER.WORKING_HOURS
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Uploaded appointment letter omits working hours
+  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
+    particulars
+  basis: STATUTE
+  requires:
+  - docs
+  - prose
+  applicability: docs.appointment_letter_count > 0
+  expression: prose.states_working_hours == True
+  observe:
+    recorded_value: prose.states_working_hours
+  expect:
+    required: 'True'
+  message:
+    en: The uploaded appointment letter does not state the working hours.
+    hi: null
+  remediation:
+    en: Add the applicable daily or weekly working hours.
+    hi: null
+  fixtures:
+  - name: uploaded_record_complies
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_working_hours: true
+  - name: uploaded_record_is_incomplete
+    should_pass: false
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_working_hours: false
+  - name: document_not_uploaded_is_not_assessed
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 0
+      prose:
+        states_working_hours: false
+- id: OSH.APPOINTMENT_LETTER.EMPLOYER_SIGNATURE
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Uploaded appointment letter omits employer signature or authentication
+  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
+    particulars
+  basis: STATUTE
+  requires:
+  - docs
+  - prose
+  applicability: docs.appointment_letter_count > 0
+  expression: prose.is_signed_by_employer == True
+  observe:
+    recorded_value: prose.is_signed_by_employer
+  expect:
+    required: 'True'
+  message:
+    en: The uploaded appointment letter does not state the employer signature or authentication.
+    hi: null
+  remediation:
+    en: Have the appointment letter signed or authenticated on behalf of the employer.
+    hi: null
+  fixtures:
+  - name: uploaded_record_complies
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        is_signed_by_employer: true
+  - name: uploaded_record_is_incomplete
+    should_pass: false
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        is_signed_by_employer: false
+  - name: document_not_uploaded_is_not_assessed
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 0
+      prose:
+        is_signed_by_employer: false
+- id: OSH.ACCIDENT.NOTIFICATION_REFERENCE
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: HIGH
+  weight: 5
+  title: Accident notification date is recorded without a notification reference
+  citation: OSH & Working Conditions Code, 2020 — s.10; OSHWC (Central) Rules, 2026 — r.7
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.7 prescribed accident
+    and dangerous-occurrence notification
+  basis: STATUTE
+  requires:
+  - incidents
+  for_each: incidents
+  expression: is_missing(row.notified_on) or not is_missing(row.notification_reference)
+  observe:
+    rows_checked: count(incidents)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: An uploaded accident row gives a notification date but no notification reference.
+    hi: null
+  remediation:
+    en: Record the authority notification reference against the accident entry.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      incidents:
+      - notified_on: '2026-03-05'
+        notification_reference: NOTICE-12
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      incidents:
+      - notified_on: '2026-03-05'
+        notification_reference: null
+- id: OSH.HOURS.BEYOND_NORMAL_DAY_NOT_OVERTIME
+  code: OSH
+  kind: DISCREPANCY
+  severity: HIGH
+  weight: 7
+  title: Work beyond the eight-hour normal day is not recorded as overtime
+  citation: OSH & Working Conditions Code, 2020 — s.25; OSHWC (Central) Rules, 2026 — r.69
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020.md, s.25 fixes the eight-hour normal
+    working day; storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.69 treats work
+    beyond it as overtime
+  basis: STATUTE
+  requires:
+  - attendance
+  for_each: attendance
+  expression: is_missing(row.max_daily_hours) or row.max_daily_hours <= 8 or default(row.overtime_hours, 0) > 0
+  observe:
+    highest_daily_hours: maximum(pluck(attendance, 'max_daily_hours'))
+    overtime_hours_recorded: total(pluck(attendance, 'overtime_hours'))
+  expect:
+    normal_day_hours: '8'
+  message:
+    en: A worker was recorded working more than the eight-hour normal working day on at least one day, but no overtime hours
+      are recorded for that worker.
+    hi: null
+  remediation:
+    en: Record every hour worked beyond the eight-hour normal day as overtime and pay it at not less than twice the ordinary
+      rate.
+    hi: null
+  fixtures:
+  - name: nine_hour_day_recorded_as_overtime
+    should_pass: true
+    facts:
+      attendance:
+      - max_daily_hours: 9
+        overtime_hours: 6
+  - name: eight_hour_day_needs_no_overtime
+    should_pass: true
+    facts:
+      attendance:
+      - max_daily_hours: 8
+        overtime_hours: 0
+  - name: thirteen_hour_day_without_overtime
+    should_pass: false
+    facts:
+      attendance:
+      - max_daily_hours: 13.5
+        overtime_hours: 0

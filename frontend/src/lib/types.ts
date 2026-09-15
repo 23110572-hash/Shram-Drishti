@@ -328,6 +328,8 @@ export interface ScorecardOut {
   /** The model's reading of the records. Never part of the calculation. */
   review_summary: string | null;
   records_quality: string | null;
+  assessed_rule_count: number;
+  scope_statement: string;
   computation?: Record<string, unknown> | null;
 }
 
@@ -707,3 +709,28 @@ export const STATE_CODES: { code: string; name: string }[] = [
   { code: "UP", name: "Uttar Pradesh" },
   { code: "WB", name: "West Bengal" },
 ];
+
+
+export interface UploadBatchOut {
+  id: string;
+  establishment_id: string;
+  expected_file_count: number;
+  uploaded_file_count: number;
+  sealed: boolean;
+  completed: boolean;
+}
+
+export interface EstablishmentProcessingOut {
+  establishment_id: string;
+  establishment_name: string;
+  batch_id: string | null;
+  stage: string;
+  progress: number;
+  terminal: boolean;
+  successful: boolean;
+  needs_action: boolean;
+  total_documents: number;
+  finished_documents: number;
+  failed_documents: number;
+  review_documents: number;
+}

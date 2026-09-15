@@ -1,26 +1,17 @@
-jftLVªh lañ Mhñ ,yñ—(,u)04@0007@2003—20
-REGISTERED NO. DL—(N)04/0007/2003—20
-सी.जी.-डी.एल.-अ.-29092020-222111
-xxxGIDHxxx
-xxxGIDExxx
+..-..-.-29092020-222111
 CG-DL-E-29092020-222111
-vlk/kkj.k
 EXTRAORDINARY
-Hkkx  II — [k.M 1
-PART II — Section 1
-izkf/kdkj ls izdkf'kr
-PUBLISHED  BY  AUTHORITY
-lañ 
-  61]
-No. 61] 
+PUBLISHED BY AUTHORITY
+lañ
+61]
+No. 61]
 ubZ fnYyh] eaxyokj] flrEcj 29] 2020@vkf'ou 7] 1942 ¼'kd½
 NEW DELHI, TUESDAY, SEPTEMBER 29, 2020/ASVINA 7, 1942 (SAKA)
-bl Hkkx esa fHkUu i`"B la[;k nh tkrh gS ftlls fd ;g vyx ladyu ds :i esa j[kk tk ldsA
 Separate paging is given to this Part in order that it may be filed as a separate compilation.
 MINISTRY OF LAW AND JUSTICE
 (Legislative Department)
 New Delhi, the 29th September, 2020/Asvina 7, 1942 (Saka)
-The following Act of  Parliament received the assent of the President on the
+The following Act of Parliament received the assent of the President on the
 28th September, 2020 and is hereby published for general information:—
 THE CODE ON SOCIAL SECURITY, 2020
 NO. 36 OF 2020
@@ -31,7 +22,7 @@ organised or unorganised or any other sectors and for matters connected
 therewith or incidental thereto.
 BE it enacted by Parliament in the Seventy-first Year of the Republic of India as
 follows:—
-CHAPTER I
+## CHAPTER I
 PRELIMINARY
 1. (1) This Act may be called the Code on Social Security, 2020.
 (2) It extends to the whole of India.
@@ -44,10 +35,8 @@ extent,
 commencement
 and application.
 2
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (4) The applicability of the Chapters specified in columns (1) and (2) of the First
-Schedule shall, without prejudice to the applicability of the other provisions of this Code,
+## Schedule shall, without prejudice to the applicability of the other provisions of this Code,
 be such as is specified in corresponding entry in column (3) of that Schedule.
 (5) Notwithstanding anything contained in sub-section (4), where it appears to the
 Central Provident Fund Commissioner, whether on an application made to him by the
@@ -57,7 +46,7 @@ applicable to that establishment, the Central Provident Fund Commissioner, may, 
 notification, apply the provisions of the said Chapter to that establishment on and from the
 date of such agreement or from any subsequent date specified in the agreement:
 Provided that where the employer of an establishment to which the provisions of
-Chapter III applied under this sub-section desires to come out of such applicability, he
+## Chapter III applied under this sub-section desires to come out of such applicability, he
 may make an application to the Central Provident Fund Commissioner and the Central
 Provident Fund Commissioner shall, if satisfied that there is an agreement between the
 employer and majority of the employees to this effect, make the provisions of that Chapter
@@ -74,7 +63,7 @@ that establishment, the Director General of the Corporation, may, by notificatio
 the provisions of the said Chapter to that establishment on and from the date of such
 agreement or from any subsequent date specified in the agreement:
 Provided that where the employer of an establishment to which the provisions of
-Chapter IV applied under this sub-section desires to come out of such applicability, he
+## Chapter IV applied under this sub-section desires to come out of such applicability, he
 may make an application to the Director General of the Corporation and Director General
 of the Corporation shall, if satisfied that there is an agreement between the employer and
 majority of the employees to this effect, make the provisions of that Chapter inapplicable
@@ -83,7 +72,7 @@ by the Central Government.
 (8) Notwithstanding anything contained in sub-section (4), an establishment to which
 any Chapter applies at the first instance shall continue to be applied thereafter even if the
 number of employees therein at any subsequent time falls below the threshold specified in
-the First Schedule in respect of that Chapter.
+## the First Schedule in respect of that Chapter.
 Definitions.
 2. In this Code, unless the context otherwise requires,—
 (1) "agent" when used in relation to an establishment, means every person,
@@ -97,8 +86,6 @@ user of a service to connect with the seller or the service provider;
 of the Central Government or concerning any such controlled industry as may
 be specified by notification in this behalf, by the Central Government or the
 establishment of railways including metro railways, mines, oil field, major
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 3
 ports, air transport service, telecommunication, banking and insurance company
 or a corporation or other authority established by a Central Act or the central
@@ -152,8 +139,6 @@ supervisory or administrative capacity;
 (8) "Building Workers' Welfare Board" means the State Building and other Construction
 Workers' Welfare Board constituted under sub-section (1) of section 7;
 4
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (9) "career centre" means any office (including employment exchange, place or portal)
 established and maintained in the manner prescribed by the Central Government for
 providing such career services (including registration, collection and furnishing of
@@ -203,8 +188,6 @@ Code, to the Central Board and to the Corporation, as the case may be, and inclu
 amount payable by or on behalf of the employee in accordance with the provisions of this
 Code;
 18 of 2013.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 5
 (22) "Corporation" means the Employees' State Insurance Corporation constituted
 under section 5;
@@ -253,8 +236,6 @@ or any other storage area in board the ship or in the docks;
 Apprentices Act, 1961) employed on wages by an establishment, either directly or through
 a contractor, to do any skilled, semi-skilled or unskilled, manual, operational, supervisory,
 6
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 managerial, administrative, technical, clerical or any other work, whether the terms of
 employment be express or implied, and also includes a person declared to be an employee
 by the appropriate Government, but does not include any member of the Armed Forces of
@@ -303,8 +284,6 @@ carried on; or
 (b) a factory, motor transport undertaking, newspaper establishment, audio
 visual production, building and other construction work or plantation; or
 (c) a mine, port or vicinity of port where dock work is carried out.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 7
 Explanation.—For the purposes of Chapter III, where an establishment consists of
 different departments or has branches, whether situate in the same place or in different
@@ -351,8 +330,6 @@ prescribed by the Central Government;
 unmarried and his parents are not alive, a minor brother or sister wholly dependent
 upon the earnings of the Insured Person;
 8
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (34) "fixed term employment" means the engagement of an employee on the basis of
 a written contract of employment for a fixed period:
 Provided that—
@@ -392,16 +369,14 @@ by the Central Government from time to time;
 breaking up, demolishing, refining, or otherwise treating or adapting any article or
 substance with a view to its use, sale, transport, delivery or disposal; or
 (ii) pumping oil, water, sewage or any other substance; or
-(iii)  generating, transforming or transmitting power; or
+(iii) generating, transforming or transmitting power; or
 (iv) composing, offset printing, printing by letter press, lithography,
 photogravure screen printing, three or four dimensional printing, prototyping,
 flexography or other types of printing process or book binding; or
 (v) constructing, reconstructing, repairing, refitting, finishing or breaking up
 ships or vessels; or
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 9
-(vi)  preserving or storing any article in cold storage; or
+(vi) preserving or storing any article in cold storage; or
 (vii) such other activities as the Central Government may notify;
 (43) "maternity benefit", in respect of Chapter VI, means the payment referred to in
 sub-section (1) of section 60;
@@ -453,8 +428,6 @@ ship for which the owner of ship shall be deemed to be the occupier;
 (53) "oilfield" shall have the meaning assigned to it in clause (e) of section 3 of the
 Oilfields (Regulation and Development) Act, 1948;
 10
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (54) "organised sector" means an enterprise which is not an unorganised sector;
 (55) "permanent partial disablement" means, where the disablement is of a permanent
 nature, such disablement as reduces the earning capacity of an employee in every
@@ -467,7 +440,6 @@ incapacitates an employee for all work which he was capable of performing at the
 accident resulting in such disablement:
 Provided that permanent total disablement shall be deemed to result from every injury
 specified in Part I of the Fourth Schedule or from any combination of injuries specified in
-Part II thereof where the aggregate percentage of the loss of earning capacity, as specified
 in the said Part II against those injuries, amounts to one hundred per cent.;
 (57) "Pension Fund" means the Pension Fund established under clause (b) of
 sub-section (1) of section 16;
@@ -502,11 +474,9 @@ access other organisations or individuals to solve specific problems or to provi
 services or any such other activities which may be notified by the Central Government, in
 exchange for payment;
 (61) "platform worker" means a person engaged in or undertaking platform work;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 11
 15 of 1908.
- 24 of 1989.
+24 of 1989.
 11 of 1976.
 (62) "port" shall have the meaning assigned to it in clause (4) of section 3 of the
 Indian Ports Act, 1908;
@@ -553,8 +523,6 @@ and to provide income security, particularly in cases of old age, unemployment, 
 invalidity, work injury, maternity or loss of a breadwinner by means of rights conferred on
 them and schemes framed, under this Code;
 12
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (79) "Social Security Organisation" means any of the following organisations
 established under this Code, namely:—
 (a) the Central Board of Trustees of Employees' Provident Fund constituted
@@ -604,14 +572,12 @@ in respect of his employment or of work done in such employment, and includes,�
 14 of 1947.
 14 of 1947.
 (a) basic pay;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 13
 (b) dearness allowance; and
 (c) retaining allowance, if any,
 but does not include—
 (a) any bonus payable under any law for the time being in force, which does not
-form part of the remuneration payable under the terms of employment;
+### form part of the remuneration payable under the terms of employment;
 (b) the value of any house-accommodation, or of the supply of light, water,
 medical attendance or other amenity or of any service excluded from the computation
 of wages by a general or special order of the appropriate Government;
@@ -655,8 +621,6 @@ for wages in any establishment:
 Provided that for the purposes of Chapter IV, a woman who is or was an employee in
 respect of whom contribution is or were payable under the said Chapter and who is by
 14
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 reason thereof, entitled to any of the benefits provided under the said Chapter shall be
 called “insured woman” and shall include—
 (i) a commissioning mother who as biological mother wishes to have a child and
@@ -668,7 +632,7 @@ cancellation of
 an
 establishment.
 Constitution
-of  Board of
+of Board of
 Trustees of
 Employees’
 Provident Fund.
@@ -686,7 +650,7 @@ granted under this section.
 sub-section (2), the conditions subject to which the registration shall be cancelled and the
 procedure of cancellation and other matters relating thereto, shall be such as may be
 prescribed by the Central Government.
-CHAPTER II
+## CHAPTER II
 SOCIAL SECURITY ORGANISATIONS
 4. (1) The Central Government may, by notification, constitute, with effect from such
 date as may be specified therein, a Board of Trustees of the Employees' Provident Fund to
@@ -716,8 +680,6 @@ by the said name sue and be sued.
 date as may be specified therein, an Executive Committee from amongst the members of the
 Central Board to assist the Central Board in performance of its functions in such manner as
 may be prescribed by the Central Government.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 15
 (4) The Central Board may, by order, constitute one or more committees of such
 composition as may be specified in the order to assist it in the discharge of its functions.
@@ -751,7 +713,7 @@ Union territories;
 (f) ten persons representing employers to be appointed by the Central
 Government in consultation with such organisations of employers as may be
 recognised for the purpose by the Central Government;
-(g)  ten persons representing employees to be appointed by the Central
+(g) ten persons representing employees to be appointed by the Central
 Government in consultation with such organisations of employees as may be
 recognised for the purpose by the Central Government;
 (h) two persons representing the medical profession to be appointed by the
@@ -773,8 +735,6 @@ of Employees’
 State Insurance
 Corporation.
 16
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (4) Subject to the general superintendence and control of the Corporation, the Standing
 Committee—
 (a) shall administer the affairs of the Corporation and may exercise any of the
@@ -826,8 +786,6 @@ Departments concerned;
 (3) All members except Chairperson of the National Social Security Board shall be
 from amongst persons of eminence in the fields of labour welfare, management, finance,
 law and administration.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 17
 (4) The manner in which members shall be nominated from each of the categories
 specified in clause (c) of sub-section (2), the term of office and other conditions of service
@@ -871,16 +829,14 @@ and Employment;
 (d) thirty-one members to be nominated by the State Government, out of
 whom—
 (i) seven representing the unorganised workers;
-(ii)  seven representing employers of unorganised workers;
-(iii)  two members representing the Legislative Assembly of the concerned
+(ii) seven representing employers of unorganised workers;
+(iii) two members representing the Legislative Assembly of the concerned
 State;
-(iv)  five members representing eminent persons from civil society;
+(iv) five members representing eminent persons from civil society;
 (v) ten members representing the State Government Departments
 concerned; and
 (e) Member-Secretary as notified by the State Government.
 18
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (11) All members except Chairperson of the State Unorganised Workers' Board shall
 be from amongst persons of eminence in the fields of labour welfare, management, finance,
 law and administration.
@@ -937,8 +893,6 @@ that at least one member of the Board shall be a woman.
 payable to the chairperson and the other members of the Building Workers' Welfare Board,
 and the manner of filling of casual vacancies of the members of the Building Workers'
 Welfare Board, shall be such as may be prescribed by the State Government.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 19
 (5) (a) The Building Workers' Welfare Board shall appoint a Secretary and such
 officers and employees as it considers necessary for the efficient discharge of its functions
@@ -993,8 +947,6 @@ any Social
 Security
 Organisation.
 20
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Explanation 1.—If any question arises whether any person is disqualified under
 clause (d), it shall be referred to the appropriate Government and the decision of the
 appropriate Government on any such question shall be final.
@@ -1051,8 +1003,6 @@ etc.
 9. (1) A Social Security Organisation or any Committee thereof shall meet at such
 intervals and observe such procedure in regard to the transaction of business at its meetings
 (including the quorum at such meetings) as may be prescribed by the Central Government.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 21
 (2) All orders and decisions of the Social Security Organisation shall be authenticated
 by the Central Provident Fund Commissioner, Director General, Director General Labour
@@ -1134,8 +1084,6 @@ Boards, local
 committees,
 etc.
 22
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (2) The Corporation may, by order, appoint Regional Boards and local committees in
 such area and in such manner to perform such functions and to exercise such powers as
 may be specified in the regulations.
@@ -1171,7 +1119,7 @@ discharge of such functions shall be borne by the Central Government;
 while discharging the functions specified in clause (i); and
 (v) provide that any expenditure referred to in clause (iii) shall be made by the
 Social Security Organisation after prior approval of the Central Government.
-CHAPTER III
+## CHAPTER III
 EMPLOYEES’ PROVIDENT FUND
 14. (1) The Central Government may appoint a Central Provident Fund Commissioner
 who shall be the Chief Executive Officer of the Central Board and shall also function as
@@ -1194,8 +1142,6 @@ Additional Central Provident Fund Commissioner or a Financial Adviser and Chief 
 Officer or any other post under the Central Board carrying a scale of pay equivalent to the
 scale of pay of any Group 'A' or Group 'B' post under the Central Government shall be
 made except after consultation with the Union Public Service Commission:
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 23
 Provided that no such consultation shall be necessary in regard to any such
 appointment—
@@ -1246,9 +1192,7 @@ security benefits under this Code to self-employed workers or any other class of
 persons; and
 Schemes.
 24
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
-(e) modify any scheme referred to in clauses (a), (b), (c)  and (d) by adding
+(e) modify any scheme referred to in clauses (a), (b), (c) and (d) by adding
 thereto, amending or varying therein, either prospectively or retrospectively.
 (2) Subject to the provisions of this Chapter, the schemes referred to in clauses (a), (b)
 and (c) of sub-section (1) may provide for all or any of the matters respectively specified in
@@ -1283,7 +1227,7 @@ as may be notified by the Central Government;
 (ii) such sums payable as contribution to the Pension Fund, as may be
 specified in the Pension Scheme, by the employers of the exempted
 establishments under section 143 to which the pension scheme applies;
-(iii)  such sums as the Central Government after due appropriation by
+(iii) such sums as the Central Government after due appropriation by
 Parliament by law in this behalf, specify;
 (c) the Insurance Scheme, establish a Deposit-Linked Insurance Fund in the
 manner specified in that scheme by that Government into which there shall be paid
@@ -1297,8 +1241,6 @@ make under this clause, as the Central Government may, from time to time, determ
 to meet all the expenses in connection with the administration of the Insurance Scheme
 other than the expenses towards the cost of any benefits provided by or under the
 Insurance Scheme.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 25
 (2) The Provident Fund, the Pension Fund and the Insurance Fund shall vest in, and
 be administered by, the Central Board in such manner as may be specified in the respective
@@ -1369,8 +1311,6 @@ to apply to
 certain
 establishments.
 26
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Authorising
 certain
 employers to
@@ -1426,10 +1366,8 @@ twenty-five per cent. of the amount due from him as determined by an officer und
 section 125.
 (4) The Tribunal shall endeavour to decide the appeal within a period of one year from
 the date on which the appeal has been preferred.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 27
-CHAPTER IV
+## CHAPTER IV
 EMPLOYEES STATE INSURANCE CORPORATION
 24. (1) The Central Government may appoint a Director General of the Corporation
 and a Financial Commissioner, who shall be the Principal Officers of the Corporation.
@@ -1482,8 +1420,6 @@ Principal
 Officers and
 other staff.
 28
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (9) Every appointment to posts (other than medical, nursing or para-medical posts)
 corresponding to Group 'A' and Group 'B' Gazetted posts under the Central Government
 shall be made in consultation with the Union Public Service Commission:
@@ -1541,8 +1477,6 @@ and meeting the expenditure in respect of offices and other services set up for 
 purpose of giving effect to the provisions of this Code relating to this Chapter;
 (d) establishment and maintenance of hospitals, dispensaries and other
 institutions and the provision of medical and other ancillary services for the benefit
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 29
 of Insured Persons referred to in section 28 and, where the medical benefit is extended
 to their families;
@@ -1597,8 +1531,6 @@ property, etc.
 All employees
 to be insured.
 30
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Contributions.
 Administrative
 expenses.
@@ -1655,8 +1587,6 @@ of any amount payable under sub-section (6).
 the employee's contribution from the employee employed by or through him by deduction
 from wages and not otherwise, subject to such conditions as specified in the proviso to
 sub-section (2).
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 31
 (9) Subject to the provisions of this Code, the Corporation may make regulations for
 any matter relating or incidental to the payment and collection of contributions payable
@@ -1716,8 +1646,6 @@ health, etc., of
 Insured
 Persons.
 32
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Presumption
 as to accident
 arising in
@@ -1766,7 +1694,7 @@ as the case may be; and
 (b) the act is done for the purpose of and in connection with the employer's
 trade or business.
 36. (1) If an employee employed in any employment specified in Part A of the Third
-Schedule contracts any disease specified therein as an occupational disease peculiar to
+## Schedule contracts any disease specified therein as an occupational disease peculiar to
 that employment, or if an employee employed in the employment specified in Part B of
 that Schedule for a continuous period of not less than six months contracts any disease
 specified therein as an occupational disease peculiar to that employment or if an employee
@@ -1778,8 +1706,6 @@ to be an "employment injury ", arising out of and in the course of employment.
 (2) Save as provided by sub-section (1), no benefit shall be payable to an employee
 in respect of any disease unless the disease is directly attributable to a specific injury by
 accident arising out of and in the course of his employment.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 33
 (3) The provisions of sub-section (1) of section 34 shall not apply to the cases to
 which this section applies.
@@ -1832,8 +1758,6 @@ the regulations; or
 References to
 medical board.
 34
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (ii) the Employees' Insurance Court directly:
 Provided that no appeal by an Insured Person shall lie under this sub-section if such
 person has applied for commutation of disablement benefit on the basis of the decision of
@@ -1887,8 +1811,6 @@ Provided further that an Insured Person who has attained the age of superannuati
 a person who retires under a Voluntary Retirement Scheme or takes premature retirement,
 and his spouse shall be eligible to receive medical benefits subject to payment of contribution
 and such other conditions as may be specified in the regulations:
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 35
 Provided also that an Insured Person who ceases to be in insurable employment on
 account of permanent disablement caused due to employment injury shall continue to
@@ -1947,8 +1869,6 @@ Government
 or by
 Corporation.
 36
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 name called) to provide for certain benefits to employees in case of sickness, maternity and
 employment injury:
 Provided that any reference to the State Government in this Code relating to this
@@ -2000,8 +1920,6 @@ his chances of recovery;
 (c) shall not leave the area in which medical treatment provided by this Chapter
 is being given, without the permission of the medical officer, medical attendant or
 such other authority as may be specified in this behalf by the regulations; and
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 37
 (d) shall allow himself to be examined by any duly appointed medical officer or other
 person authorised by the Corporation in this behalf.
@@ -2056,8 +1974,6 @@ employer fails
 to register,
 etc.
 38
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Provided that the capitalised value to be calculated may be adjusted for the payment
 of any contribution and interest or damages that the employer is liable to pay for delay in
 the payment of or non-payment of such contribution.
@@ -2116,8 +2032,6 @@ employees insured under section 28; and
 (c) "user charges" means the amount which is to be charged from other
 beneficiaries for medical facilities as may be specified in the regulations after prior
 approval of the Central Government.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 39
 45. (1) Notwithstanding anything contained in this Chapter, the Central Government
 may, by notification, frame scheme for unorganised workers, gig workers and platform
@@ -2197,8 +2111,6 @@ Employees’
 Insurance
 Court.
 40
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (h) claim for the recovery of contributions from the employer under this Code
 relating to this Chapter; or
 (i) claim under sub-section (8) of section 41 for the recovery of the value or
@@ -2254,8 +2166,6 @@ contributions from a Contractor and the time within which such claims, recovery 
 contribution, from employer by the Corporation and recovery of contribution by the employer
 from the Contractor, shall be as specified in the regulations.
 2 of 1974.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 41
 (2) Any application, appearance or act required to be made or done by any person to,
 or before, an Employees' Insurance Court (other than appearance of a person required for
@@ -2279,7 +2189,7 @@ appeals under this section.
 Insurance Court, that Court may, and if so directed by the High Court, shall, pending the
 decision of the appeal, withhold the payment of any sum directed to be paid by the order
 appealed against.
-CHAPTER V
+## CHAPTER V
 GRATUITY
 53. (1) Gratuity shall be payable to an employee on the termination of his employment
 after he has rendered continuous service for not less than five years,—
@@ -2311,8 +2221,6 @@ High Court.
 Payment of
 gratuity.
 42
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Provided that in the case of a piece-rated employee, daily wages shall be computed
 on the average of the total wages received by him for a period of three months immediately
 preceding the termination of his employment, and, for this purpose, the wages paid for any
@@ -2361,8 +2269,6 @@ service has been passed in accordance with the standing orders, rules or regulat
 governing the employees of the establishment), lay-off, strike or a lock-out or cessation
 of work not due to any fault of the employee, whether such uninterrupted or interrupted
 service was rendered before or after the commencement of this Code;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 43
 (B) where an employee (not being an employee employed in a seasonal
 establishment) is not in continuous service within the meaning of clause (A), for any
@@ -2391,7 +2297,7 @@ Act, 1946, or under the Industrial Disputes Act, 1947, or under any other
 law applicable to the establishment;
 (ii) he has been on leave with full wages, earned in the previous
 year;
-(iii)  he has been absent due to temporary disablement caused by
+(iii) he has been absent due to temporary disablement caused by
 accident arising out of and in the course of his employment; and
 (iv) in the case of a female, she has been on maternity leave; so,
 however, that the total period of such maternity leave does not exceed
@@ -2415,8 +2321,6 @@ may be made in favour of any person or persons but if the employee subsequently 
 14 of 1947.
 Nomination.
 44
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 a family, such nomination shall forthwith become invalid and the employee shall make,
 within such time as may be prescribed by the appropriate Government, a fresh nomination
 in favour of one or more members of his family.
@@ -2469,8 +2373,6 @@ such amount as reduced by the amount already deposited by the employer.
 amount, if any, deposited by the employer, to the person entitled thereto.
 (e) As soon as may be after a deposit is made under clause (a), the competent authority
 shall pay the amount of the deposit—
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 45
 (i) to the applicant where he is the employee; or
 (ii) where the applicant is not the employee, to the nominee or, as the case may
@@ -2526,8 +2428,6 @@ appropriate Government and no employer shall be registered under the provisions 
 Compulsory
 insurance.
 46
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 section unless he has taken an insurance referred to in sub-section (1) or has established an
 approved gratuity fund referred to in sub-section (2).
 (4) The appropriate Government may provide for the composition of the Board of
@@ -2561,7 +2461,7 @@ among them.
 him for decision under this Chapter, choose one or more persons possessing special
 knowledge of any matter relevant to the matter under reference to assist him in holding the
 inquiry relating thereto.
-CHAPTER VI
+## CHAPTER VI
 MATERNITY BENEFIT
 59. (1) No employer shall knowingly employ a woman in any establishment during the
 six weeks immediately following the day of her delivery, miscarriage or medical termination
@@ -2583,8 +2483,6 @@ Explanation.— For the purposes of this section, the expression "any work of ar
 nature" shall mean any work which involve or require strenuous effort or is difficult and
 tiring in nature.
 43 of 1961.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 47
 60. (1) Subject to the other provisions of this Code, every woman shall be entitled to,
 and her employer shall be liable for, the payment of maternity benefit at the rate of the
@@ -2652,8 +2550,6 @@ benefit and
 payment
 thereof.
 48
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 or to such person as she may nominate in the notice and that she will not work in any
 establishment during the period for which she receives maternity benefit.
 (2) In the case of a woman who is pregnant, such notice shall state the date from
@@ -2718,8 +2614,6 @@ breaks of such duration as may be prescribed by the Central Government, for nurs
 child until the child attains the age of fifteen months.
 67. (1) Every establishment to which this Chapter applies, in which fifty employees or
 such number of employees as may be prescribed by the Central Government, are employed
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 49
 shall have the facility of crèche within such distance as may be prescribed by the Central
 Government, either separately or along with common facilities:
@@ -2787,8 +2681,6 @@ direct
 payments to
 be made.
 50
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (b) her employer has discharged or dismissed her during or on account of her
 absence from work in accordance with the provisions of this Chapter,
 may make a complaint to the Inspector-cum-Facilitator.
@@ -2806,7 +2698,7 @@ to such person, appeal to the authority prescribed by the appropriate Government
 (4) The decision of the authority referred to in sub-section (3), where an appeal has
 been preferred to it under that sub-section or of the Inspector-cum-Facilitator where no
 such appeal has been preferred, shall be final.
-CHAPTER VII
+## CHAPTER VII
 EMPLOYEE'S COMPENSATION
 Reports of
 fatal
@@ -2844,15 +2736,13 @@ Provided that the employer shall not be so liable—
 disablement of the employee for a period exceeding three days; and
 (b) in respect of such injury, not resulting in death or permanent total disablement
 caused by an accident which is directly attributable to—
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 51
 (i) the employee having been at the time thereof under the influence of
 drink or drugs, or
-(ii)  the wilful disobedience of the employee to an order expressly given,
+(ii) the wilful disobedience of the employee to an order expressly given,
 or to a rule expressly framed, for the purpose of securing the safety of employees,
 or
-(iii)  the wilful removal or disregard by the employee of any safety guard
+(iii) the wilful removal or disregard by the employee of any safety guard
 or other device which he knew to have been provided for the purpose of securing
 the safety of employee.
 (2) An accident or an occupational disease referred to in sub-section (1) shall be
@@ -2881,7 +2771,7 @@ employment is established.
 (5) The Central Government or the State Government, after giving, by notification,
 not less than three months' notice of its intention so to do, may, by a like notification,
 modify or add any description of employment to the employments specified in the Second
-Schedule, and occupational diseases specified in the Third Schedule and shall specify in
+## Schedule, and occupational diseases specified in the Third Schedule and shall specify in
 the case of employments so modified or added, the diseases which shall be deemed for the
 purposes of this section to be occupational diseases peculiar to those employments
 respectively, and thereupon the provisions of sub-section (2) shall apply, in the case of a
@@ -2898,8 +2788,6 @@ for damages in respect of the accident or disease against the employer or any ot
 and no suit for damages shall be maintainable by an employee in any Court of law in respect
 of such accident or disease—
 52
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (a) if he has instituted a claim to compensation in respect of the accident or
 disease before a competent authority; or
 (b) if an agreement has been made between the employee and his employer
@@ -2916,7 +2804,7 @@ compensation.
 the collapse of a house provided by the employer in a plantation, and the collapse is not
 solely and directly attributable to a fault on the part of any occupant of the house or to a
 natural calamity, the employer shall be liable to pay compensation under section 76 and the
-Sixth Schedule, so far as may be applicable.
+## Sixth Schedule, so far as may be applicable.
 Explanation.— For the purposes of this section, the expression "worker" means a
 person employed in a plantation for hire or reward, whether directly or through any agency,
 to do any work, skilled, unskilled, manual or clerical, and includes a person employed on
@@ -2954,8 +2842,6 @@ birthday immediately preceding the date on which the compensation fell due;
 percentage of the compensation which would have been payable in the case of
 permanent total disablement as is specified therein as being the percentage of
 the loss of earning capacity caused by that injury; and
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 53
 (ii) in the case of an injury not specified in the Fourth Schedule, such
 percentage of the compensation payable in the case of permanent total
@@ -3007,8 +2893,6 @@ for treatment of injuries caused during the course of employment, by his employe
 payment falls due, there shall be payable in respect of that half-month a sum proportionate
 to the duration of the disablement in that half-month.
 54
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (7) If the injury of the employee results in his death, the employer shall, in addition to
 the compensation under sub-section (1), deposit with the competent authority a sum of not
 less than fifteen thousand rupees or such amount as may be prescribed by the State
@@ -3069,8 +2953,6 @@ information to calculate the monthly wages under clause (b), the monthly wages s
 be thirty times the total wages earned in respect of the last continuous period of
 service immediately preceding the accident from the employer who is liable to pay
 compensation, divided by the number of days comprising such period.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 55
 Explanation.—For the purposes of this section, "a period of service" shall be deemed
 to be continuous which has not been interrupted by a period of absence from work exceeding
@@ -3130,8 +3012,6 @@ Distribution
 of
 compensation.
 56
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Provided that the competent authority shall not make any order under this
 sub-section without hearing the dependants and shall record reasons in the order for the
 apportionment of such compensation among dependants or any of them, as the case may
@@ -3185,8 +3065,6 @@ Provided also that if an employee who, having been employed in an employment for
 a continuous period specified under sub-section (3) of section 74 in respect of that
 employment, ceases to be so employed and develops symptoms of an occupational disease
 1 of 1890.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 57
 peculiar to that employment within two years of the cessation of employment, the accident
 shall be deemed to have occurred on the day on which the symptoms were first detected.
@@ -3245,8 +3123,6 @@ occurring
 outside Indian
 territory.
 58
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (c) in case of persons recruited by companies registered in India and working as
 such abroad, on the local agent of the company;
 (d) in case of persons sent for work abroad along with motor vehicles as drivers,
@@ -3297,8 +3173,6 @@ examination.
 before the expiry of three days from the time at which service of the notice has been
 effected, offers to have him examined free of charge by a medical practitioner, submit
 himself for such examination, and any employee who is in receipt of a half-monthly payment
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 59
 under this Chapter shall, if so required, submit himself for such examination from time to
 time:
@@ -3354,8 +3228,6 @@ is liable to pay compensation or to indemnify an employer under this section, he
 entitled to be indemnified by any person standing to him in relation of a contractor from
 Contracting.
 60
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 whom the employee could have recovered the compensation, and all questions as to the
 right to and the amount of any such indemnity shall, in default of agreement, be settled by
 the competent authority.
@@ -3415,8 +3287,6 @@ were made for that purpose under section 80, and a certificate of the competent 
 as to the amount of such sum shall be conclusive proof thereof.
 31 of 2016.
 18 of 2013.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 61
 (6) The provisions of sub-section (4) shall apply in the case of any amount for which
 an insurer is entitled to prove under sub-section (3), but otherwise those provisions shall
@@ -3475,8 +3345,6 @@ accidents.
 Registration of
 agreements.
 62
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (2) An agreement for the payment of compensation which has been registered under
 sub-section (1) shall be enforceable under this Code notwithstanding anything contained
 in the Indian Contract Act, 1872, or in any other law for the time being in force.
@@ -3536,8 +3404,6 @@ Provided further that, where the employee, being the master of a ship or a seama
 the captain or a member of the crew of an aircraft or an employee in a motor vehicle or a
 company, meets with the accident outside India, any such matter may be done by or before
 9 of 1872.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 63
 a competent authority for the area in which the owner or agent of the ship, aircraft or motor
 vehicle resides or carries on business or the registered office of the company is situate, as
@@ -3586,7 +3452,7 @@ in respect of an employee whose injury has resulted in death, and in the opinion
 competent authority such sum is insufficient, the competent authority may, by notice in
 writing stating his reasons, call upon the employer to show cause why he should not make
 a further deposit within such time as may be stated in the notice.
-Form of
+### Form of
 application.
 Power of
 competent
@@ -3596,8 +3462,6 @@ deposit in cases
 of fatal
 accident.
 64
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (2) If the employer fails to show cause to the satisfaction of the competent authority,
 the competent authority may make an award determining the total amount payable, and
 requiring the employer to deposit the deficiency.
@@ -3621,7 +3485,7 @@ of Civil Procedure, 1908, for the purpose of taking evidence on oath (which such
 authority is hereby empowered to impose) and of enforcing the attendance of witnesses
 and compelling the production of documents and material objects, and the competent
 authority shall be deemed to be a Civil Court for all the purposes of section 195 and of
-Chapter XXVI of the Code of Criminal Procedure, 1973.
+## Chapter XXVI of the Code of Criminal Procedure, 1973.
 96. Any appearance, application or act required to be made or done by any person
 before or to a competent authority (other than an appearance of a party which is required for
 the purpose of his examination as a witness) may be made or done on behalf of such person
@@ -3662,8 +3526,6 @@ clause (c), unless the amount in dispute in the appeal is not less than ten thou
 or such higher amount as the Central Government may, by notification, specify:
 5 of 1908.
 2 of 1974.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 65
 Provided further that no appeal shall lie in any case in which the parties have agreed
 to abide by the decision of the competent authority, or in which the order of the competent
@@ -3677,7 +3539,7 @@ the date of passing of the order.
 36 of 1963.
 (3) The provisions of section 5 of the Limitation Act, 1963, shall be applicable to
 appeal under this section.
-CHAPTER VIII
+## CHAPTER VIII
 SOCIAL SECURITY AND CESS IN RESPECT OF BUILDING AND
 OTHER CONSTRUCTION WORKERS
 100. (1) There shall be levied and collected a cess for the purposes of social security
@@ -3725,8 +3587,6 @@ Power to
 exempt from
 cess.
 66
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Self
 assessment of
 cess.
@@ -3793,8 +3653,6 @@ course of his employment.
 beneficiary for at least three years continuously immediately before attaining the age of
 sixty years, then, he shall be eligible to get such benefits as may be prescribed by the
 Central Government.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 67
 Explanation.—For computing the period of three years under this sub-section as a
 beneficiary registered with a Building Workers' Welfare Board, there shall be added any
@@ -3819,7 +3677,7 @@ other employees of the Building Workers' Welfare Board; and
 towards salaries, allowances and other remuneration to its members, officers and other
 employees and for meeting the other administrative expenses exceeding five per cent. of
 its total expenses during that financial year.
-CHAPTER IX
+## CHAPTER IX
 SOCIAL SECURITY FOR UNORGANISED WORKERS, GIG WORKERS AND
 PLATFORM WORKERS
 109. (1) The Central Government shall frame and notify, from time to time, suitable
@@ -3850,8 +3708,6 @@ schemes for
 unorganised
 workers.
 68
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (3) Any scheme notified by the Central Government under sub-section (1), may be—
 (i) wholly funded by the Central Government; or
 (ii) partly funded by the Central Government and partly funded by the State
@@ -3902,8 +3758,6 @@ Provided that such records shall, as far as may be possible, bear continuous num
 for the purpose of proper management of the scheme and for avoiding any duplication and
 overlapping in records.
 18 of 2013.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 69
 112. The appropriate Government may set up a toll free call centre or helpline or such
 facilitation centres as may be considered necessary from time to time to perform any or more
@@ -3969,8 +3823,6 @@ and platform
 workers.
 (c) the role of aggregators in the scheme;
 70
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (d) the sources of funding of the scheme; and
 (e) any other matter as the Central Government may consider necessary for the
 efficient administration of the scheme.
@@ -4013,14 +3865,12 @@ Government may nominate;
 (e) such expert members as the Central Government may consider appropriate;
 (f) five representatives of the State Governments by such rotation as the Central
 Government may consider appropriate;
-(g)  Joint Secretary to the Government of India in the Ministry of Labour and
+(g) Joint Secretary to the Government of India in the Ministry of Labour and
 Employment, who shall be the Member Secretary to the Board.
 18 of 2013.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 71
 (7) (i) The Central Government may provide that—
-(a)  the authority to collect and to expend the proceeds of contribution collected;
+(a) the authority to collect and to expend the proceeds of contribution collected;
 (b) the rate of interest to be paid by an aggregator in case of delayed payment,
 less payment or non-payment of contribution;
 (c) self-assessment of contribution by aggregators;
@@ -4033,7 +3883,7 @@ aggregators from paying of contribution under sub-section (4), subject to such c
 as may be specified in the notification.
 Explanation.—For the purposes of this section, an aggregator having more than one
 business shall be treated as a separate business entity or aggregator.
-CHAPTER X
+## CHAPTER X
 FINANCE AND ACCOUNTS
 115. Each of the Social Security Organisations shall maintain proper accounts of its
 income and expenditure in such form and in such manner as the appropriate Government
@@ -4073,8 +3923,6 @@ estimates.
 Annual
 report.
 72
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 India and the comments of the respective Social Security Organisation thereon to be laid
 before each House of Parliament or the State legislature, as the case may be.
 Valuation of
@@ -4133,14 +3981,12 @@ such manner as may be prescribed by the appropriate Government:
 Provided that in the case of Provident Fund, Pension Fund or Insurance Fund, such
 writing off shall be specified in the Provident Fund Scheme or Pension Scheme or Insurance
 Scheme, as the case may be.
-CHAPTER XI
+## CHAPTER XI
 AUTHORITIES, ASSESSMENT, COMPLIANCE AND RECOVERY
 122. (1) The Central Government for the purposes of Chapter III and Chapter IV and
 for the provisions in this Code relating to those Chapters, and the appropriate Government
 for the purposes of other provisions of this Code, may, by notification, appoint Inspector
 cum-Facilitators who shall discharge his duties under this Code and exercise the powers
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 73
 conferred on them under sub-section (6) in accordance with the inspection scheme referred
 to in sub-section (2).
@@ -4192,9 +4038,7 @@ may,—
 whom the Inspector-cum-Facilitator has reasonable cause to believe, is an employee
 of the establishment;
 74
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
-(b)  require any person whom the Inspector-cum-Facilitator has reasonable
+(b) require any person whom the Inspector-cum-Facilitator has reasonable
 cause to believe, is an employer of the establishment, to produce any document or to
 give any information, which is in his power with respect to any of the purposes for
 which the inspection is made;
@@ -4232,7 +4076,7 @@ called;
 (vi) number of dangerous occurrences, accidents, injuries in respect of
 which compensation has been paid by the employer and the amount of such
 compensation relating to Chapter IV and Chapter VII, respectively;
-(vii)  statutory deductions made by employer from the wages of an
+(vii) statutory deductions made by employer from the wages of an
 employee in respect of Chapter III and Chapter IV;
 (viii) details as to cess paid in respect of building and other construction
 work;
@@ -4240,14 +4084,12 @@ work;
 employment) on the day specified;
 (x) persons recruited during a particular period;
 (xi) occupational details of the employees; and
-(xii)  vacancies for which suitable candidates were not available during
+(xii) vacancies for which suitable candidates were not available during
 the specified period.
 (b) display notices at the workplaces of the employees in such manner and form
 as may be prescribed by the appropriate Government;
 45 of 1860.
 2 of 1974.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 75
 (c) issue wage slips to the employees, in electronic forms or otherwise; and
 (d) file such return electronically or otherwise to such officer or authority in
@@ -4273,7 +4115,7 @@ or Chapter IV, as the case may be, who may, by order—
 (a) in a case where a dispute arises regarding the applicability of Chapter III or
 Chapter IV, as the case may be, to an establishment, decide such dispute; and
 (b) determine the amount due from any employer under any provision of
-Chapter III or Chapter IV, as the case may be, or the schemes, or rules, regulations
+## Chapter III or Chapter IV, as the case may be, or the schemes, or rules, regulations
 made under such Chapter; and
 (c) for any of the purposes relating to clause (a) and clause (b), conduct such
 inquiry, as he may deem necessary for such purposes:
@@ -4304,11 +4146,9 @@ wages, etc.
 Assessment
 and
 determination
-of  dues from
+of dues from
 employer.
 76
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (3) The Authorised Officer conducting the inquiry under sub-section (1) shall, for the
 purposes of such inquiry have the same powers as are vested in a court under the Code of
 Civil Procedure, 1908, for trying a suit in respect of the following matters, namely:—
@@ -4346,7 +4186,7 @@ setting aside the ex parte order.
 sub-section (6) unless notice thereof has been served on the opposite party.
 Appeal
 against order
-of  
+of
 Authorised
 Officer
 relating to
@@ -4363,8 +4203,6 @@ shall refund such deposit to the employer together with such interest as may be 
 the regulations.
 5 of 1908.
 45 of 1860.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 77
 127. Except where expressly provided otherwise in this Code, the employer shall be
 liable to pay simple interest at such rate as may be notified from time to time by the Central
@@ -4421,8 +4259,6 @@ damages.
 Recovery of
 amount due.
 78
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (4) The Authorised Officer or the competent authority, as the case may be, may
 forward the certificate issued under this section, to the Recovery Officer within whose
 jurisdiction the employer—
@@ -4474,8 +4310,6 @@ subject matter of further proceeding under this Code, the Authorised Officer or 
 authority, as the case may be, shall stay the recovery of such part of the amount of the
 certificate as pertains to the said reduction for the period for which the appeal or other
 proceeding remains pending.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 79
 (7) Where a certificate for the recovery of amount has been issued and subsequently
 the amount of the outstanding demand is reduced as a result of an appeal or other proceeding
@@ -4533,8 +4367,6 @@ demand contained in the notice.
 Other modes
 of recovery.
 80
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (f) Where a person to whom a notice under this sub-section is sent objects to it by
 statement on oath that the sum demanded or any part thereof is not due to the employer or
 that he does not hold any money for or on account of the employer, then, nothing contained
@@ -4592,11 +4424,9 @@ referred to the amount in arrears of the amount mentioned in section 129 of this
 instead of to the income-tax:
 Provided that any reference in the said provisions and the rules to the "assessees"
 43 of 1961.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 81
 shall be construed as a reference to an employer or establishment, as the case may be.
-CHAPTER XII
+## CHAPTER XII
 OFFENCES AND PENALTIES
 133. If any person,—
 (a) being an employer, fails to pay any contribution which he is liable to pay
@@ -4644,8 +4474,6 @@ failure to pay
 contributions,
 etc.
 82
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (i) where he commits an offence under clause (a), with imprisonment for a term
 which may extend to three years, but—
 (a) which shall not be less than one year, in case of failure to pay the
@@ -4703,8 +4531,6 @@ of individuals; and
 136. (1) No court shall take cognizance of an offence punishable under this Code,
 except on a complaint made by an aggrieved person or such officer as may be notified by
 the Central Government for the purposes of offences relating to Chapter III and Chapter IV
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 83
 and the rules, regulations or schemes made or framed under this Code relating to those
 Chapters, and for the purposes of offences relating to other provisions of this Code and the
@@ -4713,7 +4539,7 @@ appropriate Government.
 (2) Notwithstanding anything contained in sub-section (1), no prosecution under
 this Code shall be instituted, except by or with the previous sanction of the authority
 notified by the Central Government for the purposes of offences relating to Chapter III and
-Chapter IV and the rules, regulations or schemes made or framed under this Code relating to
+## Chapter IV and the rules, regulations or schemes made or framed under this Code relating to
 those Chapters; and for the purposes of offences relating to other provisions of this Code
 and the rules, regulations or schemes made or framed thereunder, the authority notified by
 the appropriate Government.
@@ -4764,8 +4590,6 @@ prosecution.
 Compounding
 of offences.
 84
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (2) Nothing contained in sub-section (1) shall apply to an offence committed by a
 person for the second time or thereafter within a period of three years from the date—
 (i) of commission of a similar offence which was earlier compounded; or
@@ -4789,7 +4613,7 @@ whom the offence is so compounded shall be discharged.
 (7) Any person who fails to comply with the order made by the officer referred to in
 sub-section (1), shall be liable to pay a sum equivalent to twenty per cent. of the maximum
 fine provided for the offence, in addition to such fine.
-CHAPTER XIII
+## CHAPTER XIII
 EMPLOYMENT INFORMATION AND MONITORING
 Reporting of
 vacancies to
@@ -4815,8 +4639,6 @@ of any employer required to furnish any information or returns for the purposes 
 Chapter and may enter, at any reasonable time, any premises where he believes such record
 or document to be and inspect or take copies of such records or documents or ask any
 question necessary for obtaining any information required.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 85
 140. (1) The provisions of section 139 shall not apply in relation to vacancies,—
 (a) in any employment in agriculture (including horticulture) in any establishment
@@ -4840,7 +4662,7 @@ Selection Commission or a State Public Service Commission or any other agencies 
 may be notified by the Central Government; or
 (b) vacancies in an employment which carries a monthly remuneration of less
 than an amount notified by the appropriate Government.
-CHAPTER XIV
+## CHAPTER XIV
 MISCELLANEOUS
 141. (1) There shall be established by the Central Government a Social Security Fund
 for social security and welfare of the unorganised workers, gig workers and platform workers
@@ -4868,8 +4690,6 @@ this Chapter.
 Social Security
 Fund.
 86
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (ii) such other sources as may be prescribed by the State Government,
 and the fund shall be administered and expended for the welfare of the unorganised workers
 in such manner as may be prescribed by the State Government.
@@ -4884,7 +4704,7 @@ for—
 (b) seeking benefit whether in kind, cash or medical sickness benefit or pension,
 gratuity or maternity benefit or any other benefit or for withdrawal of fund; or
 (c) availing services of career centre; or
-(d)  receiving any payment or medical attendance as Insured Person himself or
+(d) receiving any payment or medical attendance as Insured Person himself or
 for his dependants,
 under this Code or rules, regulations or schemes made or framed thereunder, shall establish
 his identity or, as the case may be, the identity of his family members or dependants through
@@ -4924,8 +4744,6 @@ shall be specified in such respective schemes.
 18 of 2016.
 18 of 2016.
 18 of 2016.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 87
 (3) The exemption granted under sub-section (1) to an establishment or class of
 establishments or an employee or class of employees, as the case may be, shall be initially
@@ -4979,8 +4797,6 @@ employer to remit the contribution in the statutory funds under this Code from t
 specified in the application and process the application for cancellation of exemption and
 on such cancellation, the employer and the board of trustees shall transfer accumulation of
 88
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 each employee and surplus and reserves from the fund referred to in sub-section (5), to the
 concerned statutory funds under this Code within such time and in such manner as may be
 notified by the appropriate Government:
@@ -5043,8 +4859,6 @@ Provided further that the manner to ascertain misuse of any benefit under this s
 relating to Chapter III, shall be specified in the Provident Fund Scheme or the Pension
 Scheme or the Insurance Scheme, as the case may be.
 45 of 1860.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 89
 149. The Central Government may give directions to—
 (i) any State Government or a State Board constituted under section 12 to
@@ -5081,7 +4895,7 @@ assets of the establishment to which it relates and shall be paid in priority in
 with the provisions of the Insolvency and Bankruptcy Code, 2016.
 152. (1) If the Central Government is satisfied that it is necessary or expedient so to
 do, it may, by notification amend the First Schedule, Fourth Schedule, Fifth Schedule, Sixth
-Schedule and Seventh Schedule by way of addition or deletion therein and upon such
+## Schedule and Seventh Schedule by way of addition or deletion therein and upon such
 addition or deletion, the Schedules shall stand to have been amended accordingly.
 (2) If the appropriate Government is satisfied that it is necessary or expedient so to
 do, it may, by notification amend the Second Schedule and Third Schedule by way of
@@ -5118,12 +4932,10 @@ attachment,
 etc.
 Power to
 amend
-Schedule.
+## Schedule.
 Transitional
 provisions.
 90
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (vi) the Board constituted under sub-section (1) of section 18 of the Building
 and Other Construction Workers (Regulation of Employment and Condition of Service)
 Act, 1996,
@@ -5180,8 +4992,6 @@ section 82;
 (k) the manner of recording the memorandum in a register by the competnet
 authority under sub-section (1) of section 89;
 27 of 1996.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 91
 (l) such other experience and qualifications for appointment as a competent
 authority under sub-section (1) of section 91;
@@ -5238,8 +5048,6 @@ Central
 Government
 to make rules.
 92
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 registration shall be cancelled and the procedure of cancellation and other matters
 relating thereto in respect of an establishment to which Chapter III or Chapter IV
 applies, and whose business activities are in the process of closure, under section 3;
@@ -5289,8 +5097,6 @@ money which is held by Corporation under sub-section (4) of section 25;
 immovable property under sub-section (1), conditions to invest moneys by the
 Corporation under sub-section (2) and the terms to raise loans and taking measures
 for discharging such loans under sub-section (3) of section 27;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 93
 (p) manner of insurance of employees under sub-section (1) of section 28;
 (q) the rate of contributions under sub-section (2) of section 29;
@@ -5341,8 +5147,6 @@ sub-section (3) of section 93;
 deposit of the cess so collected under sub-section (3), and the uniform rate or rates of
 advance cess under sub-section (4) of section 100;
 94
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (zk) the rate of interest in case of delayed payment of cess under section 101;
 (zl) the manner of self-assessment of cess under sub-section (1) of section 103;
 (zm) the authority to inquire and impose penalty under section 104;
@@ -5391,15 +5195,13 @@ employee with the competent authority by the employer under sub-section (7) of
 section 76;
 (e) conditions when application for review is made without certificate of a
 medical practitioner under sub-section (1) of section 79;
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 95
 (f) the frequent interval for medical examination under the proviso to
 sub-section (1) of section 84;
 (g) the form of statement to be submitted by the employer under sub-section (1)
 of section 88;
 (h) the manner in which matters may be dealt with by or before a competent
-authority  under sub-section (1) of section 92;
+authority under sub-section (1) of section 92;
 (i) time-limit for disposal of application and costs incidental to the proceedings
 under sub-section (4) of section 93;
 (j) the manner of authentication of memorandum under section 97;
@@ -5441,8 +5243,6 @@ Corporation
 to make
 regulations.
 96
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (g) continuous period in which the employee contracts occupational disease
 under sub-section (1) of section 36;
 (h) constitution of medical board under sub-section (1) and constitution of
@@ -5495,8 +5295,6 @@ Gazette and, on such publication, shall have effect as if enacted in this Code:
 Provided that the Central Government may, in the circumstances of epidemic,
 pandemic or disaster, dispense with the condition of previous publication under this
 section.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 97
 159. (1) The Central Government may, by notification, make rules for the transfer to
 any foreign country of money deposited with a competent authority under Chapter VII
@@ -5522,7 +5320,7 @@ session or the successive sessions aforesaid, both Houses agree in making any mo
 in the rule, regulation, notification or scheme, as the case may be, or both Houses agree that
 the rule, regulation, notification or scheme, as the case may be, should not be made, such
 rule, regulation, notification or scheme shall thereafter have effect only in such modified
-form or be of no effect, as the case may be; so, however, that any such modification or
+### form or be of no effect, as the case may be; so, however, that any such modification or
 annulment shall be without prejudice to the validity of anything previously done under that
 rule, regulation, notification or scheme, as the case may be.
 (2) Every rule and scheme made or framed, and every notification issued by, the State
@@ -5571,8 +5369,6 @@ Code.
 Delegation of
 powers.
 98
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 Power to
 remove
 difficulties.
@@ -5635,10 +5431,8 @@ section 6 of the General Clauses Act, 1897 shall apply to the repeal of such ena
 19 of 1952.
 34 of 1948.
 10 of 1897.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 99
-THE FIRST SCHEDULE
+## THE FIRST SCHEDULE
 [See sections 1(4), (8) and 152 (1)]
 APPLICABILITY
 Chapter
@@ -5695,10 +5489,8 @@ shops or establishments notified by the appropriate
 Government.
 Subject to the provisions of the Second Schedule, it
 applies to the employers and employees to whom
-Chapter IV does not apply.
+## Chapter IV does not apply.
 100
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (1)
 (2)
 (3)
@@ -5714,10 +5506,8 @@ Unorganised sector, unorganised workers', gig worker,
 platform worker.
 Career centres, vacancies, persons seeking services of
 career centres and employers.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 101
-THE  SECOND  SCHEDULE
+## THE SECOND SCHEDULE
 [See sections 2(26), 74(3), (5), 132 and 152(2)]
 LIST OF PERSONS WHO ARE EMPLOYEES WITHIN THE MEANING OF
 THE THIRD PROVISO TO CLAUSE (26) OF SECTION 2
@@ -5764,8 +5554,6 @@ which have been discharged from or are to be loaded into any vessel; or
 leaving dry docks; or
 (e) the docking or undocking of any vessel during an emergency; or
 102
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (f) preparing splicing coir springs and check wires, painting depth marks
 on lock-sides, removing or replacing fenders whenever necessary, landing of
 gangways, maintaining life-buoys up to standard or any other maintenance
@@ -5811,8 +5599,6 @@ Lighthouse Act, 1927 (17 of 1927); or
 exhibition or in exhibiting such pictures; or
 (xxii) employed in the training, keeping or working of elephants or wild
 animals; or
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 103
 (xxiii) employed in the tapping of palm-trees or the felling or logging of trees, or
 the transport of timber by inland waters, or the control or extinguishing of forests
@@ -5822,7 +5608,7 @@ wild animals; or
 (xxv) employed as a diver; or
 (xxvi) employed in the handling or transport of goods in, or within the precincts
 of,—
-(a)   any warehouse or other place in which goods are stored; or
+(a) any warehouse or other place in which goods are stored; or
 (b) any market; or
 (xxvii) employed in any occupation involving the handling and manipulation of
 radium or X-rays apparatus, or contact with radioactive substances; or
@@ -5842,7 +5628,7 @@ building; or
 (xxxv) employed in any employment which requires handling of snakes for the
 purpose of extraction of venom or for the purpose of looking after snakes or handling
 any other poisonous animal or insect; or
-(xxxvi)  employed in handling animals like horses, mules and bulls; or
+(xxxvi) employed in handling animals like horses, mules and bulls; or
 (xxxvii) employed for the purpose of loading or unloading any mechanically
 propelled vehicle or in the handling or transport of goods which have been loaded in
 such vehicles; or
@@ -5859,8 +5645,6 @@ used for lifting of water from wells, tube-wells, ponds, lakes, streams and the 
 (xliii) employed in the construction, boring or deepening of an open well or
 dug well, bore well, bore-cum-dug well, filter point and the like; or
 104
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (xliv) employed in spraying and dusting of insecticides or pesticides in
 agricultural operations or plantations; or
 (xlv) employed in mechanised harvesting and threshing operations; or
@@ -5875,10 +5659,8 @@ Miscellaneous Provisions Act, 1955 (45 of 1955) and engaged in outdoor work; or
 (l) any other employee or class of employee employed in an establishment or
 class of establishments to which the Employees' Compensation Act, 1923 (8 of 1923)
 was applicable in any State immediately before the commencement of this Code.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 105
-THE  THIRD  SCHEDULE
+## THE THIRD SCHEDULE
 [See sections 2 (51), 36(1), 74 (1), (3), (5), 131(5), 132 and 152(2)]
 LIST OF OCCUPATIONAL DISEASES
 Serial No.
@@ -5944,7 +5726,7 @@ concerned.
 All work involving exposure to the risk
 concerned.
 Diseases caused by nitro and amido All work involving exposure to the risk
-toxic derivatives of benzene or its 
+toxic derivatives of benzene or its
 concerned.
 homologues
 Diseases caused by chromium or its All work involving exposure to the risk
@@ -5965,8 +5747,6 @@ mineral oil, anthracene, or the
 compounds, products or residues
 of these substances
 106
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (1)
 (2)
 (3)
@@ -5990,7 +5770,7 @@ THE GAZETTE OF INDIA EXTRAORDINARY
 26.
 27.
 Diseases caused by the toxic halogen All work involving exposure to the risk
-derivatives of hydrocarbons (of the 
+derivatives of hydrocarbons (of the
 concerned.
 aliphatic and aromatic series).
 Diseases caused by carbon
@@ -6001,7 +5781,7 @@ Occupational cataract due to infra-red All work involving exposure to the risk
 radiations
 concerned.
 Diseases caused by manganese or its All work involving exposure to the risk
- toxic compounds
+toxic compounds
 concerned.
 Skin diseases caused by physical,
 chemical or biological agents not
@@ -6064,13 +5844,10 @@ All work involving exposure to the risk
 concerned.
 All work involving exposure to the risk
 concerned.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 107
 (1)
 (2)
 (3)
-PART C
 1.
 2.
 3.
@@ -6078,7 +5855,7 @@ PART C
 5.
 6.
 Pneumoconioses caused by
- sclerogenic mineral dust (silicoses,
+sclerogenic mineral dust (silicoses,
 anthraoosilicosis, asbestosis) and
 silico-tuberculosis provided that
 silicosis is an essential factor in
@@ -6104,13 +5881,12 @@ altitude.
 All work involving exposure to the risk
 concerned.
 108 THE GAZETTE OF INDIA EXTRAORDINARY [PART II—
-THE  FOURTH  SCHEDULE
+## THE FOURTH SCHEDULE
 [See sections 2(55), (56), 76(1) and 152(1)]
-PART I
 LIST OF INJURIES DEEMED TO RESULT IN PERMANENT
 TOTAL DISABLEMENT
 Serial Description of Injury Percentage of
-No. loss of  earning
+No. loss of earning
 capacity
 (1) (2) (3)
 1. Loss of both hands or amputation at higher sites 100
@@ -6121,11 +5897,10 @@ leg or thigh on one side and loss of other foot 100
 to perform any work for which eye-sight is essential 100
 5. Very severe facial disfigurement 100
 6. Absolute deafness 100
-PART II
 LIST OF INJURIES DEEMED TO RESULT IN PERMANENT
 PARTIAL DISABLEMENT
 Serial Description of Injury Percentage of
-No. loss of  earning
+No. loss of earning
 capacity
 (1) (2) (3)
 1. Amputation through shoulder joint 90
@@ -6142,7 +5917,6 @@ amputation from [11.43 Cms.] below tip of olecranon 60
 9. Loss of two fingers of one hand 20
 10. Loss of terminal phalanx of thumb 20
 11. Guillotine amputation of tip of thumb without loss of bone 10
-SEC. 1] THE GAZETTE OF INDIA EXTRAORDINARY 109
 Amputation cases-lower limbs
 12. Amputation of both feet resulting in end bearing stumps 90
 13. Amputation through both feet proximal to the 80
@@ -6157,7 +5931,7 @@ inter-phalangeal joint
 in length measured from tip of great trenchanter
 19. Amputation below hip with stump exceeding [12.70 Cms.] 70
 in length measured from tip of great trenchanter but not
- beyond middle thigh
+beyond middle thigh
 20. Amputation below middle thigh to [8.89 Cms.] below knee 60
 21. Amputation below knee with stump exceeding [8.89 Cms.]
 but not exceeding [12.70 Cms.] 50
@@ -6185,8 +5959,6 @@ Middle finger
 36. Guillotine amputation of tip without loss of bone 4
 (1) (2) (3)
 110
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (1)
 (2)
 (3)
@@ -6239,10 +6011,8 @@ Part, with some loss of bone
 3
 9
 3
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 111
-THE FIFTH SCHEDULE
+## THE FIFTH SCHEDULE
 [See sections 15(2) and 152(1)]
 MATTERS THAT MAY BE PROVIDED FOR IN THE SCHEMES
 Any scheme framed under section 15 may provide for any or all of the matters as
@@ -6300,8 +6070,6 @@ The form or design of any identity card, token or disc for the purpose of identi
 any employee, and for the issue, custody and replacement thereof.
 The fees to be levied for any of the purposes specified in this Schedule.
 112
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II—
 (1)
 (2)
 15.
@@ -6356,7 +6124,6 @@ The manner in which the expenses for administering the Pension Scheme will be
 met from the income of the Pension Fund.
 Any other matter which is to be provided for in the Pension Scheme or which may
 be necessary or proper for the purpose of implementation of the Pension Scheme.
-PART C
 MATTERS THAT MAY BE PROVIDED FOR IN THE EMPLOYEES' DEPOSIT-LINKED
 INSURANCE SCHEME
 1.
@@ -6366,8 +6133,6 @@ Scheme.
 The manner in which the accounts of the Insurance Fund shall be kept and the
 investment of moneys belonging to the Insurance Fund subject to such pattern of
 investment as may be determined, by order, by the Central Government.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 113
 (1)
 (2)
@@ -6392,12 +6157,12 @@ the employee under the scheme is to be paid including a provision that the amoun
 shall not be paid otherwise than in the form of a deposit in a savings bank account,
 in the name of such nominee or member of family, in any corresponding new bank
 specified in the First Schedule to the Banking Companies (Acquisition and Transfer
-of  Undertakings) Act, 1970 (5 of 1970).
+of Undertakings) Act, 1970 (5 of 1970).
 Any other matter which is to be provided for in the Employees' Deposit-linked
 Insurance Scheme or which may be necessary or proper for the purpose of
 implementing that Scheme.
 114 THE GAZETTE OF INDIA EXTRAORDINARY [PART II—
-THE  SIXTH  SCHEDULE
+## THE SIXTH SCHEDULE
 [See sections 75, 76(1) and 152(1)]
 FACTORS FOR WORKING OUT LUMP SUM EQUIVALENT OF COMPENSATION
 AMOUNT IN CASE OF PERMANENT DISABLEMENT AND DEATH
@@ -6432,7 +6197,6 @@ Not more than 16 228.54
 40 184.17
 41 181.37
 42 178.49
-SEC. 1] THE GAZETTE OF INDIA EXTRAORDINARY 115
 43 175.54
 44 172.52
 45 169.44
@@ -6458,11 +6222,9 @@ SEC. 1] THE GAZETTE OF INDIA EXTRAORDINARY 115
 65 or more 99.37
 (1) (2) (3)
 116
-THE GAZETTE OF INDIA EXTRAORDINARY
-[PART II— SEC. 1]
-THE SEVENTH  SCHEDULE
+## THE SEVENTH SCHEDULE
 [See section 114(4)]
-CLASSIFICATION  OF AGGREGATORS
+CLASSIFICATION OF AGGREGATORS
 Sl.No.
 Classification of Aggregator
 1.
@@ -6484,7 +6246,8 @@ Healthcare
 Travel and hospitality
 Content and media services
 Any other goods and services provider platform
-————
 DR. G. NARAYANA RAJU,
-Secretary to the Govt. of  India.
-UPLOADED BY THE MANAGER, GOVERNMENT OF INDIA PRESS, MINTO ROAD,  NEW DELHI–11000
+Secretary to the Govt. of India.
+UPLOADED BY THE MANAGER, GOVERNMENT OF INDIA PRESS, MINTO ROAD, NEW DELHI–110002
+AND PUBLISHED BY THE CONTROLLER OF PUBLICATIONS, DELHI–110054.
+MGIPMRND—874GI—29-09-2020

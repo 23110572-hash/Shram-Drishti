@@ -52,3 +52,6 @@ __all__ = [
     "WageLine",
     "WorkerIdentity",
 ]
+
+# Durable upload-batch tables (imported so metadata.create_all sees them).
+from app.models.document import UploadBatch, UploadBatchDocument  # noqa: F401,E402

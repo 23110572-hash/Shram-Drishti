@@ -58,9 +58,9 @@ logger = logging.getLogger(__name__)
 #: 1.1 — a Code that could not be assessed is now capped at UNTESTED_CEILING
 #:       instead of scoring 100 by absence, and only rules awaiting a notification
 #:       are discounted rather than everything the old `verified` flag caught.
-#: 1.2 — model-only observations are explicitly advisory and exact missing
-#:       document types are persisted with the score computation.
-SCORING_VERSION = "1.2"
+#: 2.0 — scores use only deterministic rules assessed from the uploaded records;
+#:       absent voluntary documents and unassessed Codes do not lower the number.
+SCORING_VERSION = "2.0"
 
 #: Relative importance of each Code in the overall score. Wages and social
 #: security are weighted highest because their breaches take money directly out
@@ -292,7 +292,16 @@ def compute_score(
     """
     findings = _findings(session, establishment.id, period_start, period_end)
 
-    scored = [finding for finding in findings if is_scored(finding)]
+    assessed_rule_ids = {
+        outcome.rule_id for outcome in report.outcomes if outcome.is_assessed
+    }
+    scored = [
+        finding
+        for finding in findings
+        if is_scored(finding)
+        and finding.rule_id in assessed_rule_ids
+        and not finding.rule_basis.needs_notified_rules
+    ]
     advisories = [
         finding
         for finding in findings
@@ -341,30 +350,18 @@ def compute_score(
         # the worst cases indistinguishable from each other.
         score = 100.0 * math.exp(-penalty / 120.0)
 
-        # ------------------------------------------------ evidence ceiling
-        # A Code with no findings scored a full 100 whether it was genuinely
-        # compliant or whether nothing was ever submitted to test it. That made
-        # the headline number most generous exactly when it was least earned: an
-        # establishment could file one clean wage register, submit nothing else,
-        # and average its way into the low-risk band.
-        #
-        # So a Code's score is capped by how much of that Code could actually be
-        # assessed. At full coverage the ceiling is 100 and this does nothing. At
-        # no coverage it is UNTESTED_CEILING — deliberately mid-range, because
-        # absent evidence is not proof of a breach and must not be scored as one.
+        # Only Codes with at least one rule actually assessed from the uploaded
+        # records participate in this submitted-record score. Missing evidence is
+        # neither a pass nor a penalty.
         coverage = report.coverage_for(code)
         relevant_rules = report.relevant_rule_count(code)
-        if relevant_rules == 0:
-            # No rule of this Code binds this establishment. Nothing was withheld
-            # and nothing is unknown, so a full score is honest here.
-            ceiling = 100.0
-        else:
-            ceiling = UNTESTED_CEILING + (100.0 - UNTESTED_CEILING) * coverage
-        capped = min(score, ceiling)
+        assessed_rules = round(coverage * relevant_rules)
+        if assessed_rules <= 0:
+            continue
 
         code_scores[code] = CodeScore(
             code=code,
-            score=round(max(0.0, min(100.0, capped)), 1),
+            score=round(max(0.0, min(100.0, score)), 1),
             penalty=round(penalty, 2),
             finding_count=len(relevant),
             critical_count=critical,
@@ -375,8 +372,12 @@ def compute_score(
         )
         contributing[code.value] = [f.id for f in relevant]
 
-    overall = sum(
-        code_scores[code].score * CODE_WEIGHTS[code] for code in LabourCode
+    total_weight = sum(CODE_WEIGHTS[code] for code in code_scores)
+    overall = (
+        sum(code_scores[code].score * CODE_WEIGHTS[code] for code in code_scores)
+        / total_weight
+        if total_weight
+        else 0.0
     )
 
     # A critical breach anywhere caps the overall score. Without this, a large
@@ -405,15 +406,24 @@ def compute_score(
 
     result.computation = {
         "scoring_version": SCORING_VERSION,
-        "code_weights": {code.value: weight for code, weight in CODE_WEIGHTS.items()},
+        "assessed_rule_count": len(assessed_rule_ids),
+        "score_available": bool(assessed_rule_ids),
+        "scope_statement": (
+            "This result covers only the uploaded records and is not a complete "
+            "compliance certificate for the establishment."
+        ),
+        "code_weights": {
+            code.value: round(CODE_WEIGHTS[code] / total_weight, 6)
+            for code in code_scores
+        } if total_weight else {},
         "severity_weights": {
             severity.value: severity_weight(severity) for severity in Severity
         },
         "decay_constant": 120.0,
         "max_scale_multiplier": MAX_SCALE_MULTIPLIER,
         "critical_score_cap": 45.0 if critical_total else None,
-        "untested_ceiling": UNTESTED_CEILING,
-        "pending_notification_multiplier": 0.4,
+        "untested_ceiling": None,
+        "pending_notification_multiplier": 0.0,
         "codes_limited_by_evidence": [
             code.value for code, cs in code_scores.items() if cs.limited_by_evidence
         ],
@@ -641,19 +651,24 @@ def _completeness(
     if period_start is not None:
         query = query.where(Document.period_end >= period_start)
 
+    assessment_ids = session.info.get("assessment_document_ids")
+    if assessment_ids is not None:
+        query = query.where(Document.id.in_(assessment_ids or ["-"]))
+
     documents = list(session.execute(query).scalars().all())
     present_types = {d.doc_type for d in documents}
 
-    received = sum(1 for doc_type in expected if doc_type in present_types)
+    # Completeness now describes the submitted scope only. Voluntary documents
+    # that were not uploaded are not treated as missing evidence or a score penalty.
+    expected = sorted(present_types, key=lambda item: item.value)
+    received = len(expected)
 
     return Completeness(
         documents_expected=len(expected),
         documents_received=received,
         expected_document_types=expected,
-        present_document_types=sorted(present_types, key=lambda item: item.value),
-        missing_document_types=[
-            doc_type for doc_type in expected if doc_type not in present_types
-        ],
+        present_document_types=expected,
+        missing_document_types=[],
         rule_coverage=report.coverage,
         unassessable_rules=report.rules_unassessable,
         documents_needing_review=sum(

@@ -1,495 +1,679 @@
 pack: wages
-version: "2026.01"
+version: '2026.3'
 jurisdiction: IN
-description: >
-  Code on Wages, 2019 (Act 29 of 2019). Each rule states what its operative number
-  rests on. basis: STATUTE means the figure was read directly from the Gazette text
-  held at code on wage 2019.md and is quoted in source_ref. basis: ARITHMETIC means
-  the rule compares no statutory figure at all — it checks that the register's own
-  columns add up. Only basis: RULES_PENDING is a caveat, and here it applies to the
-  minimum wage floor alone, whose rates are notified by each State and reissued
-  roughly twice a year.
+description: 'Code on Wages, 2019 (Act 29 of 2019). Each rule states what its operative number rests on. basis: STATUTE means
+  the figure was read directly from the Gazette text held at storage/the code on wages 2019.md and is quoted in source_ref.
+  basis: ARITHMETIC means the rule compares no statutory figure at all — it checks that the register''s own columns add up.
+  Only basis: RULES_PENDING is a caveat, and here it applies to the minimum wage floor alone, whose rates are notified by
+  each State and reissued roughly twice a year.
 
+  '
 rules:
-  # ---------------------------------------------------------------- s.14
-  - id: WAGES.OVERTIME.RATE
-    code: WAGES
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 9
-    title: Overtime paid below twice the ordinary rate
-    citation: "Code on Wages, 2019 — s.14"
-    source_ref: "code on wage 2019.md, s.14: 'at the overtime rate which shall not be less than twice the normal rate of wages'"
-    basis: STATUTE
-    requires: [wage_register]
-    for_each: wage_register
-    # Rows with no overtime cannot breach an overtime rule. Where overtime was
-    # worked, the paid rate must reach twice the ordinary hourly rate.
-    expression: >
-      is_missing(row.overtime_hours) or row.overtime_hours == 0
-      or is_missing(row.overtime_rate_paise)
-      or is_missing(ordinary_hourly_rate(row))
-      or row.overtime_rate_paise >= 2 * ordinary_hourly_rate(row)
-    observe:
-      workers_with_overtime: "count_nonzero(pluck(wage_register, 'overtime_hours'))"
-      lowest_overtime_rate_paise: "minimum(pluck(wage_register, 'overtime_rate_paise'))"
-    expect:
-      multiple_of_ordinary_rate: "2"
-    message:
-      en: "Overtime has been paid below twice the ordinary rate of wages for one or more workers."
-      hi: "एक या अधिक श्रमिकों को सामान्य मजदूरी दर से दोगुने से कम दर पर अतिरिक्त समय का भुगतान किया गया है।"
-    remediation:
-      en: "Recompute overtime at not less than twice the ordinary rate for the affected wage period and pay the arrears."
-      hi: "प्रभावित मजदूरी अवधि के लिए अतिरिक्त समय की गणना सामान्य दर से कम से कम दोगुनी दर पर करें और बकाया राशि का भुगतान करें।"
-    fixtures:
-      - name: overtime_at_double_rate
-        should_pass: true
-        facts:
-          wage_register:
-            - basic_paise: 1300000
-              da_paise: 200000
-              days_paid: 26
-              normal_hours_per_day: 8
-              overtime_hours: 10
-              overtime_rate_paise: 15000
-      - name: overtime_at_single_rate
-        should_pass: false
-        facts:
-          wage_register:
-            - basic_paise: 1300000
-              da_paise: 200000
-              days_paid: 26
-              normal_hours_per_day: 8
-              overtime_hours: 10
-              overtime_rate_paise: 7000
-      - name: no_overtime_worked
-        should_pass: true
-        facts:
-          wage_register:
-            - basic_paise: 1300000
-              da_paise: 200000
-              days_paid: 26
-              normal_hours_per_day: 8
-              overtime_hours: 0
-              overtime_rate_paise: 0
+- id: WAGES.OVERTIME.RATE
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: HIGH
+  weight: 9
+  title: Overtime paid below twice the ordinary rate
+  citation: Code on Wages, 2019 — s.14
+  source_ref: 'storage/the code on wages 2019.md, s.14: ''at the overtime rate which shall not be less than twice the normal
+    rate of wages'''
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: 'is_missing(row.overtime_hours) or row.overtime_hours == 0 or is_missing(row.overtime_rate_paise) or is_missing(ordinary_hourly_rate(row))
+    or row.overtime_rate_paise >= 2 * ordinary_hourly_rate(row)
 
-  # ---------------------------------------------------------------- s.16
-  - id: WAGES.PERIOD.MAX_ONE_MONTH
-    code: WAGES
-    kind: NON_COMPLIANCE
-    severity: MEDIUM
-    weight: 4
-    title: Wage period longer than one month
-    citation: "Code on Wages, 2019 — s.16"
-    source_ref: "code on wage 2019.md, s.16: 'no wage period in respect of any employee shall be more than a month'"
-    basis: STATUTE
-    requires: [period]
-    expression: >
-      is_missing(period.days) or period.days <= 31
-    observe:
-      wage_period_days: "period.days"
-    expect:
-      maximum_days: "31"
-    message:
-      en: "The wage period exceeds one month."
-      hi: "मजदूरी अवधि एक माह से अधिक है।"
-    remediation:
-      en: "Fix the wage period as daily, weekly, fortnightly or monthly. It may not exceed one month."
-      hi: "मजदूरी अवधि को दैनिक, साप्ताहिक, पाक्षिक या मासिक निर्धारित करें। यह एक माह से अधिक नहीं हो सकती।"
-    fixtures:
-      - name: monthly_period
-        should_pass: true
-        facts:
-          period: {days: 30}
-      - name: two_month_period
-        should_pass: false
-        facts:
-          period: {days: 61}
+    '
+  observe:
+    workers_with_overtime: count_nonzero(pluck(wage_register, 'overtime_hours'))
+    lowest_overtime_rate_paise: minimum(pluck(wage_register, 'overtime_rate_paise'))
+  expect:
+    multiple_of_ordinary_rate: '2'
+  message:
+    en: Overtime has been paid below twice the ordinary rate of wages for one or more workers.
+    hi: एक या अधिक श्रमिकों को सामान्य मजदूरी दर से दोगुने से कम दर पर अतिरिक्त समय का भुगतान किया गया है।
+  remediation:
+    en: Recompute overtime at not less than twice the ordinary rate for the affected wage period and pay the arrears.
+    hi: प्रभावित मजदूरी अवधि के लिए अतिरिक्त समय की गणना सामान्य दर से कम से कम दोगुनी दर पर करें और बकाया राशि का भुगतान
+      करें।
+  fixtures:
+  - name: overtime_at_double_rate
+    should_pass: true
+    facts:
+      wage_register:
+      - basic_paise: 1300000
+        da_paise: 200000
+        days_paid: 26
+        normal_hours_per_day: 8
+        overtime_hours: 10
+        overtime_rate_paise: 15000
+  - name: overtime_at_single_rate
+    should_pass: false
+    facts:
+      wage_register:
+      - basic_paise: 1300000
+        da_paise: 200000
+        days_paid: 26
+        normal_hours_per_day: 8
+        overtime_hours: 10
+        overtime_rate_paise: 7000
+  - name: no_overtime_worked
+    should_pass: true
+    facts:
+      wage_register:
+      - basic_paise: 1300000
+        da_paise: 200000
+        days_paid: 26
+        normal_hours_per_day: 8
+        overtime_hours: 0
+        overtime_rate_paise: 0
+- id: WAGES.PERIOD.MAX_ONE_MONTH
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Wage period longer than one month
+  citation: Code on Wages, 2019 — s.16
+  source_ref: 'storage/the code on wages 2019.md, s.16: ''no wage period in respect of any employee shall be more than a month'''
+  basis: STATUTE
+  requires:
+  - period
+  expression: 'is_missing(period.days) or period.days <= 31
 
-  # ------------------------------------------------------------ s.17(1)(iv)
-  - id: WAGES.PAYMENT.MONTHLY_BY_SEVENTH
-    code: WAGES
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 7
-    title: Monthly wages paid after the seventh of the following month
-    citation: "Code on Wages, 2019 — s.17(1)(iv)"
-    source_ref: "code on wage 2019.md, s.17(1)(iv): 'monthly basis, before the expiry of the seventh day of the succeeding month'"
-    basis: STATUTE
-    requires: [wage_register]
-    applicability: "period.basis == 'monthly'"
-    for_each: wage_register
-    # The statutory deadline is the 7th of the month after the wage month, so a
-    # payment date whose day-of-month exceeds 7 is late.
-    expression: >
-      is_missing(row.paid_on) or day_of_month(row.paid_on) <= 7
-    observe:
-      latest_payment_day: "maximum(pluck(wage_register, 'days_paid'))"
-    expect:
-      pay_by_day_of_month: "7"
-    message:
-      en: "Monthly wages were paid after the seventh day of the succeeding month."
-      hi: "मासिक मजदूरी का भुगतान अगले माह की सातवीं तारीख के बाद किया गया।"
-    remediation:
-      en: "Pay monthly wages before the expiry of the seventh day of the following month."
-      hi: "मासिक मजदूरी का भुगतान अगले माह की सातवीं तारीख की समाप्ति से पहले करें।"
-    fixtures:
-      - name: paid_on_fifth
-        should_pass: true
-        facts:
-          period: {basis: monthly}
-          wage_register:
-            - paid_on: 2026-04-05
-      - name: paid_on_eighteenth
-        should_pass: false
-        facts:
-          period: {basis: monthly}
-          wage_register:
-            - paid_on: 2026-04-18
+    '
+  observe:
+    wage_period_days: period.days
+  expect:
+    maximum_days: '31'
+  message:
+    en: The wage period exceeds one month.
+    hi: मजदूरी अवधि एक माह से अधिक है।
+  remediation:
+    en: Fix the wage period as daily, weekly, fortnightly or monthly. It may not exceed one month.
+    hi: मजदूरी अवधि को दैनिक, साप्ताहिक, पाक्षिक या मासिक निर्धारित करें। यह एक माह से अधिक नहीं हो सकती।
+  fixtures:
+  - name: monthly_period
+    should_pass: true
+    facts:
+      period:
+        days: 30
+  - name: two_month_period
+    should_pass: false
+    facts:
+      period:
+        days: 61
+- id: WAGES.PAYMENT.MONTHLY_BY_SEVENTH
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: HIGH
+  weight: 7
+  title: Monthly wages paid after the seventh of the following month
+  citation: Code on Wages, 2019 — s.17(1)(iv)
+  source_ref: 'storage/the code on wages 2019.md, s.17(1)(iv): ''monthly basis, before the expiry of the seventh day of the
+    succeeding month'''
+  basis: STATUTE
+  requires:
+  - wage_register
+  applicability: period.basis == 'monthly'
+  for_each: wage_register
+  expression: 'is_missing(row.paid_on) or day_of_month(row.paid_on) <= 7
 
-  # --------------------------------------------------------------- s.17(2)
-  - id: WAGES.PAYMENT.FINAL_SETTLEMENT
-    code: WAGES
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 6
-    title: Final settlement not paid within two working days of exit
-    citation: "Code on Wages, 2019 — s.17(2)"
-    source_ref: "code on wage 2019.md, s.17(2): wages payable 'within two working days of his removal, dismissal, retrenchment or, as the case may be, his resignation'"
-    basis: STATUTE
-    requires: [wage_register]
-    for_each: wage_register
-    expression: >
-      is_missing(row.date_of_exit) or is_missing(row.paid_on)
-      or days_between(row.date_of_exit, row.paid_on) <= 2
-    observe:
-      slowest_settlement_days: "maximum(pluck(wage_register, 'settlement_days'))"
-    expect:
-      maximum_days: "2"
-    message:
-      en: "Wages due on exit were not paid within two working days."
-      hi: "सेवा समाप्ति पर देय मजदूरी का भुगतान दो कार्य दिवसों के भीतर नहीं किया गया।"
-    remediation:
-      en: "Settle all wages due within two working days of removal, dismissal, retrenchment or resignation."
-      hi: "सेवा समाप्ति, बर्खास्तगी, छँटनी या त्यागपत्र के दो कार्य दिवसों के भीतर सभी देय मजदूरी का भुगतान करें।"
-    fixtures:
-      - name: settled_next_day
-        should_pass: true
-        facts:
-          wage_register:
-            - date_of_exit: 2026-03-10
-              paid_on: 2026-03-11
-      - name: settled_three_weeks_later
-        should_pass: false
-        facts:
-          wage_register:
-            - date_of_exit: 2026-03-10
-              paid_on: 2026-03-31
+    '
+  observe:
+    latest_payment_day: maximum(pluck(wage_register, 'days_paid'))
+  expect:
+    pay_by_day_of_month: '7'
+  message:
+    en: Monthly wages were paid after the seventh day of the succeeding month.
+    hi: मासिक मजदूरी का भुगतान अगले माह की सातवीं तारीख के बाद किया गया।
+  remediation:
+    en: Pay monthly wages before the expiry of the seventh day of the following month.
+    hi: मासिक मजदूरी का भुगतान अगले माह की सातवीं तारीख की समाप्ति से पहले करें।
+  fixtures:
+  - name: paid_on_fifth
+    should_pass: true
+    facts:
+      period:
+        basis: monthly
+      wage_register:
+      - paid_on: 2026-04-05
+  - name: paid_on_eighteenth
+    should_pass: false
+    facts:
+      period:
+        basis: monthly
+      wage_register:
+      - paid_on: 2026-04-18
+- id: WAGES.PAYMENT.FINAL_SETTLEMENT
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: HIGH
+  weight: 6
+  title: Final settlement not paid within two working days of exit
+  citation: Code on Wages, 2019 — s.17(2)
+  source_ref: 'storage/the code on wages 2019.md, s.17(2): wages payable ''within two working days of his removal, dismissal,
+    retrenchment or, as the case may be, his resignation'''
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: 'is_missing(row.date_of_exit) or is_missing(row.paid_on) or days_between(row.date_of_exit, row.paid_on) <= 2
 
-  # --------------------------------------------------------------- s.18(3)
-  - id: WAGES.DEDUCTIONS.HALF_CAP
-    code: WAGES
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 8
-    title: Total deductions exceed half of wages
-    citation: "Code on Wages, 2019 — s.18(3)"
-    source_ref: "code on wage 2019.md, s.18(3): 'the total amount of deductions ... shall not exceed fifty per cent. of such wages'"
-    basis: STATUTE
-    requires: [wage_register]
-    for_each: wage_register
-    expression: >
-      is_missing(deduction_share(row)) or deduction_share(row) <= 0.5
-    observe:
-      highest_deduction_share: "maximum(pluck(wage_register, 'deduction_share'))"
-    expect:
-      maximum_share: "0.5"
-    message:
-      en: "Total deductions exceed fifty per cent of wages for one or more workers."
-      hi: "एक या अधिक श्रमिकों की मजदूरी से कुल कटौती पचास प्रतिशत से अधिक है।"
-    remediation:
-      en: "Cap deductions at fifty per cent of wages for the period and recover any excess in later periods as permitted."
-      hi: "अवधि की मजदूरी के पचास प्रतिशत तक कटौती सीमित करें और अधिक राशि की वसूली अनुमत रीति से बाद की अवधियों में करें।"
-    fixtures:
-      - name: deductions_within_cap
-        should_pass: true
-        facts:
-          wage_register:
-            - basic_paise: 1000000
-              da_paise: 0
-              other_allowances_paise: 0
-              deductions_paise: 300000
-      - name: deductions_over_cap
-        should_pass: false
-        facts:
-          wage_register:
-            - basic_paise: 1000000
-              da_paise: 0
-              other_allowances_paise: 0
-              deductions_paise: 700000
+    '
+  observe:
+    slowest_settlement_days: maximum(pluck(wage_register, 'settlement_days'))
+  expect:
+    maximum_days: '2'
+  message:
+    en: Wages due on exit were not paid within two working days.
+    hi: सेवा समाप्ति पर देय मजदूरी का भुगतान दो कार्य दिवसों के भीतर नहीं किया गया।
+  remediation:
+    en: Settle all wages due within two working days of removal, dismissal, retrenchment or resignation.
+    hi: सेवा समाप्ति, बर्खास्तगी, छँटनी या त्यागपत्र के दो कार्य दिवसों के भीतर सभी देय मजदूरी का भुगतान करें।
+  fixtures:
+  - name: settled_next_day
+    should_pass: true
+    facts:
+      wage_register:
+      - date_of_exit: 2026-03-10
+        paid_on: 2026-03-11
+  - name: settled_three_weeks_later
+    should_pass: false
+    facts:
+      wage_register:
+      - date_of_exit: 2026-03-10
+        paid_on: 2026-03-31
+- id: WAGES.DEDUCTIONS.HALF_CAP
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: HIGH
+  weight: 8
+  title: Total deductions exceed half of wages
+  citation: Code on Wages, 2019 — s.18(3)
+  source_ref: 'storage/the code on wages 2019.md, s.18(3): ''the total amount of deductions ... shall not exceed fifty per
+    cent. of such wages'''
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: 'is_missing(deduction_share(row)) or deduction_share(row) <= 0.5
 
-  # ------------------------------------------------------------ s.13(1)(b)
-  - id: WAGES.REST_DAY.WEEKLY
-    code: WAGES
-    kind: NON_COMPLIANCE
-    severity: MEDIUM
-    weight: 5
-    title: No day of rest in a period of seven days
-    citation: "Code on Wages, 2019 — s.13(1)(b)"
-    source_ref: "code on wage 2019.md, s.13(1)(b): 'provide for a day of rest in every period of seven days'"
-    basis: STATUTE
-    requires: [attendance]
-    for_each: attendance
-    expression: >
-      is_missing(row.longest_consecutive_days) or row.longest_consecutive_days <= 7
-    observe:
-      longest_run_without_rest: "maximum(pluck(attendance, 'longest_consecutive_days'))"
-    expect:
-      maximum_consecutive_days: "7"
-    message:
-      en: "One or more workers were engaged for more than seven consecutive days without a day of rest."
-      hi: "एक या अधिक श्रमिकों को विश्राम दिवस के बिना सात से अधिक लगातार दिन नियोजित किया गया।"
-    remediation:
-      en: "Roster a day of rest in every period of seven days, and pay rest-day work at not less than the overtime rate."
-      hi: "प्रत्येक सात दिन की अवधि में एक विश्राम दिवस निर्धारित करें, और विश्राम दिवस के कार्य का भुगतान अतिरिक्त समय दर से कम नहीं करें।"
-    fixtures:
-      - name: rest_day_given
-        should_pass: true
-        facts:
-          attendance:
-            - longest_consecutive_days: 6
-      - name: twelve_days_straight
-        should_pass: false
-        facts:
-          attendance:
-            - longest_consecutive_days: 12
+    '
+  observe:
+    highest_deduction_share: maximum(pluck(wage_register, 'deduction_share'))
+  expect:
+    maximum_share: '0.5'
+  message:
+    en: Total deductions exceed fifty per cent of wages for one or more workers.
+    hi: एक या अधिक श्रमिकों की मजदूरी से कुल कटौती पचास प्रतिशत से अधिक है।
+  remediation:
+    en: Cap deductions at fifty per cent of wages for the period and recover any excess in later periods as permitted.
+    hi: अवधि की मजदूरी के पचास प्रतिशत तक कटौती सीमित करें और अधिक राशि की वसूली अनुमत रीति से बाद की अवधियों में करें।
+  fixtures:
+  - name: deductions_within_cap
+    should_pass: true
+    facts:
+      wage_register:
+      - basic_paise: 1000000
+        da_paise: 0
+        other_allowances_paise: 0
+        deductions_paise: 300000
+  - name: deductions_over_cap
+    should_pass: false
+    facts:
+      wage_register:
+      - basic_paise: 1000000
+        da_paise: 0
+        other_allowances_paise: 0
+        deductions_paise: 700000
+- id: WAGES.REST_DAY.WEEKLY
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 5
+  title: More than ten consecutive working days without a rest day
+  citation: Code on Wages, 2019 — s.13(1)(b); Code on Wages (Central) Rules, 2026 — r.6
+  source_ref: 'storage/the code on wages 2019 central rule.md, r.6: substituted rest is permitted, but no employee may work
+    more than ten consecutive days without a whole-day rest'
+  basis: STATUTE
+  requires:
+  - attendance
+  for_each: attendance
+  expression: is_missing(row.longest_consecutive_days) or row.longest_consecutive_days <= 10
+  observe:
+    longest_run_without_rest: maximum(pluck(attendance, 'longest_consecutive_days'))
+  expect:
+    maximum_consecutive_days: '10'
+  message:
+    en: One or more workers were engaged for more than ten consecutive days without a whole-day rest.
+    hi: एक या अधिक श्रमिकों को विश्राम दिवस के बिना सात से अधिक लगातार दिन नियोजित किया गया।
+  remediation:
+    en: Arrange the normal or substituted weekly rest so no employee works more than ten consecutive days.
+    hi: प्रत्येक सात दिन की अवधि में एक विश्राम दिवस निर्धारित करें, और विश्राम दिवस के कार्य का भुगतान अतिरिक्त समय दर से
+      कम नहीं करें।
+  fixtures:
+  - name: rest_day_given
+    should_pass: true
+    facts:
+      attendance:
+      - longest_consecutive_days: 6
+  - name: twelve_days_straight
+    should_pass: false
+    facts:
+      attendance:
+      - longest_consecutive_days: 12
+- id: WAGES.FLOOR.STATE_MINIMUM
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: LOW
+  weight: 10
+  title: Reference wage comparison requires an official notification
+  citation: Code on Wages, 2019 — s.5 and s.8
+  source_ref: 's.5 and s.8 require payment of not less than the minimum rate fixed by the appropriate Government, but the
+    rates themselves are notified per State and revised roughly twice a year. The values used here come from state wise minimum
+    wages.md, a reference table, not from a notification. NEEDS: current minimum wage notification for each State assessed'
+  basis: RULES_PENDING
+  requires:
+  - wage_register
+  - wage_floor
+  for_each: wage_register
+  expression: 'is_missing(wage_floor.daily_paise) or is_missing(daily_wage(row)) or daily_wage(row) >= wage_floor.daily_paise
 
-  # ------------------------------------------------------------- s.2(y)
-  - id: WAGES.DEFINITION.EXCLUDED_HALF
-    code: WAGES
-    kind: NON_COMPLIANCE
-    severity: HIGH
-    weight: 8
-    title: Excluded allowances exceed half of total remuneration
-    citation: "Code on Wages, 2019 — s.2(y) proviso"
-    source_ref: "code on wage 2019.md, s.2(y) proviso: components excluded from wages that exceed one-half of all remuneration are deemed to be wages — the one-half is stated in the Act"
-    basis: STATUTE
-    requires: [wage_register]
-    for_each: wage_register
-    # The commonest structural avoidance: inflate allowances so the wage base for
-    # PF, gratuity and overtime stays artificially small.
-    expression: >
-      is_missing(excluded_share(row)) or excluded_share(row) <= 0.5
-    observe:
-      highest_excluded_share: "maximum(pluck(wage_register, 'excluded_share'))"
-    expect:
-      maximum_share: "0.5"
-    message:
-      en: "Allowances excluded from wages exceed one half of total remuneration, so the excess counts as wages."
-      hi: "मजदूरी से अपवर्जित भत्ते कुल परिलब्धियों के आधे से अधिक हैं, अतः अधिक राशि मजदूरी मानी जाएगी।"
-    remediation:
-      en: "Restructure pay so excluded allowances stay within one half of total remuneration, or treat the excess as wages for contributions, gratuity and overtime."
-      hi: "वेतन संरचना ऐसी करें कि अपवर्जित भत्ते कुल परिलब्धियों के आधे के भीतर रहें, अन्यथा अधिक राशि को अंशदान, उपदान और अतिरिक्त समय हेतु मजदूरी मानें।"
-    fixtures:
-      - name: allowances_within_half
-        should_pass: true
-        facts:
-          wage_register:
-            - basic_paise: 1200000
-              da_paise: 300000
-              other_allowances_paise: 500000
-      - name: allowances_two_thirds
-        should_pass: false
-        facts:
-          wage_register:
-            - basic_paise: 400000
-              da_paise: 100000
-              other_allowances_paise: 1500000
+    '
+  observe:
+    lowest_daily_wage_paise: minimum(pluck(wage_register, 'daily_wage_paise'))
+    workers_below_floor: count_below(pluck(wage_register, 'daily_wage_paise'), wage_floor.daily_paise)
+  expect:
+    minimum_daily_paise: wage_floor.daily_paise
+    rate_source: wage_floor.source
+  message:
+    en: The uploaded wage appears below the available reference rate, but an official applicable wage notification is required
+      before treating this as non-compliance.
+    hi: एक या अधिक श्रमिकों को उनकी कौशल श्रेणी के लिए लागू न्यूनतम दैनिक मजदूरी से कम भुगतान किया गया।
+  remediation:
+    en: Confirm the applicable official State notification, zone and skill category before changing wages or raising an enforcement
+      finding.
+    hi: मजदूरी को राज्य, क्षेत्र और कौशल श्रेणी हेतु अधिसूचित न्यूनतम तक बढ़ाएँ, और प्रभावित अवधि का बकाया भुगतान करें।
+  fixtures:
+  - name: paid_above_floor
+    should_pass: true
+    facts:
+      wage_floor:
+        daily_paise: 56300
+        source: REFERENCE
+      wage_register:
+      - basic_paise: 1500000
+        da_paise: 200000
+        days_paid: 26
+  - name: paid_below_floor
+    should_pass: false
+    facts:
+      wage_floor:
+        daily_paise: 56300
+        source: REFERENCE
+      wage_register:
+      - basic_paise: 900000
+        da_paise: 0
+        days_paid: 26
+  - name: no_rate_available_cannot_judge
+    should_pass: true
+    facts:
+      wage_floor:
+        daily_paise: null
+        source: null
+      wage_register:
+      - basic_paise: 100000
+        da_paise: 0
+        days_paid: 26
+- id: WAGES.ARITHMETIC.GROSS
+  code: WAGES
+  kind: DISCREPANCY
+  severity: MEDIUM
+  weight: 5
+  title: Gross pay does not equal the sum of its components
+  citation: Code on Wages, 2019 — s.50 read with the prescribed wage register
+  source_ref: 'Internal consistency of the wage register maintained under s.50. No statutory figure is compared: the components
+    must sum to the stated gross'
+  basis: ARITHMETIC
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: 'is_missing(row.gross_paise) or is_missing(total_remuneration(row)) or within_tolerance(row.gross_paise, total_remuneration(row),
+    100)
 
-  # ------------------------------------------------------- minimum wage floor
-  - id: WAGES.FLOOR.STATE_MINIMUM
-    code: WAGES
-    kind: NON_COMPLIANCE
-    severity: CRITICAL
-    weight: 10
-    title: Wage below the applicable minimum for the state and skill category
-    citation: "Code on Wages, 2019 — s.5 and s.8"
-    source_ref: "s.5 and s.8 require payment of not less than the minimum rate fixed by the appropriate Government, but the rates themselves are notified per State and revised roughly twice a year. The values used here come from state wise minimum wages.md, a reference table, not from a notification. NEEDS: current minimum wage notification for each State assessed"
-    basis: RULES_PENDING
-    requires: [wage_register, wage_floor]
-    for_each: wage_register
-    # wage_floor.daily_paise is resolved per establishment from the state table.
-    # When no rate is available the rule cannot run: a guessed floor would create
-    # a false accusation, so the row passes and completeness is reported instead.
-    expression: >
-      is_missing(wage_floor.daily_paise) or is_missing(daily_wage(row))
-      or daily_wage(row) >= wage_floor.daily_paise
-    observe:
-      lowest_daily_wage_paise: "minimum(pluck(wage_register, 'daily_wage_paise'))"
-      workers_below_floor: "count_below(pluck(wage_register, 'daily_wage_paise'), wage_floor.daily_paise)"
-    expect:
-      minimum_daily_paise: "wage_floor.daily_paise"
-      rate_source: "wage_floor.source"
-    message:
-      en: "One or more workers were paid below the applicable minimum daily wage for their skill category."
-      hi: "एक या अधिक श्रमिकों को उनकी कौशल श्रेणी के लिए लागू न्यूनतम दैनिक मजदूरी से कम भुगतान किया गया।"
-    remediation:
-      en: "Raise wages to at least the notified minimum for the state, zone and skill category, and pay arrears for the affected period."
-      hi: "मजदूरी को राज्य, क्षेत्र और कौशल श्रेणी हेतु अधिसूचित न्यूनतम तक बढ़ाएँ, और प्रभावित अवधि का बकाया भुगतान करें।"
-    fixtures:
-      - name: paid_above_floor
-        should_pass: true
-        facts:
-          wage_floor: {daily_paise: 56300, source: REFERENCE}
-          wage_register:
-            - basic_paise: 1500000
-              da_paise: 200000
-              days_paid: 26
-      - name: paid_below_floor
-        should_pass: false
-        facts:
-          wage_floor: {daily_paise: 56300, source: REFERENCE}
-          wage_register:
-            - basic_paise: 900000
-              da_paise: 0
-              days_paid: 26
-      - name: no_rate_available_cannot_judge
-        should_pass: true
-        facts:
-          wage_floor: {daily_paise: null, source: null}
-          wage_register:
-            - basic_paise: 100000
-              da_paise: 0
-              days_paid: 26
+    '
+  observe:
+    rows_with_mismatch: count_missing(wage_register, 'gross_paise')
+  expect:
+    tolerance_paise: '100'
+  message:
+    en: Recorded gross pay does not match the sum of basic, dearness allowance and other allowances.
+    hi: दर्ज सकल वेतन मूल वेतन, महंगाई भत्ता और अन्य भत्तों के योग से मेल नहीं खाता।
+  remediation:
+    en: Correct the wage register so gross pay equals the sum of its components for every worker.
+    hi: मजदूरी रजिस्टर सुधारें ताकि प्रत्येक श्रमिक का सकल वेतन उसके घटकों के योग के बराबर हो।
+  fixtures:
+  - name: gross_matches_components
+    should_pass: true
+    facts:
+      wage_register:
+      - basic_paise: 1000000
+        da_paise: 200000
+        other_allowances_paise: 300000
+        gross_paise: 1500000
+  - name: gross_understated
+    should_pass: false
+    facts:
+      wage_register:
+      - basic_paise: 1000000
+        da_paise: 200000
+        other_allowances_paise: 300000
+        gross_paise: 1400000
+- id: WAGES.ARITHMETIC.NET
+  code: WAGES
+  kind: DISCREPANCY
+  severity: MEDIUM
+  weight: 5
+  title: Net paid does not equal gross less deductions
+  citation: Code on Wages, 2019 — s.50 read with the prescribed wage register
+  source_ref: 'Internal consistency of the wage register maintained under s.50. No statutory figure is compared: gross plus
+    overtime less deductions must equal the stated net'
+  basis: ARITHMETIC
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: 'is_missing(row.net_paid_paise) or is_missing(row.gross_paise) or within_tolerance(row.net_paid_paise, row.gross_paise
+    + default(row.overtime_paise, 0) - default(row.deductions_paise, 0), 100)
 
-  # --------------------------------------------------- arithmetic consistency
-  - id: WAGES.ARITHMETIC.GROSS
-    code: WAGES
-    kind: DISCREPANCY
-    severity: MEDIUM
-    weight: 5
-    title: Gross pay does not equal the sum of its components
-    citation: "Code on Wages, 2019 — s.50 read with the prescribed wage register"
-    source_ref: "Internal consistency of the wage register maintained under s.50. No statutory figure is compared: the components must sum to the stated gross"
-    basis: ARITHMETIC
-    requires: [wage_register]
-    for_each: wage_register
-    # One rupee tolerance: registers routinely round, and exact equality would
-    # flag almost every establishment and bury the real findings.
-    expression: >
-      is_missing(row.gross_paise) or is_missing(total_remuneration(row))
-      or within_tolerance(row.gross_paise, total_remuneration(row), 100)
-    observe:
-      rows_with_mismatch: "count_missing(wage_register, 'gross_paise')"
-    expect:
-      tolerance_paise: "100"
-    message:
-      en: "Recorded gross pay does not match the sum of basic, dearness allowance and other allowances."
-      hi: "दर्ज सकल वेतन मूल वेतन, महंगाई भत्ता और अन्य भत्तों के योग से मेल नहीं खाता।"
-    remediation:
-      en: "Correct the wage register so gross pay equals the sum of its components for every worker."
-      hi: "मजदूरी रजिस्टर सुधारें ताकि प्रत्येक श्रमिक का सकल वेतन उसके घटकों के योग के बराबर हो।"
-    fixtures:
-      - name: gross_matches_components
-        should_pass: true
-        facts:
-          wage_register:
-            - basic_paise: 1000000
-              da_paise: 200000
-              other_allowances_paise: 300000
-              gross_paise: 1500000
-      - name: gross_understated
-        should_pass: false
-        facts:
-          wage_register:
-            - basic_paise: 1000000
-              da_paise: 200000
-              other_allowances_paise: 300000
-              gross_paise: 1400000
+    '
+  observe:
+    rows_checked: count(wage_register)
+  expect:
+    tolerance_paise: '100'
+  message:
+    en: Net amount paid does not equal gross pay less recorded deductions.
+    hi: भुगतान की गई शुद्ध राशि सकल वेतन में से दर्ज कटौतियों के बराबर नहीं है।
+  remediation:
+    en: Reconcile the wage register so net paid equals gross pay less total deductions for every worker.
+    hi: मजदूरी रजिस्टर का मिलान करें ताकि प्रत्येक श्रमिक की शुद्ध भुगतान राशि सकल वेतन में से कुल कटौती के बराबर हो।
+  fixtures:
+  - name: net_reconciles
+    should_pass: true
+    facts:
+      wage_register:
+      - gross_paise: 1500000
+        deductions_paise: 200000
+        net_paid_paise: 1300000
+  - name: net_reconciles_with_overtime
+    should_pass: true
+    note: 'The case that was previously reported as a violation. Overtime of 1,200 is paid above gross, so net is 1,300,000
+      + 120000 = 1,420,000.
 
-  - id: WAGES.ARITHMETIC.NET
-    code: WAGES
-    kind: DISCREPANCY
-    severity: MEDIUM
-    weight: 5
-    title: Net paid does not equal gross less deductions
-    citation: "Code on Wages, 2019 — s.50 read with the prescribed wage register"
-    source_ref: "Internal consistency of the wage register maintained under s.50. No statutory figure is compared: gross plus overtime less deductions must equal the stated net"
-    basis: ARITHMETIC
-    requires: [wage_register]
-    for_each: wage_register
-    # Overtime is paid on top of gross, so it belongs in this identity. Omitting it
-    # reported every worker who did overtime as having a register that does not
-    # reconcile — a false accusation against the employer, and one that scaled with
-    # how much overtime the workforce actually did.
-    expression: >
-      is_missing(row.net_paid_paise) or is_missing(row.gross_paise)
-      or within_tolerance(row.net_paid_paise, row.gross_paise + default(row.overtime_paise, 0) - default(row.deductions_paise, 0), 100)
-    observe:
-      rows_checked: "count(wage_register)"
-    expect:
-      tolerance_paise: "100"
-    message:
-      en: "Net amount paid does not equal gross pay less recorded deductions."
-      hi: "भुगतान की गई शुद्ध राशि सकल वेतन में से दर्ज कटौतियों के बराबर नहीं है।"
-    remediation:
-      en: "Reconcile the wage register so net paid equals gross pay less total deductions for every worker."
-      hi: "मजदूरी रजिस्टर का मिलान करें ताकि प्रत्येक श्रमिक की शुद्ध भुगतान राशि सकल वेतन में से कुल कटौती के बराबर हो।"
-    fixtures:
-      - name: net_reconciles
-        should_pass: true
-        facts:
-          wage_register:
-            - gross_paise: 1500000
-              deductions_paise: 200000
-              net_paid_paise: 1300000
-      - name: net_reconciles_with_overtime
-        should_pass: true
-        note: >
-          The case that was previously reported as a violation. Overtime of 1,200
-          is paid above gross, so net is 1,300,000 + 120000 = 1,420,000.
-        facts:
-          wage_register:
-            - gross_paise: 1500000
-              overtime_paise: 120000
-              deductions_paise: 200000
-              net_paid_paise: 1420000
-      - name: net_does_not_reconcile
-        should_pass: false
-        facts:
-          wage_register:
-            - gross_paise: 1500000
-              deductions_paise: 200000
-              net_paid_paise: 1450000
-
-  # --------------------------------------------------------- s.9 / wage slips
-  - id: WAGES.WAGE_SLIP.ISSUED
-    code: WAGES
-    kind: MISSING_DOCUMENT
-    severity: MEDIUM
-    weight: 4
-    title: Wage slips not issued
-    citation: "Code on Wages, 2019 — s.50(3)"
-    source_ref: "code on wage 2019.md: 'Every employer shall issue wage slips to the employees in such form and manner'"
-    basis: STATUTE
-    requires: [docs]
-    expression: "docs.wage_slip_count > 0"
-    observe:
-      wage_slips_received: "docs.wage_slip_count"
-    expect:
-      minimum_expected: "1"
-    message:
-      en: "No wage slips were produced for the period. Issuing wage slips is mandatory."
-      hi: "अवधि के लिए कोई मजदूरी पर्ची प्रस्तुत नहीं की गई। मजदूरी पर्ची जारी करना अनिवार्य है।"
-    remediation:
-      en: "Issue wage slips to every employee in the prescribed form and retain copies for inspection."
-      hi: "प्रत्येक कर्मचारी को निर्धारित प्रपत्र में मजदूरी पर्ची जारी करें और निरीक्षण हेतु प्रतियाँ रखें।"
-    fixtures:
-      - name: slips_present
-        should_pass: true
-        facts:
-          docs: {wage_slip_count: 42}
-      - name: no_slips
-        should_pass: false
-        facts:
-          docs: {wage_slip_count: 0}
+      '
+    facts:
+      wage_register:
+      - gross_paise: 1500000
+        overtime_paise: 120000
+        deductions_paise: 200000
+        net_paid_paise: 1420000
+  - name: net_does_not_reconcile
+    should_pass: false
+    facts:
+      wage_register:
+      - gross_paise: 1500000
+        deductions_paise: 200000
+        net_paid_paise: 1450000
+- id: WAGES.HOURS.NORMAL_DAY_EIGHT
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Normal working day recorded above eight hours
+  citation: Code on Wages (Central) Rules, 2026 — r.5
+  source_ref: 'storage/the code on wages 2019 central rule.md, r.5: the normal working day is eight hours, subject to the
+    prescribed interval and spread-over'
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: is_missing(row.normal_hours_per_day) or row.normal_hours_per_day <= 8
+  observe:
+    rows_checked: count(wage_register)
+  expect:
+    maximum_normal_hours: '8'
+  message:
+    en: The uploaded wage record states normal daily hours above eight.
+    hi: null
+  remediation:
+    en: Correct the normal-hours record and treat qualifying additional work as overtime under the applicable rules.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      wage_register:
+      - normal_hours_per_day: 8
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      wage_register:
+      - normal_hours_per_day: 10
+- id: WAGES.OVERTIME.AMOUNT_RECONCILES
+  code: WAGES
+  kind: DISCREPANCY
+  severity: HIGH
+  weight: 6
+  title: Overtime amount does not match hours multiplied by the recorded rate
+  citation: Code on Wages, 2019 — s.14; Code on Wages (Central) Rules, 2026 — r.5
+  source_ref: Uploaded wage-register arithmetic using the overtime hours, rate and amount printed for the same worker
+  basis: ARITHMETIC
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: is_missing(row.overtime_hours) or row.overtime_hours == 0 or is_missing(row.overtime_rate_paise) or is_missing(row.overtime_paise)
+    or within_tolerance(row.overtime_paise, row.overtime_hours * row.overtime_rate_paise, 100)
+  observe:
+    rows_checked: count(wage_register)
+  expect:
+    tolerance_paise: '100'
+  message:
+    en: The overtime amount in the uploaded record does not equal the recorded overtime hours multiplied by the recorded rate.
+    hi: null
+  remediation:
+    en: Correct the hours, rate or overtime amount so the uploaded wage record reconciles.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      wage_register:
+      - overtime_hours: 10
+        overtime_rate_paise: 20000
+        overtime_paise: 200000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      wage_register:
+      - overtime_hours: 10
+        overtime_rate_paise: 20000
+        overtime_paise: 100000
+- id: WAGES.REGISTER.GROSS_RECORDED
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Gross wages are blank in an uploaded wage row
+  citation: Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV
+  source_ref: storage/the code on wages 2019 central rule.md, r.51 and Form IV prescribed wage-register particulars
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: not is_missing(row.gross_paise)
+  observe:
+    rows_checked: count(wage_register)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: Gross wages are blank for a worker in the uploaded wage record.
+    hi: null
+  remediation:
+    en: Complete the gross-wage entry from the verified wage components.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      wage_register:
+      - gross_paise: 1500000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      wage_register:
+      - gross_paise: null
+- id: WAGES.REGISTER.NET_RECORDED
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Net wages are blank in an uploaded wage row
+  citation: Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV
+  source_ref: storage/the code on wages 2019 central rule.md, r.51 and Form IV prescribed wage-register particulars
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: not is_missing(row.net_paid_paise)
+  observe:
+    rows_checked: count(wage_register)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: Net wages are blank for a worker in the uploaded wage record.
+    hi: null
+  remediation:
+    en: Record the verified net amount paid after additions and deductions.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      wage_register:
+      - net_paid_paise: 1300000
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      wage_register:
+      - net_paid_paise: null
+- id: WAGES.REGISTER.PAYMENT_DATE_RECORDED
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Payment date is blank in an uploaded wage row
+  citation: Code on Wages, 2019 — s.17 and s.50; Code on Wages (Central) Rules, 2026 — Form IV
+  source_ref: storage/the code on wages 2019 central rule.md, Form IV requires the date of payment in the wage record
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: not is_missing(row.paid_on)
+  observe:
+    rows_checked: count(wage_register)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: The payment date is blank for a worker in the uploaded wage record.
+    hi: null
+  remediation:
+    en: Enter the actual verified payment date for the worker.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      wage_register:
+      - paid_on: '2026-04-05'
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      wage_register:
+      - paid_on: null
+- id: WAGES.REGISTER.DAYS_PAID_RECORDED
+  code: WAGES
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Paid days are blank in an uploaded wage row
+  citation: Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV
+  source_ref: storage/the code on wages 2019 central rule.md, r.51 and Form IV prescribed wage-register particulars
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: not is_missing(row.days_paid)
+  observe:
+    rows_checked: count(wage_register)
+  expect:
+    requirement_met: 'True'
+  message:
+    en: The number of paid days is blank for a worker in the uploaded wage record.
+    hi: null
+  remediation:
+    en: Reconcile attendance and enter the verified number of days paid.
+    hi: null
+  fixtures:
+  - name: compliant_record
+    should_pass: true
+    facts:
+      wage_register:
+      - days_paid: 26
+  - name: non_compliant_record
+    should_pass: false
+    facts:
+      wage_register:
+      - days_paid: null
+- id: WAGES.DEFINITION.EXCLUDED_HALF_DEEMED_WAGES
+  code: WAGES
+  kind: DISCREPANCY
+  severity: HIGH
+  weight: 8
+  title: Excluded allowances exceed half of remuneration, so the excess counts as wages
+  citation: Code on Wages, 2019 — s.2(y) proviso
+  source_ref: 'storage/the code on wages 2019.md, s.2(y) proviso: where excluded components exceed one-half of all remuneration,
+    the amount in excess is deemed to be wages'
+  basis: STATUTE
+  requires:
+  - wage_register
+  for_each: wage_register
+  expression: is_missing(excluded_share(row)) or excluded_share(row) <= 0.5
+  observe:
+    highest_excluded_share: maximum(pluck(wage_register, 'excluded_share'))
+    rows_checked: count(wage_register)
+  expect:
+    maximum_share: '0.5'
+  message:
+    en: Allowances excluded from wages exceed one half of total remuneration, so the excess is deemed to be wages and must
+      be included in the statutory wage base.
+    hi: null
+  remediation:
+    en: Add the excess above one half of remuneration into the statutory wage base used for contributions, gratuity and overtime,
+      or restructure pay so excluded allowances stay within one half.
+    hi: null
+  fixtures:
+  - name: allowances_within_half
+    should_pass: true
+    facts:
+      wage_register:
+      - basic_paise: 1200000
+        da_paise: 300000
+        other_allowances_paise: 500000
+  - name: allowances_two_thirds_need_addback
+    should_pass: false
+    facts:
+      wage_register:
+      - basic_paise: 400000
+        da_paise: 100000
+        other_allowances_paise: 1500000

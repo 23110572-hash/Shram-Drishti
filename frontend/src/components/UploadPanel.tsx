@@ -20,6 +20,7 @@ import type {
   EstablishmentDetail,
   EstablishmentInput,
   EstablishmentSummary,
+  UploadBatchOut,
   UploadResponse,
 } from "@/lib/types";
 
@@ -93,7 +94,7 @@ interface QueueItem {
 export interface EstablishmentUploadBatch {
   establishmentId: string;
   establishmentName: string;
-  documentIds: string[];
+  batchId: string;
 }
 
 interface UploadPanelProps {
@@ -254,14 +255,35 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
     setSelectionError(null);
     setBusy(true);
     const uploaded: string[] = [];
+    let batch: UploadBatchOut;
+
+    try {
+      batch = await api.post<UploadBatchOut>("/documents/batches", {
+        establishment_id: target.id,
+        expected_file_count: pending.length,
+        client_idempotency_key:
+          globalThis.crypto?.randomUUID?.() ??
+          `${target.id}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      });
+    } catch (error) {
+      setBusy(false);
+      setSelectionError(
+        error instanceof Error ? error.message : "The upload batch could not be created.",
+      );
+      return;
+    }
 
     // Submit sequentially so one request body at a time reaches the free service.
-    for (const item of pending) {
+    for (const [ordinal, item] of pending.entries()) {
       patch(item.key, { status: "uploading", progress: 0, message: undefined });
 
       try {
-        const response = await uploadOne(item.file, target.id, (progress) =>
-          patch(item.key, { progress }),
+        const response = await uploadOne(
+          item.file,
+          target.id,
+          batch.id,
+          ordinal,
+          (progress) => patch(item.key, { progress }),
         );
         patch(item.key, {
           status: "done",
@@ -279,13 +301,22 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
       }
     }
 
+    let sealed = false;
+    try {
+      await api.post<UploadBatchOut>(`/documents/batches/${batch.id}/seal`, {});
+      sealed = true;
+    } catch (error) {
+      setSelectionError(
+        error instanceof Error ? error.message : "The uploaded documents could not be finalized.",
+      );
+    }
     setBusy(false);
 
-    if (uploaded.length) {
+    if (uploaded.length && sealed) {
       onUploaded?.({
         establishmentId: target.id,
         establishmentName: target.name,
-        documentIds: uploaded,
+        batchId: batch.id,
       });
       void queryClient.invalidateQueries({ queryKey: ["documents"] });
       setQueue((current) =>
@@ -679,13 +710,16 @@ type UploadFailure = {
 function uploadOne(
   file: File,
   establishmentId: string,
-  onProgress: (percent: number) => void,
-  isRetry = false,
+  batchId: string,
+  ordinal: number,
+  onProgress: (progress: number) => void,
 ): Promise<UploadResponse> {
   return new Promise((resolve, reject) => {
     const form = new FormData();
     form.append("file", file);
     form.append("establishment_id", establishmentId);
+    form.append("batch_id", batchId);
+    form.append("ordinal", String(ordinal));
 
     const request = new XMLHttpRequest();
     request.open("POST", `${apiBaseUrl()}/documents`);

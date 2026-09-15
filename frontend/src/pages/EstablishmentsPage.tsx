@@ -320,7 +320,14 @@ function EstablishmentDrawer({
     enabled: Boolean(scorecard),
   });
 
-  const openFindings = findings.data ?? [];
+  const contributingGroups = (
+    scorecard?.computation?.contributing_findings ?? {}
+  ) as Record<string, string[]>;
+  const contributingFindingIds = new Set(Object.values(contributingGroups).flat());
+  const openFindings = (findings.data ?? []).filter(
+    (finding) =>
+      contributingFindingIds.size === 0 || contributingFindingIds.has(finding.id),
+  );
   const missingDocumentTypes = scorecard?.missing_document_types ?? [];
   const missingDocumentSet = new Set(missingDocumentTypes);
   const receivedDocumentTypes =
@@ -328,7 +335,7 @@ function EstablishmentDrawer({
     (scorecard?.expected_document_types ?? []).filter(
       (docType) => !missingDocumentSet.has(docType),
     );
-  const issueCount = findings.data?.length ?? scorecard?.open_finding_count ?? 0;
+  const issueCount = findings.data ? openFindings.length : scorecard?.open_finding_count ?? 0;
 
   return (
     <div className="fixed inset-0 z-[60] flex justify-end">
@@ -386,12 +393,10 @@ function EstablishmentDrawer({
                           "mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl",
                           issueCount > 0
                             ? "bg-rose-100 text-rose-700"
-                            : scorecard.evidence_sufficient
-                              ? "bg-emerald-100 text-emerald-700"
-                              : "bg-amber-100 text-amber-700",
+                            : "bg-emerald-100 text-emerald-700",
                         ].join(" ")}
                       >
-                        {issueCount > 0 || !scorecard.evidence_sufficient ? (
+                        {issueCount > 0 ? (
                           <AlertTriangle className="h-5 w-5" />
                         ) : (
                           <CheckCircle2 className="h-5 w-5" />
@@ -399,21 +404,17 @@ function EstablishmentDrawer({
                       </div>
                       <div>
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                          Compliance check
+                          Uploaded-document compliance result
                         </p>
                         <h2 className="mt-1 text-2xl font-extrabold text-slate-950">
                           {issueCount > 0
                             ? `${issueCount} problem${issueCount === 1 ? "" : "s"} found`
-                            : scorecard.evidence_sufficient
-                              ? "No open issues found"
-                              : "More documents are needed"}
+                            : "No verified problems found"}
                         </h2>
                         <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
                           {issueCount > 0
-                            ? "These problems were found by checking the documents together. Fix them using the steps below."
-                            : scorecard.evidence_sufficient
-                              ? "No open issue was found in the documents that were assessed."
-                              : "No breach is confirmed from the available records, but there is not enough evidence to complete every check."}
+                            ? "These verified problems were found by checking the uploaded documents together."
+                            : "No verified problem was found by the rules that could be checked from the uploaded documents."}
                         </p>
                         <p className="mt-1 text-xs font-semibold text-slate-500">
                           {period(scorecard.period_start, scorecard.period_end)}
@@ -433,7 +434,10 @@ function EstablishmentDrawer({
                   </div>
 
                   <div className="rounded-2xl border border-sky-200 bg-white p-4">
-                    <h3 className="font-bold text-slate-950">Documents checked</h3>
+                    <h3 className="font-bold text-slate-950">Documents checked together</h3>
+                    <p className="mt-1 text-sm font-semibold text-slate-700">
+                      {receivedDocumentTypes.length} document type{receivedDocumentTypes.length === 1 ? "" : "s"} · {scorecard.assessed_rule_count} rule{scorecard.assessed_rule_count === 1 ? "" : "s"} checked
+                    </p>
                     {receivedDocumentTypes.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-2">
                         {receivedDocumentTypes.map((docType) => (
@@ -451,6 +455,10 @@ function EstablishmentDrawer({
                       These are the document types the system linked and checked together for this result.
                     </p>
                   </div>
+
+                  <p className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">
+                    {scorecard.scope_statement}
+                  </p>
 
                   {findings.isPending && issueCount > 0 && (
                     <p className="text-sm text-slate-500">Loading the issues…</p>
@@ -492,7 +500,7 @@ function EstablishmentDrawer({
 
                   <div
                     className={[
-                      "rounded-2xl border p-4",
+                      "hidden rounded-2xl border p-4",
                       missingDocumentTypes.length > 0
                         ? "border-amber-200 bg-amber-50"
                         : "border-emerald-200 bg-emerald-50",

@@ -6,6 +6,7 @@ export interface RuleGuideItem {
   actionToComply: string[];
 }
 
+/** Plain-language guidance for every executable rule in the rule packs. */
 export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
   // =========================================================================
   // CODE ON WAGES, 2019
@@ -95,20 +96,6 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
       "Maintain compensatory off registers if a worker is called in on their scheduled off.",
     ],
   },
-  "WAGES.DEFINITION.EXCLUDED_HALF": {
-    simpleExplanation:
-      "Specified excluded allowances (like HRA, conveyance, and travel perks) must not exceed 50% of total remuneration. If allowances exceed 50%, the excess is added back to 'Wages' for calculating PF, gratuity, and overtime.",
-    exampleScenario:
-      "An employee's monthly pay package is ₹40,000. Basic is ₹12,000 (30%) and various special allowances total ₹28,000 (70%).",
-    compliantExample:
-      "The maximum allowed excluded allowance is ₹20,000 (50%). The excess ₹8,000 is added to Basic, making the statutory wage base ₹20,000 for PF and gratuity.",
-    violationExample:
-      "Treating the ₹28,000 allowances as exempt and calculating PF on only ₹12,000, artificially deflating social security contributions.",
-    actionToComply: [
-      "Structure compensation packages so Basic + DA constitutes at least 50% of total pay.",
-      "Audit salary structures across all pay bands to ensure compliance.",
-    ],
-  },
   "WAGES.FLOOR.STATE_MINIMUM": {
     simpleExplanation:
       "You cannot pay any employee less than the official minimum wage set by the State Government for that specific skill level (unskilled, semi-skilled, skilled, highly skilled) and geographic zone.",
@@ -151,53 +138,107 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
       "Verify that the bank disbursement amount matches Net Pay to the rupee.",
     ],
   },
-  "WAGES.WAGE_SLIP.ISSUED": {
+  "WAGES.HOURS.NORMAL_DAY_EIGHT": {
     simpleExplanation:
-      "Employers must issue written or electronic wage slips (payslips) to every worker at least one day before wages are disbursed, showing earnings, hours worked, and deductions.",
+      "The uploaded wage record states normal daily hours above eight.",
     exampleScenario:
-      "Monthly salary disbursement scheduled for the 7th of the month.",
+      "This check runs whenever the required records are uploaded for the period.",
     compliantExample:
-      "Digital payslips or printed wage slips are handed over or emailed to all staff by the 6th of the month.",
+      "Example (compliant record): {\"wage_register\": [{\"normal_hours_per_day\": 8}]} — this passes.",
     violationExample:
-      "Paying salaries through bank transfer or cash without issuing any wage slips to workers.",
+      "Example (non compliant record): {\"wage_register\": [{\"normal_hours_per_day\": 10}]} — this is reported.",
     actionToComply: [
-      "Set up automatic email or SMS payslip distribution through your HRMS.",
-      "Provide physical printed slips for workers without digital access.",
+      "Correct the normal-hours record and treat qualifying additional work as overtime under the applicable rules.",
+      "Cite and verify against Code on Wages (Central) Rules, 2026 — r.5.",
     ],
   },
-
+  "WAGES.OVERTIME.AMOUNT_RECONCILES": {
+    simpleExplanation:
+      "The overtime amount in the uploaded record does not equal the recorded overtime hours multiplied by the recorded rate.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"wage_register\": [{\"overtime_hours\": 10, \"overtime_rate_paise\": 20000, \"overtime_paise\": 200000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"wage_register\": [{\"overtime_hours\": 10, \"overtime_rate_paise\": 20000, \"overtime_paise\": 100000}]} — this is reported.",
+    actionToComply: [
+      "Correct the hours, rate or overtime amount so the uploaded wage record reconciles.",
+      "Cite and verify against Code on Wages, 2019 — s.14; Code on Wages (Central) Rules, 2026 — r.5.",
+    ],
+  },
+  "WAGES.REGISTER.GROSS_RECORDED": {
+    simpleExplanation:
+      "Gross wages are blank for a worker in the uploaded wage record.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"wage_register\": [{\"gross_paise\": 1500000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"wage_register\": [{\"gross_paise\": null}]} — this is reported.",
+    actionToComply: [
+      "Complete the gross-wage entry from the verified wage components.",
+      "Cite and verify against Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV.",
+    ],
+  },
+  "WAGES.REGISTER.NET_RECORDED": {
+    simpleExplanation:
+      "Net wages are blank for a worker in the uploaded wage record.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"wage_register\": [{\"net_paid_paise\": 1300000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"wage_register\": [{\"net_paid_paise\": null}]} — this is reported.",
+    actionToComply: [
+      "Record the verified net amount paid after additions and deductions.",
+      "Cite and verify against Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV.",
+    ],
+  },
+  "WAGES.REGISTER.PAYMENT_DATE_RECORDED": {
+    simpleExplanation:
+      "The payment date is blank for a worker in the uploaded wage record.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"wage_register\": [{\"paid_on\": \"2026-04-05\"}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"wage_register\": [{\"paid_on\": null}]} — this is reported.",
+    actionToComply: [
+      "Enter the actual verified payment date for the worker.",
+      "Cite and verify against Code on Wages, 2019 — s.17 and s.50; Code on Wages (Central) Rules, 2026 — Form IV.",
+    ],
+  },
+  "WAGES.REGISTER.DAYS_PAID_RECORDED": {
+    simpleExplanation:
+      "The number of paid days is blank for a worker in the uploaded wage record.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"wage_register\": [{\"days_paid\": 26}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"wage_register\": [{\"days_paid\": null}]} — this is reported.",
+    actionToComply: [
+      "Reconcile attendance and enter the verified number of days paid.",
+      "Cite and verify against Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV.",
+    ],
+  },
+  "WAGES.DEFINITION.EXCLUDED_HALF_DEEMED_WAGES": {
+    simpleExplanation:
+      "Allowances excluded from wages exceed one half of total remuneration, so the excess is deemed to be wages and must be included in the statutory wage base.",
+    exampleScenario:
+      "This check runs whenever the records it needs are uploaded for the period.",
+    compliantExample:
+      "Example (allowances within half): {\"wage_register\": [{\"basic_paise\": 1200000, \"da_paise\": 300000, \"other_allowances_paise\": 500000}]} — this passes.",
+    violationExample:
+      "Example (allowances two thirds need addback): {\"wage_register\": [{\"basic_paise\": 400000, \"da_paise\": 100000, \"other_allowances_paise\": 1500000}]} — this is reported.",
+    actionToComply: [
+      "Add the excess above one half of remuneration into the statutory wage base used for contributions, gratuity and overtime, or restructure pay so excluded allowances stay within one half.",
+      "Verify against Code on Wages, 2019 — s.2(y) proviso.",
+    ],
+  },
   // =========================================================================
   // INDUSTRIAL RELATIONS CODE, 2020
   // =========================================================================
-  "IR.WORKS_COMMITTEE.REQUIRED": {
-    simpleExplanation:
-      "Every industrial establishment with 100 or more workers must constitute a Works Committee with equal numbers of employer and worker representatives to promote cordial workplace relations.",
-    exampleScenario:
-      "A manufacturing facility operates with 140 permanent and shop-floor workers.",
-    compliantExample:
-      "The factory forms a 10-member Works Committee with 5 elected worker representatives and 5 management nominees that meets monthly.",
-    violationExample:
-      "Operating with 140 workers without ever setting up a Works Committee, depriving workers of a consultative forum.",
-    actionToComply: [
-      "Conduct elections among workers to choose their representatives.",
-      "Pass a formal office memorandum constituting the Works Committee.",
-      "Maintain minutes of all committee meetings.",
-    ],
-  },
-  "IR.GRIEVANCE_COMMITTEE.REQUIRED": {
-    simpleExplanation:
-      "Every establishment employing 20 or more workers must set up a Grievance Redressal Committee to hear and resolve individual worker complaints fairly.",
-    exampleScenario:
-      "A technology startup or logistics hub expands its team to 28 employees.",
-    compliantExample:
-      "Management formalizes a 4-member Grievance Redressal Committee and publishes member details on the office notice board.",
-    violationExample:
-      "Operating with 28 workers with no formal grievance channel, forcing employees to take disputes outside the organization.",
-    actionToComply: [
-      "Form a committee with equal representation of management and workers.",
-      "Display committee members' contact information prominently in the workplace.",
-    ],
-  },
   "IR.GRIEVANCE_COMMITTEE.SIZE_CAP": {
     simpleExplanation:
       "The Grievance Redressal Committee cannot exceed 10 members in total, keeping proceedings focused, effective, and balanced.",
@@ -226,34 +267,6 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
       "Ensure women hold at least that proportion of seats on the committee.",
     ],
   },
-  "IR.GRIEVANCE.DECISION_WITHIN_THIRTY_DAYS": {
-    simpleExplanation:
-      "The Grievance Redressal Committee must complete its investigation and deliver a formal written decision to the employee within 30 days of receiving their complaint.",
-    exampleScenario:
-      "A worker submits a written grievance regarding an unjustified fine on March 1st.",
-    compliantExample:
-      "The committee reviews evidence, conducts a hearing, and provides its written decision by March 24th (within 24 days).",
-    violationExample:
-      "The grievance sits pending with no action until June (90 days later), violating the statutory 30-day timeline.",
-    actionToComply: [
-      "Log all received grievances with date of receipt in a dedicated register.",
-      "Set automated calendar reminders to ensure written closure within 30 days.",
-    ],
-  },
-  "IR.STANDING_ORDERS.REQUIRED": {
-    simpleExplanation:
-      "Industrial establishments with 300 or more workers must prepare formal draft Standing Orders covering work rules, shifts, misconduct, and termination, and submit them for statutory certification.",
-    exampleScenario:
-      "An engineering plant scales up from 260 to 320 employees.",
-    compliantExample:
-      "The employer drafts Standing Orders based on Central Model Standing Orders and submits them to the Certifying Officer within 6 months.",
-    violationExample:
-      "Employing 350 workers while operating under informal guidelines without certified Standing Orders.",
-    actionToComply: [
-      "Prepare draft Standing Orders adhering to the Model Standing Orders.",
-      "Consult worker representatives and file with the Certifying Officer.",
-    ],
-  },
   "IR.STRIKE.NOTICE_PERIOD": {
     simpleExplanation:
       "No worker may go on strike and no employer may declare a lock-out without giving at least 14 days' advance written notice. Wildcat or surprise strikes and sudden lockouts are strictly prohibited.",
@@ -268,52 +281,236 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
       "Immediately transmit notices to the Conciliation Officer to start mediation.",
     ],
   },
-  "IR.RETRENCHMENT.PRIOR_PERMISSION": {
+  "IR.GRIEVANCE_COMMITTEE.EQUAL_REPRESENTATION": {
     simpleExplanation:
-      "Industrial establishments (factories, mines, plantations) employing 300 or more workers must obtain prior approval from the government before laying off workers, retrenching staff, or closing down.",
+      "The uploaded committee record does not show equal employer and worker representation.",
     exampleScenario:
-      "A manufacturing plant with 420 workers plans to lay off 40 workers due to falling orders.",
+      "This check runs only when docs.grievance_committee_count > 0.",
     compliantExample:
-      "Management applies to the state labour commissioner 90 days in advance, providing detailed justification, and awaits official sanction.",
+      "Example (equal): {\"docs\": {\"grievance_committee_count\": 1}, \"prose\": {\"grievance_committee_employer_reps\": 4, \"grievance_committee_worker_reps\": 4}} — this passes.",
     violationExample:
-      "The plant terminates 40 workers immediately without seeking prior government permission.",
+      "Example (unequal): {\"docs\": {\"grievance_committee_count\": 1}, \"prose\": {\"grievance_committee_employer_reps\": 6, \"grievance_committee_worker_reps\": 2}} — this is reported.",
     actionToComply: [
-      "Submit statutory applications for lay-off/retrenchment at least 90 days in advance.",
-      "Provide statutory severance pay (15 days' wages per completed year of service).",
+      "Reconstitute and record the committee with equal employer and worker representation.",
+      "Cite and verify against Industrial Relations Code, 2020 — s.4(2).",
     ],
   },
-
+  "IR.GRIEVANCE_COMMITTEE.CHAIRPERSON_RECORDED": {
+    simpleExplanation:
+      "The uploaded committee record does not identify its chairperson.",
+    exampleScenario:
+      "This check runs only when docs.grievance_committee_count > 0.",
+    compliantExample:
+      "Example (uploaded record complies): {\"docs\": {\"grievance_committee_count\": 1}, \"prose\": {\"has_chairperson\": true}} — this passes.",
+    violationExample:
+      "Example (uploaded record is incomplete): {\"docs\": {\"grievance_committee_count\": 1}, \"prose\": {\"has_chairperson\": false}} — this is reported.",
+    actionToComply: [
+      "Record the chairperson selected in accordance with the alternating representation requirement.",
+      "Cite and verify against Industrial Relations Code, 2020 — s.4(3).",
+    ],
+  },
+  "IR.STRIKE.NOTICE_WITHIN_SIXTY_DAYS": {
+    simpleExplanation:
+      "The uploaded record places the strike or lock-out outside the permitted sixty-day notice window.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (within window): {\"prose\": {\"strike_notice_days\": 30}} — this passes.",
+    violationExample:
+      "Example (outside window): {\"prose\": {\"strike_notice_days\": 75}} — this is reported.",
+    actionToComply: [
+      "Issue a fresh notice and ensure the action occurs no earlier than fourteen and no later than sixty days after notice.",
+      "Cite and verify against Industrial Relations Code, 2020 — s.62.",
+    ],
+  },
+  "IR.STANDING_ORDERS.CERTIFIED_OR_MODEL": {
+    simpleExplanation:
+      "The uploaded standing orders do not show certification or adoption of the applicable model standing orders.",
+    exampleScenario:
+      "This check runs only when docs.standing_orders_count > 0.",
+    compliantExample:
+      "Example (certified): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"is_certified\": true, \"adopts_model_standing_orders\": false}} — this passes.",
+    violationExample:
+      "Example (neither): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"is_certified\": false, \"adopts_model_standing_orders\": false}} — this is reported.",
+    actionToComply: [
+      "Record adoption of the applicable model orders or obtain certification of differing standing orders.",
+      "Cite and verify against Industrial Relations Code, 2020 — Chapter IV.",
+    ],
+  },
+  "IR.STANDING_ORDERS.WORKER_CLASSIFICATION": {
+    simpleExplanation:
+      "The uploaded standing orders do not cover classification of workers.",
+    exampleScenario:
+      "This check runs only when docs.standing_orders_count > 0.",
+    compliantExample:
+      "Example (uploaded record complies): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_classification_of_workers\": true}} — this passes.",
+    violationExample:
+      "Example (uploaded record is incomplete): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_classification_of_workers\": false}} — this is reported.",
+    actionToComply: [
+      "Add the required worker classifications to the standing orders.",
+      "Cite and verify against Industrial Relations Code, 2020 — First Schedule.",
+    ],
+  },
+  "IR.STANDING_ORDERS.DISCIPLINARY_PROCEDURE": {
+    simpleExplanation:
+      "The uploaded standing orders do not describe the disciplinary procedure.",
+    exampleScenario:
+      "This check runs only when docs.standing_orders_count > 0.",
+    compliantExample:
+      "Example (uploaded record complies): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_disciplinary_procedure\": true}} — this passes.",
+    violationExample:
+      "Example (uploaded record is incomplete): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_disciplinary_procedure\": false}} — this is reported.",
+    actionToComply: [
+      "Add misconduct, disciplinary-process and worker-redress provisions.",
+      "Cite and verify against Industrial Relations Code, 2020 — First Schedule.",
+    ],
+  },
+  "IR.STANDING_ORDERS.TERMINATION_TERMS": {
+    simpleExplanation:
+      "The uploaded standing orders do not state termination and notice conditions.",
+    exampleScenario:
+      "This check runs only when docs.standing_orders_count > 0.",
+    compliantExample:
+      "Example (uploaded record complies): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_termination\": true}} — this passes.",
+    violationExample:
+      "Example (uploaded record is incomplete): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_termination\": false}} — this is reported.",
+    actionToComply: [
+      "Add the applicable termination and notice conditions.",
+      "Cite and verify against Industrial Relations Code, 2020 — First Schedule.",
+    ],
+  },
   // =========================================================================
-  // OCCUPATIONAL SAFETY, HEALTH & WORKING CONDITIONS (OSH) CODE, 2020
+  // CODE ON SOCIAL SECURITY, 2020
   // =========================================================================
-  "OSH.REGISTRATION.VALID": {
+  "SS.EPF.WORKERS_NOT_COVERED": {
     simpleExplanation:
-      "Every establishment employing 10 or more workers must register electronically with the labour department within 60 days of starting operations, and maintain a valid registration certificate.",
+      "Every eligible employee listed on the wage register in an EPF-covered establishment must be enrolled in the Employees' Provident Fund and included in the monthly ECR return.",
     exampleScenario:
-      "A new business facility opens with 16 employees.",
+      "A company with 35 workers prepares its monthly payroll.",
     compliantExample:
-      "The employer completes online registration on the Shram Suvidha portal within 60 days and downloads the electronic registration certificate.",
+      "All 35 workers are enrolled with Universal Account Numbers (UANs) and reflected in the EPFO Electronic Challan cum Return (ECR).",
     violationExample:
-      "Operating for 9 months with 16 workers without ever applying for establishment registration.",
+      "Depositing PF for only 20 employees while leaving 15 workers off the PF return by labeling them casual staff.",
     actionToComply: [
-      "Register the establishment on the Shram Suvidha portal within 60 days of opening.",
-      "Display the registration certificate on the office premises.",
+      "Audit your employee master list against monthly EPFO ECR returns.",
+      "Generate UANs and enroll every eligible worker from their first day of work.",
     ],
   },
-  "OSH.APPOINTMENT_LETTER.ISSUED": {
+  "SS.EPF.WAGE_BASE_UNDERSTATED": {
     simpleExplanation:
-      "Employers must issue a formal written appointment letter to every single employee upon hiring, clearly specifying their designation, wages, duties, and work hours.",
+      "The wage base used to compute EPF contributions (Basic + DA + Retaining Allowance) must not be artificially depressed or disguised as excessive non-statutory allowances.",
     exampleScenario:
-      "An organization hires 15 new operators and office helpers.",
+      "An employee earns ₹14,000 monthly (Basic ₹10,000 + DA ₹4,000).",
     compliantExample:
-      "Every newly hired worker receives a signed appointment letter on day one, and the employer retains their signed acknowledgment copy.",
+      "PF is calculated on the full statutory wage base of ₹14,000 (12% = ₹1,680).",
     violationExample:
-      "Hiring staff on oral agreements or informal WhatsApp messages without issuing an official appointment letter.",
+      "Splitting the salary into Basic ₹4,000 and 'Special Allowance' ₹10,000, and deducting PF on only ₹4,000 (12% = ₹480) to evade contributions.",
     actionToComply: [
-      "Issue standard appointment letters in English or regional language on day one.",
-      "Maintain signed employee acceptance copies in personnel files.",
+      "Ensure the PF wage base includes Basic + DA in accordance with the 50% statutory rule.",
+      "Review pay structures to prevent artificial reduction of PF-qualifying wages.",
     ],
   },
+  "SS.HEADCOUNT.RECONCILIATION": {
+    simpleExplanation:
+      "The total worker count declared across your internal wage register, monthly EPF return, ESIC return, and statutory annual return must reconcile cleanly.",
+    exampleScenario:
+      "An industrial firm reviews its multi-department labour records.",
+    compliantExample:
+      "The wage register shows 48 active staff, and both the EPF and annual returns report the same 48 workers.",
+    violationExample:
+      "The wage register lists 48 workers, the EPF filing shows 32 workers, and the annual return states 40 workers without explanation.",
+    actionToComply: [
+      "Conduct monthly headcount reconciliation across HR, payroll, and statutory filings.",
+      "Document justifications for any non-covered staff (e.g. wages above statutory ceilings).",
+    ],
+  },
+  "SS.EPF.WAGE_BASE_RECORDED": {
+    simpleExplanation:
+      "The uploaded EPF record has a member row with no contribution wage base.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"epf\": [{\"wage_base_paise\": 100000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"epf\": [{\"wage_base_paise\": null}]} — this is reported.",
+    actionToComply: [
+      "Complete the verified EPF contribution particulars in the applicable return.",
+      "Cite and verify against Code on Social Security, 2020 — Chapter III and prescribed contribution return.",
+    ],
+  },
+  "SS.EPF.EMPLOYEE_SHARE_RECORDED": {
+    simpleExplanation:
+      "The uploaded EPF record has a member row with no employee contribution amount.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"epf\": [{\"employee_share_paise\": 100000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"epf\": [{\"employee_share_paise\": null}]} — this is reported.",
+    actionToComply: [
+      "Complete the verified EPF contribution particulars in the applicable return.",
+      "Cite and verify against Code on Social Security, 2020 — Chapter III and prescribed contribution return.",
+    ],
+  },
+  "SS.EPF.EMPLOYER_SHARE_RECORDED": {
+    simpleExplanation:
+      "The uploaded EPF record has a member row with no employer contribution amount.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"epf\": [{\"employer_share_paise\": 100000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"epf\": [{\"employer_share_paise\": null}]} — this is reported.",
+    actionToComply: [
+      "Complete the verified EPF contribution particulars in the applicable return.",
+      "Cite and verify against Code on Social Security, 2020 — Chapter III and prescribed contribution return.",
+    ],
+  },
+  "SS.ESIC.WAGE_BASE_RECORDED": {
+    simpleExplanation:
+      "The uploaded ESIC record has a member row with no contribution wage base.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"esic\": [{\"wage_base_paise\": 100000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"esic\": [{\"wage_base_paise\": null}]} — this is reported.",
+    actionToComply: [
+      "Complete the verified ESIC contribution particulars in the applicable return.",
+      "Cite and verify against Code on Social Security, 2020 — Chapter IV and prescribed contribution return.",
+    ],
+  },
+  "SS.ESIC.EMPLOYEE_SHARE_RECORDED": {
+    simpleExplanation:
+      "The uploaded ESIC record has a member row with no employee contribution amount.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"esic\": [{\"employee_share_paise\": 100000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"esic\": [{\"employee_share_paise\": null}]} — this is reported.",
+    actionToComply: [
+      "Complete the verified ESIC contribution particulars in the applicable return.",
+      "Cite and verify against Code on Social Security, 2020 — Chapter IV and prescribed contribution return.",
+    ],
+  },
+  "SS.ESIC.EMPLOYER_SHARE_RECORDED": {
+    simpleExplanation:
+      "The uploaded ESIC record has a member row with no employer contribution amount.",
+    exampleScenario:
+      "This check runs whenever the required records are uploaded for the period.",
+    compliantExample:
+      "Example (compliant record): {\"esic\": [{\"employer_share_paise\": 100000}]} — this passes.",
+    violationExample:
+      "Example (non compliant record): {\"esic\": [{\"employer_share_paise\": null}]} — this is reported.",
+    actionToComply: [
+      "Complete the verified ESIC contribution particulars in the applicable return.",
+      "Cite and verify against Code on Social Security, 2020 — Chapter IV and prescribed contribution return.",
+    ],
+  },
+  // =========================================================================
+  // OCCUPATIONAL SAFETY, HEALTH AND WORKING CONDITIONS CODE, 2020
+  // =========================================================================
   "OSH.CONTRACTOR.LICENCE_VALID": {
     simpleExplanation:
       "Any contractor supplying 50 or more workers must hold a valid contract labour licence. Principal employers must verify the contractor's licence before engaging contract labour.",
@@ -354,34 +551,6 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     actionToComply: [
       "Maintain a comprehensive Accident Register on site.",
       "Send statutory accident notifications to the Inspector-cum-Facilitator for any absence exceeding 48 hours.",
-    ],
-  },
-  "OSH.ACCIDENT.NOTIFICATION_TIMELINESS": {
-    simpleExplanation:
-      "Fatal accidents must be reported within 12 hours. Non-fatal accidents causing 48+ hours of work absence must be notified within 48 hours of occurrence.",
-    exampleScenario:
-      "A severe machinery accident occurs on Monday at 10 AM, causing a worker severe fractures.",
-    compliantExample:
-      "Management submits the official accident notice to the authorities by Tuesday afternoon (well within 48 hours).",
-    violationExample:
-      "Reporting the incident 3 weeks later during a routine monthly administrative review.",
-    actionToComply: [
-      "Establish an emergency safety protocol to notify authorities within 12 to 48 hours.",
-      "Transmit notices electronically via the state labour inspection portal.",
-    ],
-  },
-  "OSH.HOURS.DAILY_CAP": {
-    simpleExplanation:
-      "No worker can be required or allowed to work more than 8 to 9 hours in any single day (excluding rest intervals). Working hours beyond this limit must be treated and paid as overtime.",
-    exampleScenario:
-      "A packaging unit runs extended day shifts to meet rush holiday orders.",
-    compliantExample:
-      "Workers complete an 8-hour shift plus a 1-hour lunch break; any additional 2 hours are logged and paid as double overtime.",
-    violationExample:
-      "Mandating 12 regular hours of work every day without shift rotation or statutory approvals.",
-    actionToComply: [
-      "Structure daily rosters around an 8-hour standard workday.",
-      "Mandate rest intervals of at least 30 minutes after every 5 hours of continuous work.",
     ],
   },
   "OSH.HOURS.WEEKLY_CAP": {
@@ -426,162 +595,116 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
       "Ensure every recorded overtime hour generates double-rate compensation.",
     ],
   },
-  "OSH.WELFARE.CRECHE": {
+  "OSH.APPOINTMENT_LETTER.EMPLOYEE_NAME": {
     simpleExplanation:
-      "Every establishment employing 50 or more workers must provide a clean, safe creche (day-care) facility for children under 6 years of age, located on-site or within 500 metres.",
+      "The uploaded appointment letter does not state the employee name.",
     exampleScenario:
-      "A business or industrial plant employs 65 staff members.",
+      "This check runs only when docs.appointment_letter_count > 0.",
     compliantExample:
-      "The company sets up an on-site creche with a qualified attendant or partners with an accredited day-care centre within 500m.",
+      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_employee_name\": true}} — this passes.",
     violationExample:
-      "Employing 70 workers with no creche facility or day-care tie-up available.",
+      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_employee_name\": false}} — this is reported.",
     actionToComply: [
-      "Designate a well-ventilated, hygienic child-care room with suitable play materials.",
-      "Allow female workers 4 visits daily to the creche including their rest intervals.",
+      "Record the employee's name in the appointment letter.",
+      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
     ],
   },
-  "OSH.WELFARE.CANTEEN": {
+  "OSH.APPOINTMENT_LETTER.DESIGNATION": {
     simpleExplanation:
-      "Establishments employing 100 or more workers (in factories or notified classes) must provide an adequate, hygienic canteen facility serving nutritious food at reasonable rates.",
+      "The uploaded appointment letter does not state the designation or post.",
     exampleScenario:
-      "A manufacturing facility operates with 130 shop-floor and office workers.",
+      "This check runs only when docs.appointment_letter_count > 0.",
     compliantExample:
-      "Management provides a dedicated, hygienic dining area and kitchen serving hot meals at subsidised rates.",
+      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_designation\": true}} — this passes.",
     violationExample:
-      "Operating with 150 workers without any canteen facility, forcing workers to eat on machinery floors or outside.",
+      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_designation\": false}} — this is reported.",
     actionToComply: [
-      "Set up a dedicated canteen with clean drinking water and sanitary dining tables.",
-      "Engage an accredited food service vendor adhering to FSSAI standards.",
+      "Add the employee's designation or post.",
+      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
     ],
   },
-  "OSH.HEALTH_CHECKUP.ANNUAL": {
+  "OSH.APPOINTMENT_LETTER.JOINING_DATE": {
     simpleExplanation:
-      "Employers in hazardous processes or employing workers of prescribed ages (e.g. 45+ years) must arrange free annual medical health check-ups and maintain health records.",
+      "The uploaded appointment letter does not state the date of joining.",
     exampleScenario:
-      "A chemical synthesis facility employs 40 operators handling corrosive liquids.",
+      "This check runs only when docs.appointment_letter_count > 0.",
     compliantExample:
-      "A certified medical practitioner conducts comprehensive annual check-ups (audiometry, chest X-rays, blood panels) for all 40 workers free of cost.",
+      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_date_of_joining\": true}} — this passes.",
     violationExample:
-      "Running hazardous chemical operations for three years without maintaining any annual employee health check-up records.",
+      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_date_of_joining\": false}} — this is reported.",
     actionToComply: [
-      "Tie up with an occupational health physician or certified hospital.",
-      "Maintain health registers with Form-O check-up certificates for each worker.",
+      "Add the verified date of joining.",
+      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
     ],
   },
-
-  // =========================================================================
-  // CODE ON SOCIAL SECURITY, 2020
-  // =========================================================================
-  "SS.EPF.WORKERS_NOT_COVERED": {
+  "OSH.APPOINTMENT_LETTER.WAGE_RATE": {
     simpleExplanation:
-      "Every eligible employee listed on the wage register in an EPF-covered establishment must be enrolled in the Employees' Provident Fund and included in the monthly ECR return.",
+      "The uploaded appointment letter does not state the wage or salary.",
     exampleScenario:
-      "A company with 35 workers prepares its monthly payroll.",
+      "This check runs only when docs.appointment_letter_count > 0.",
     compliantExample:
-      "All 35 workers are enrolled with Universal Account Numbers (UANs) and reflected in the EPFO Electronic Challan cum Return (ECR).",
+      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_wage_rate\": true}} — this passes.",
     violationExample:
-      "Depositing PF for only 20 employees while leaving 15 workers off the PF return by labeling them casual staff.",
+      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_wage_rate\": false}} — this is reported.",
     actionToComply: [
-      "Audit your employee master list against monthly EPFO ECR returns.",
-      "Generate UANs and enroll every eligible worker from their first day of work.",
+      "Add the wage or salary payable.",
+      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
     ],
   },
-  "SS.ESIC.WORKERS_NOT_COVERED": {
+  "OSH.APPOINTMENT_LETTER.WORKING_HOURS": {
     simpleExplanation:
-      "Every employee earning up to ₹21,000 per month (₹25,000 for employees with disabilities) in an ESIC-covered establishment must be covered under ESIC medical and cash benefits.",
+      "The uploaded appointment letter does not state the working hours.",
     exampleScenario:
-      "A hospitality company employs 25 stewards earning ₹17,000 per month each.",
+      "This check runs only when docs.appointment_letter_count > 0.",
     compliantExample:
-      "All 25 stewards are registered under ESIC, and monthly contributions (0.75% employee + 3.25% employer) are deposited.",
+      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_working_hours\": true}} — this passes.",
     violationExample:
-      "Covering only 14 staff under ESIC and omitting the other 11 workers earning ₹17,000.",
+      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_working_hours\": false}} — this is reported.",
     actionToComply: [
-      "Review gross wages monthly and enroll anyone earning ₹21,000 or less into ESIC.",
-      "File the monthly ESIC contribution return online before the due date.",
+      "Add the applicable daily or weekly working hours.",
+      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
     ],
   },
-  "SS.EPF.WAGE_BASE_UNDERSTATED": {
+  "OSH.APPOINTMENT_LETTER.EMPLOYER_SIGNATURE": {
     simpleExplanation:
-      "The wage base used to compute EPF contributions (Basic + DA + Retaining Allowance) must not be artificially depressed or disguised as excessive non-statutory allowances.",
+      "The uploaded appointment letter does not state the employer signature or authentication.",
     exampleScenario:
-      "An employee earns ₹14,000 monthly (Basic ₹10,000 + DA ₹4,000).",
+      "This check runs only when docs.appointment_letter_count > 0.",
     compliantExample:
-      "PF is calculated on the full statutory wage base of ₹14,000 (12% = ₹1,680).",
+      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"is_signed_by_employer\": true}} — this passes.",
     violationExample:
-      "Splitting the salary into Basic ₹4,000 and 'Special Allowance' ₹10,000, and deducting PF on only ₹4,000 (12% = ₹480) to evade contributions.",
+      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"is_signed_by_employer\": false}} — this is reported.",
     actionToComply: [
-      "Ensure the PF wage base includes Basic + DA in accordance with the 50% statutory rule.",
-      "Review pay structures to prevent artificial reduction of PF-qualifying wages.",
+      "Have the appointment letter signed or authenticated on behalf of the employer.",
+      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
     ],
   },
-  "SS.EPF.DEPOSIT_TIMELINESS": {
+  "OSH.ACCIDENT.NOTIFICATION_REFERENCE": {
     simpleExplanation:
-      "EPF contributions (both employee and employer shares) must be deposited with the EPFO within 15 days of the close of each wage month (i.e. by the 15th of the following month).",
+      "An uploaded accident row gives a notification date but no notification reference.",
     exampleScenario:
-      "EPF deductions made for the salary month of February.",
+      "This check runs whenever the required records are uploaded for the period.",
     compliantExample:
-      "The electronic challan is generated and payment is settled on or before March 15th.",
+      "Example (compliant record): {\"incidents\": [{\"notified_on\": \"2026-03-05\", \"notification_reference\": \"NOTICE-12\"}]} — this passes.",
     violationExample:
-      "Depositing February contributions on March 29th, attracting penal damages and interest under Section 14B.",
+      "Example (non compliant record): {\"incidents\": [{\"notified_on\": \"2026-03-05\", \"notification_reference\": null}]} — this is reported.",
     actionToComply: [
-      "Generate monthly ECR challans by the 10th of each month.",
-      "Complete bank payments well before the strict 15th-day statutory deadline.",
+      "Record the authority notification reference against the accident entry.",
+      "Cite and verify against OSH & Working Conditions Code, 2020 — s.10; OSHWC (Central) Rules, 2026 — r.7.",
     ],
   },
-  "SS.EPF.CONTRIBUTION_ARITHMETIC": {
+  "OSH.HOURS.BEYOND_NORMAL_DAY_NOT_OVERTIME": {
     simpleExplanation:
-      "The employee PF deduction from salary must mathematically equal 12% of the declared PF wage base. No random or mismatched deduction amounts are permitted.",
+      "A worker was recorded working more than the eight-hour normal working day on at least one day, but no overtime hours are recorded for that worker.",
     exampleScenario:
-      "An employee has a PF-qualifying wage base of ₹15,000.",
+      "This check runs whenever the records it needs are uploaded for the period.",
     compliantExample:
-      "The deducted amount on the payslip and the ECR is exactly ₹1,800 (12% of ₹15,000).",
+      "Example (nine hour day recorded as overtime): {\"attendance\": [{\"max_daily_hours\": 9, \"overtime_hours\": 6}]} — this passes.",
     violationExample:
-      "Deducting ₹1,350 or ₹2,100 without a voluntary PF declaration, creating an audit error in the electronic challan.",
+      "Example (thirteen hour day without overtime): {\"attendance\": [{\"max_daily_hours\": 13.5, \"overtime_hours\": 0}]} — this is reported.",
     actionToComply: [
-      "Configure payroll deductions to strictly adhere to 12.00% of the qualifying wage.",
-      "Run automated checks verifying that declared wage × 0.12 equals the deducted amount.",
-    ],
-  },
-  "SS.HEADCOUNT.RECONCILIATION": {
-    simpleExplanation:
-      "The total worker count declared across your internal wage register, monthly EPF return, ESIC return, and statutory annual return must reconcile cleanly.",
-    exampleScenario:
-      "An industrial firm reviews its multi-department labour records.",
-    compliantExample:
-      "The wage register shows 48 active staff, and both the EPF and annual returns report the same 48 workers.",
-    violationExample:
-      "The wage register lists 48 workers, the EPF filing shows 32 workers, and the annual return states 40 workers without explanation.",
-    actionToComply: [
-      "Conduct monthly headcount reconciliation across HR, payroll, and statutory filings.",
-      "Document justifications for any non-covered staff (e.g. wages above statutory ceilings).",
-    ],
-  },
-  "SS.GRATUITY.FIXED_TERM_ELIGIBILITY": {
-    simpleExplanation:
-      "Fixed-term employees are entitled to gratuity on a pro-rata basis for the duration of their contract, without having to meet the 5-year continuous service rule required for regular workers.",
-    exampleScenario:
-      "An engineer is hired on a fixed-term contract of 18 months and completes the full term.",
-    compliantExample:
-      "Upon completion, the employer calculates and pays pro-rata gratuity for the 18 months of completed service.",
-    violationExample:
-      "Refusing gratuity to the fixed-term employee on the grounds that they did not complete 5 continuous years.",
-    actionToComply: [
-      "Set up pro-rata gratuity accruals for all fixed-term employment contracts.",
-      "Disburse gratuity settlement upon contract completion along with final salary.",
-    ],
-  },
-  "SS.AGGREGATOR.CONTRIBUTION": {
-    simpleExplanation:
-      "Digital platforms and aggregators (ride-hailing, food delivery, logistics) must contribute 1% to 2% of annual turnover (up to 5% of gig worker payouts) to the Social Security Fund.",
-    exampleScenario:
-      "An on-demand logistics delivery platform records ₹20 crore annual turnover and ₹4 crore payouts to delivery partners.",
-    compliantExample:
-      "The aggregator deposits 1% of turnover (₹20 lakh) into the Central Social Security Fund for gig worker welfare.",
-    violationExample:
-      "Operating a digital aggregator platform without registering with the Social Security Board or paying the welfare contribution.",
-    actionToComply: [
-      "Register the aggregator business on the national social security portal.",
-      "Compute the statutory percentage of turnover and deposit to the designated fund.",
+      "Record every hour worked beyond the eight-hour normal day as overtime and pay it at not less than twice the ordinary rate.",
+      "Verify against OSH & Working Conditions Code, 2020 — s.25; OSHWC (Central) Rules, 2026 — r.69.",
     ],
   },
 };

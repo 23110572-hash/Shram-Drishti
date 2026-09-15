@@ -958,3 +958,55 @@ CROSS_DOCUMENT_SCHEMA = _object(
         ),
     }
 )
+
+
+# ------------------------------------------------------ dual-source reconciliation
+DISAGREEMENT_ITEM = _object(
+    {
+        "page": _integer("Page on which the two extraction sources disagree."),
+        "field": _text("JSON path or field name that differs."),
+        "ocr_value": _text("Value read from OCR text, or null."),
+        "gemini_value": _text("Value read directly from the PDF, or null."),
+        "resolved_value": _text("Chosen value, or null when it cannot be proven."),
+        "resolution": {
+            "type": "string",
+            "enum": ["BOTH", "OCR", "GEMINI", "UNRESOLVED"],
+            "description": "How the canonical value was selected.",
+        },
+        "reason": _text("Short evidence-based reason for the resolution."),
+        "uncertain": {"type": "boolean"},
+    }
+)
+
+SOURCE_AGREEMENT_ITEM = _object(
+    {
+        "page": _integer("Page containing the value or row."),
+        "field": _text("Canonical JSON path or row description."),
+        "agreement": {
+            "type": "string",
+            "enum": ["MATCH", "OCR_ONLY", "GEMINI_ONLY", "CONFLICT"],
+        },
+    }
+)
+
+
+def reconciliation_wrapper_schema(document_schema: dict[str, Any]) -> dict[str, Any]:
+    """Strict envelope used to fuse OCR and Gemini-native PDF readings."""
+    return _object(
+        {
+            "document": document_schema,
+            "disagreements": _array(
+                DISAGREEMENT_ITEM,
+                "Every material difference between OCR and native-PDF extraction.",
+            ),
+            "source_agreement": _array(
+                SOURCE_AGREEMENT_ITEM,
+                "Compact agreement inventory for important fields and rows.",
+            ),
+        }
+    )
+
+
+def reconciliation_schema_for(doc_type: DocumentType) -> dict[str, Any] | None:
+    schema = SCHEMA_BY_DOC_TYPE.get(doc_type)
+    return reconciliation_wrapper_schema(schema) if schema is not None else None

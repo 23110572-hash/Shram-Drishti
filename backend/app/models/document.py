@@ -211,3 +211,55 @@ class Job(IdMixin, TimestampMixin, Base):
 
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     detail: Mapped[dict] = mapped_column(JSONColumn, default=dict, nullable=False)
+
+
+# ------------------------------------------------ durable establishment upload batch
+# New tables are used instead of adding a batch column to the existing document
+# table, so the current metadata.create_all deployment can introduce them safely.
+from sqlalchemy import CheckConstraint as _CheckConstraint
+from sqlalchemy import DateTime as _DateTime
+from sqlalchemy import Integer as _Integer
+from sqlalchemy import UniqueConstraint as _UniqueConstraint
+
+
+class UploadBatch(IdMixin, TimestampMixin, Base):
+    __tablename__ = "upload_batch"
+    __id_prefix__ = "bat"
+    __table_args__ = (
+        _UniqueConstraint(
+            "organisation_id",
+            "client_idempotency_key",
+            name="uq_upload_batch_org_client_key",
+        ),
+        Index("ix_upload_batch_establishment_created", "establishment_id", "created_at"),
+        _CheckConstraint("expected_file_count >= 0", name="ck_upload_batch_expected_nonnegative"),
+    )
+
+    organisation_id: Mapped[str] = mapped_column(
+        ForeignKey("organisation.id", ondelete="CASCADE"), nullable=False
+    )
+    establishment_id: Mapped[str] = mapped_column(
+        ForeignKey("establishment.id", ondelete="CASCADE"), nullable=False
+    )
+    uploaded_by_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    expected_file_count: Mapped[int] = mapped_column(_Integer, nullable=False)
+    client_idempotency_key: Mapped[str] = mapped_column(String(128), nullable=False)
+    sealed_at: Mapped[datetime | None] = mapped_column(_DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(_DateTime(timezone=True), nullable=True)
+
+
+class UploadBatchDocument(Base):
+    __tablename__ = "upload_batch_document"
+    __table_args__ = (
+        _UniqueConstraint("batch_id", "ordinal", name="uq_upload_batch_ordinal"),
+        _UniqueConstraint("document_id", name="uq_upload_batch_document"),
+        _CheckConstraint("ordinal >= 0", name="ck_upload_batch_ordinal_nonnegative"),
+    )
+
+    batch_id: Mapped[str] = mapped_column(
+        ForeignKey("upload_batch.id", ondelete="CASCADE"), primary_key=True
+    )
+    document_id: Mapped[str] = mapped_column(
+        ForeignKey("document.id", ondelete="CASCADE"), primary_key=True
+    )
+    ordinal: Mapped[int] = mapped_column(_Integer, nullable=False)

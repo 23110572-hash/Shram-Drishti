@@ -1,28 +1,21 @@
-jftLVªh lañ Mhñ ,yñ—(,u)04@0007@2003—19
-REGISTERED NO. DL—(N)04/0007/2003—19
-vlk/kkj.k
 EXTRAORDINARY
-Hkkx  II — [k.M 1
-PART II — Section 1
-izkf/kdkj ls izdkf'kr
-PUBLISHED  BY  AUTHORITY
+PUBLISHED BY AUTHORITY
 lañ 48]
 ubZ fnYyh] c`gLifrokj] vxLr 8] 2019@Jko.k 17] 1941 ¼'kd½
-No. 48] NEW  DELHI, THURSDAY, AUGUST 8, 2019/SHRAVANA 17, 1941 (SAKA)
-bl Hkkx esa fHkUu i`"B la[;k nh tkrh gS ftlls fd ;g vyx ladyu ds :i esa j[kk tk ldsA
+No. 48] NEW DELHI, THURSDAY, AUGUST 8, 2019/SHRAVANA 17, 1941 (SAKA)
 Separate paging is given to this Part in order that it may be filed as a separate compilation.
 MINISTRY OF LAW AND JUSTICE
 (Legislative Department)
-New Delhi, the 8th August, 2019/Shravana 17, 1941  (Saka)
+New Delhi, the 8th August, 2019/Shravana 17, 1941 (Saka)
 The following Act of Parliament received the assent of the President on the
 8th August, 2019, and is hereby published for general information:—
-THE CODE ON WAGES, 2019
-NO. 29 OF  2019
+# THE CODE ON WAGES, 2019
+NO. 29 OF 2019
 [8th August, 2019.]
 An Act to amend and consolidate the laws relating to wages and bonus and matters
 connected therewith or incidental thereto.
 BE it enacted by Parliament in the Seventieth Year of the Republic of India as follows:—
-CHAPTER I
+## CHAPTER I
 PRELIMINARY
 1. (1) This Act may be called the Code on Wages, 2019.
 (2) It extends to the whole of India.
@@ -34,17 +27,15 @@ Short title,
 extent and
 commencement.
 2
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 Definitions.
 2. In this Code, unless the context otherwise requires,–
-(a) "accounting year" means the year commencing on the 1st day  of April;
-(b) "Advisory Board" means the  Central Advisory Board or, as the case may be,
+(a) "accounting year" means the year commencing on the 1st day of April;
+(b) "Advisory Board" means the Central Advisory Board or, as the case may be,
 the State Advisory Board, constituted under section 42;
 (c) "agricultural income tax law" means any law for the time being in force relating
 to the levy of tax on agricultural income;
 (d) "appropriate Government" means,–
-(i) in relation to,  an establishment carried on by or under the authority of
+(i) in relation to, an establishment carried on by or under the authority of
 the Central Government or the establishment of railways, mines, oil field, major
 ports, air transport service, telecommunication, banking and insurance company
 or a corporation or other authority established by a Central Act or a central
@@ -63,7 +54,7 @@ a mere supply of goods or articles of manufacture to such establishment, through
 contract labour; or
 (ii) supplies contract labour for any work of the establishment as mere
 human resource and includes a sub-contractor;
-(g)  "contract labour" means a worker who shall be deemed to be employed in or
+(g) "contract labour" means a worker who shall be deemed to be employed in or
 in connection with the work of an establishment when he is hired in or in connection
 with such work by or through a contractor, with or without the knowledge of the
 principal employer and includes inter-State migrant worker but does not include a
@@ -78,7 +69,7 @@ such employment;
 (h) "co-operative society" means a society registered or deemed to be registered
 under the Co-operative Societies Act, 1912, or any other law for the time being in force
 relating to co-operative societies in any State;
-(i) "corporation" means any body corporate established by or under  any Central
+(i) "corporation" means any body corporate established by or under any Central
 Act, or State Act, but does not include a company or a co-operative society;
 (j) "direct tax" means–
 (i) any tax chargeable under the–
@@ -86,8 +77,6 @@ Act, or State Act, but does not include a company or a co-operative society;
 18 of 2013.
 2 of 1912.
 43 of 1961.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 3
 7 of 1964.
 52 of 1961.
@@ -106,7 +95,7 @@ technical or clerical work for hire or reward, whether the terms of employment b
 express or implied, and also includes a person declared to be an employee by the
 appropriate Government, but does not include any member of the Armed Forces of the
 Union;
-(l) "employer" means a person  who employs, whether directly or through any
+(l) "employer" means a person who employs, whether directly or through any
 person, or on his behalf or on behalf of any person, one or more employees in his
 establishment and where the establishment is carried on by any department of the
 Central Government or the State Government, the authority specified, by the head of
@@ -116,13 +105,13 @@ executive of that authority, and includes,—
 (i) in relation to an establishment which is a factory, the occupier of the
 factory as defined in clause (n) of section 2 of the Factories Act, 1948 and, where
 a person has been named as a manager of the factory under clause (f) of
-sub-section (1) of section 7 of the said  Act, the person so named;
+sub-section (1) of section 7 of the said Act, the person so named;
 (ii) in relation to any other establishment, the person who, or the authority
 which, has ultimate control over the affairs of the establishment and where the
 said affairs is entrusted to a manager or managing director, such manager or
 managing director;
 (iii) contractor; and
-(iv)  legal representative of a deceased employer;
+(iv) legal representative of a deceased employer;
 (m) "establishment" means any place where any industry, trade, business,
 manufacture or occupation is carried on and includes Government establishment;
 (n) "factory" means a factory as defined in clause (m) of section 2 of the Factories
@@ -135,15 +124,13 @@ Government or a local authority;
 employers and workers or between workers and workers which is connected
 with the employment or non-employment or the terms of employment or with the
 conditions of labour, of any person; and
-(ii)  any dispute or difference between an individual worker and an employer
+(ii) any dispute or difference between an individual worker and an employer
 connected with, or arising out of, discharge, dismissal, retrenchment or
 termination of such worker;
 (r) "Inspector-cum-Facilitator" means a person appointed by the appropriate
 Government under sub-section (1) of section 51;
 (s) "minimum wage" means the wage fixed under section 6;
 4
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 (t) "notification" means a notification published in the Gazette of India or in
 the Official Gazette of a State, as the case may be, and the expression "notify" with its
 grammatical variations and cognate expressions shall be construed accordingly;
@@ -153,19 +140,19 @@ skill, effort, experience and responsibility required are the same, when perform
 similar working conditions by employees and the difference if any, between the skill,
 effort, experience and responsibility required for employees of any gender, are not of
 practical importance in relation to the terms and conditions of employment;
-(w)  "State" includes a Union territory;
-(x)  "Tribunal" shall have the same meaning as assigned to it in clause (r) of
+(w) "State" includes a Union territory;
+(x) "Tribunal" shall have the same meaning as assigned to it in clause (r) of
 section 2 of the Industrial Disputes Act, 1947;
 (y) "wages" means all remuneration whether by way of salaries, allowances or
 otherwise, expressed in terms of money or capable of being so expressed which would,
 if the terms of employment, express or implied, were fulfilled, be payable to a person
 employed in respect of his employment or of work done in such employment, and
 includes,—
-(i)  basic pay;
-(ii)  dearness allowance; and
-(iii)  retaining allowance, if any,
+(i) basic pay;
+(ii) dearness allowance; and
+(iii) retaining allowance, if any,
 but does not include–
-(a) any bonus payable under  any law for the time being in force, which
+(a) any bonus payable under any law for the time being in force, which
 does not form part of the remuneration payable under the terms of employment;
 (b) the value of any house-accommodation, or of the supply of light,
 water, medical attendance or other amenity or of any service excluded from the
@@ -173,7 +160,7 @@ computation of wages by a general or special order of the appropriate
 Government;
 (c) any contribution paid by the employer to any pension or provident
 fund, and the interest which may have accrued thereon;
-(d) any conveyance allowance or the value of any travelling   concession;
+(d) any conveyance allowance or the value of any travelling concession;
 (e) any sum paid to the employed person to defray special expenses entailed
 on him by the nature of his employment;
 (f) house rent allowance;
@@ -187,12 +174,10 @@ the employee or any ex gratia payment made to him on the termination of
 employment:
 Provided that, for calculating the wages under this clause, if payments
 made by the employer to the employee under clauses (a) to (i) exceeds one-half,
-or such other per cent.  as may be notified by the Central Government, of the all
+or such other per cent. as may be notified by the Central Government, of the all
 remuneration calculated under this clause, the amount which exceeds such
 14 of 1947.
- 42 of 2005.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
+42 of 2005.
 5
 one-half, or the per cent. so notified, shall be deemed as remuneration and shall
 be accordingly added in wages under this clause:
@@ -219,22 +204,22 @@ Miscellaneous Provisions Act, 1955; and
 (ii) sales promotion employees as defined in clause (d) of section 2 of the
 Sales Promotion Employees (Conditions of Service) Act, 1976, and for the
 purposes of any proceeding under this Code in relation to an industrial dispute,
-includes any such person who has been dismissed, discharged or retrenched  or
+includes any such person who has been dismissed, discharged or retrenched or
 otherwise terminated in connection with, or as a consequence of, that dispute,
 or whose dismissal, discharge or retrenchment has led to that dispute,
 but does not include any such person–
-(a)  who is subject to the Air Force Act, 1950, or the Army Act, 1950, or the
+(a) who is subject to the Air Force Act, 1950, or the Army Act, 1950, or the
 Navy Act, 1957; or
-(b)  who is employed in the police service or as an officer or other employee
+(b) who is employed in the police service or as an officer or other employee
 of a prison; or
-(c) who is employed mainly in a managerial or  administrative capacity; or
+(c) who is employed mainly in a managerial or administrative capacity; or
 (d) who is employed in a supervisory capacity drawing wage of exceeding
 fifteen thousand rupees per month or an amount as may be notified by the
 Central Government from time to time.
 3. (1) There shall be no discrimination in an establishment or any unit thereof among
 employees on the ground of gender in matters relating to wages by the same employer, in
 respect of the same work or work of a similar nature done by any employee.
-(2)  No employer shall,—
+(2) No employer shall,—
 (i) for the purposes of complying with the provisions of sub-section (1), reduce
 the rate of wages of any employee; and
 (ii) make any discrimination on the ground of sex while recruiting any employee
@@ -252,11 +237,9 @@ Decision as to
 disputes with
 regard to same
 or similar nature
-of  work.
+of work.
 6
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
-CHAPTER II
+## CHAPTER II
 MINIMUM WAGES
 Payment of
 minimum rate
@@ -271,12 +254,12 @@ wages.
 notified by the appropriate Government.
 6. (1) Subject to the provisions of section 9, the appropriate Government shall fix the
 minimum rate of wages payable to employees in accordance with the provisions of section 8.
-(2) For the purposes of sub-section (1), the appropriate Government shall fix  a minimum
+(2) For the purposes of sub-section (1), the appropriate Government shall fix a minimum
 rate of wages–
 (a) for time work; or
 (b) for piece work.
 (3) Where employees are employed on piece work, for the purpose of sub-section (1),
-the appropriate Government  shall fix a minimum rate of wages for securing such employees
+the appropriate Government shall fix a minimum rate of wages for securing such employees
 a minimum rate of wages on a time work basis.
 (4) The minimum rate of wages on time work basis may be fixed in accordance with any
 one or more of the following wage periods, namely:–
@@ -287,7 +270,7 @@ one or more of the following wage periods, namely:–
 manner of calculating the wages shall be such, as may be prescribed.
 (6) For the purpose of fixation of minimum rate of wages under this section, the
 appropriate Government,—
-(a) shall primarily take into account the skill of workers  required for working
+(a) shall primarily take into account the skill of workers required for working
 under the categories of unskilled, skilled, semi-skilled and highly-skilled or geographical
 area or both; and
 (b) may, in addition to such minimum rate of wages for certain category of
@@ -296,7 +279,7 @@ normally difficult to bear, hazardous occupations or processes or underground wo
 as may be prescribed by that Government; and
 (c) the norms of such fixation of minimum rate of wages shall be such as may be
 prescribed.
-(7) The  number of  minimum rates of wages referred to in sub-section (6) may, as far as
+(7) The number of minimum rates of wages referred to in sub-section (6) may, as far as
 possible, be kept at minimum by the appropriate Government.
 7. (1) Any minimum rate of wages fixed or revised by the appropriate Government
 under section 8 may consist of–
@@ -309,22 +292,20 @@ cash value of the concessions in respect of supplies of essential commodities at
 concession rates, where so authorised; or
 (c) an all-inclusive rate allowing for the basic rate, the cost of living allowance
 and the cash value of the concessions, if any.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 7
 (2) The cost of living allowance and the cash value of the concessions in respect of
 supplies of essential commodities at concession rate shall be computed by such authority,
-as the appropriate Government may by notification, appoint,  at such intervals and in
-accordance with such directions as may be specified or given by the  appropriate Government
+as the appropriate Government may by notification, appoint, at such intervals and in
+accordance with such directions as may be specified or given by the appropriate Government
 from time to time.
 8. (1) In fixing minimum rates of wages for the first time or in revising minimum rates of
-wages under this Code, the  appropriate Government shall either—
+wages under this Code, the appropriate Government shall either—
 (a) appoint as many committees as it considers necessary to hold enquiries and
 recommend in respect of such fixation or revision, as the case may be; or
 (b) by notification publish its proposals for the information of persons likely to
 be affected thereby and specify a date not less than two months from the date of the
 notification on which the proposals shall be taken into consideration.
-(2)  Every committee appointed by the  appropriate Government under clause (a) of
+(2) Every committee appointed by the appropriate Government under clause (a) of
 sub-section (1) shall consist of persons–
 (a) representing employers;
 (b) representing employees which shall be equal in number of the members
@@ -333,16 +314,16 @@ specified in clause (a); and
 committee.
 (3) After considering the recommendation of the committee appointed under clause (a)
 of sub-section (1) or, as the case may be, all representations received by it before the date
-specified in the notification under clause (b) of that sub-section, the  appropriate Government
+specified in the notification under clause (b) of that sub-section, the appropriate Government
 shall by notification fix, or as the case may be, revise the minimum rates of wages and unless
-such notification otherwise provides,  it shall come into force on the expiry of three months
+such notification otherwise provides, it shall come into force on the expiry of three months
 from the date of its issue:
 Provided that where the appropriate Government proposes to revise the minimum
 rates of wages in the manner specified in clause (b) of sub-section (1), it shall also consult
 concerned Advisory Board constituted under section 42.
 (4) The appropriate Government shall review or revise minimum rates of wages ordinarily
 at an interval not exceeding five years.
-9. (1)  The Central Government shall fix floor wage taking into account minimum living
+9. (1) The Central Government shall fix floor wage taking into account minimum living
 standards of a worker in such manner as may be prescribed:
 Provided that different floor wage may be fixed for different geographical areas.
 (2) The minimum rates of wages fixed by the appropriate Government under section 6
@@ -353,7 +334,7 @@ reduce such minimum rates of wages fixed by it earlier.
 obtain the advice of the Central Advisory Board constituted under sub-section (1) of
 section 42 and consult State Governments in such manner as may be prescribed.
 10. If an employee whose minimum rate of wages has been fixed under this Code by the
-day works on any day on which he was employed for a period of  less than the requisite
+day works on any day on which he was employed for a period of less than the requisite
 number of hours constituting a normal working day, he shall, save as otherwise hereinafter
 provided, be entitled to receive wages in respect of work done on that day, as if he had
 worked for a full normal working day:
@@ -376,8 +357,6 @@ works for less
 than normal
 working day.
 8
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 (ii) in such other cases and circumstances, as may be prescribed.
 Wages for
 two or more
@@ -437,14 +416,12 @@ by the hour, by the day or by such a longer wage-period as may be prescribed, wo
 day in excess of the number of hours constituting a normal working day, the employer shall
 pay him for every hour or for part of an hour so worked in excess, at the overtime rate which
 shall not be less than twice the normal rate of wages.
-CHAPTER III
+## CHAPTER III
 PAYMENT OF WAGES
 15. All wages shall be paid in current coin or currency notes or by cheque or by
 crediting the wages in the bank account of the employee or by the electronic mode:
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 9
-Provided  that the appropriate Government may, by notification, specify the industrial
+Provided that the appropriate Government may, by notification, specify the industrial
 or other establishment, the employer of which shall pay to every person employed in such
 industrial or other establishment, the wages only by cheque or by crediting the wages in his
 bank account.
@@ -454,7 +431,7 @@ shall be more than a month:
 Provided that different wage periods may be fixed for different establishments.
 17. (1) The employer shall pay or cause to be paid wages to the employees, engaged
 on—
-(i)  daily basis, at the end of the shift;
+(i) daily basis, at the end of the shift;
 (ii) weekly basis, on the last working day of the week, that is to say, before the
 weekly holiday;
 (iii) fortnightly basis, before the end of the second day after the end of the
@@ -498,8 +475,6 @@ which may be
 made from
 wages.
 10
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 (2) Deductions from the wages of an employee shall be made in accordance with the
 provisions of this Code, and may be made only for the following purposes, namely:—
 (a) fines imposed on him;
@@ -523,7 +498,7 @@ employment;
 (i) advances of whatever nature (including advances for travelling
 allowance or conveyance allowance), and the interest due in respect thereof, or
 for adjustment of overpayment of wages;
-(ii)  loans made from any fund constituted for the welfare of labour, as may
+(ii) loans made from any fund constituted for the welfare of labour, as may
 be prescribed by the appropriate Government, and the interest due in respect
 thereof;
 (g) deductions for recovery of loans granted for house-building or other purposes
@@ -534,22 +509,20 @@ to be made by order of a court or other authority competent to make such order;
 (i) deductions for subscription to, and for repayment of advances from any
 social security fund or scheme constituted by law including provident fund or pension
 fund or health insurance scheme or fund known by any other name;
-(j)       deductions for payment of co-operative society subject to such conditions
+(j) deductions for payment of co-operative society subject to such conditions
 as the appropriate Government may impose;
 (k) deductions made, with the written authorisation of the employee, for payment
 of the fees and contribution payable by him for the membership of any Trade Union
 registered under the Trade Unions Act, 1926;
-(l) deductions for recovery of losses sustained  by the railway administration
+(l) deductions for recovery of losses sustained by the railway administration
 on account of acceptance by the employee of counterfeit or base coins or mutilated or
 forged currency notes;
-(m) deductions for recovery of losses sustained  by the railway administration
+(m) deductions for recovery of losses sustained by the railway administration
 on account of the failure of the employee to invoice, to bill, to collect or to account for
-the appropriate charges due to the  railway administration  whether in respect of fares,
+the appropriate charges due to the railway administration whether in respect of fares,
 freight, demurrage, wharfage and cranage or in respect of sale of food in catering
 establishments or in respect of commodities in grain shops or otherwise;
 16 of 1926.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 11
 (n) deductions for recovery of losses sustained by the railway administration on
 account of any rebates or refunds incorrectly granted by the employee where such
@@ -561,7 +534,7 @@ Central Government may, by notification, specify.
 any other law for the time being in force, the total amount of deductions which may be made
 under sub-section (2) in any wage period from the wages of an employee shall not exceed
 fifty per cent. of such wages.
-(4)  Where the total deductions authorised under sub-section (2) exceed fifty per cent.
+(4) Where the total deductions authorised under sub-section (2) exceed fifty per cent.
 of the wages, the excess may be recovered in such manner, as may be prescribed.
 (5) Where any deduction is made by the employer from the wages of an employee
 under this section but not deposited in the account of the trust or Government fund or any
@@ -575,7 +548,7 @@ sub-section (2).
 may be prescribed, on the premises in which the employment is carried on.
 (3) No fine shall be imposed on any employee until such employee has been given an
 opportunity of showing cause against the fine or otherwise than in accordance with such
-procedure as may be prescribed for the imposition of fines. 
+procedure as may be prescribed for the imposition of fines.
 (4) The total amount of fine which may be imposed in any one wage-period on any
 employee shall not exceed an amount equal to three per cent. of the wages payable to him in
 respect of that wage-period.
@@ -604,8 +577,6 @@ Deductions for
 absence from
 duty.
 12
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 of employment) and without reasonable cause, such deduction from any such person may
 include such amount not exceeding his wages for eight days as may by any such terms be
 due to the employer in lieu of due notice.
@@ -661,7 +632,7 @@ rate of interest payable thereon, shall be such as may be prescribed.
 25. The provisions of this Chapter shall not apply to the Government establishments
 unless the appropriate Government, by notification, applies such provisions to the
 Government establishments specified in the said notification.
-CHAPTER IV
+## CHAPTER IV
 PAYMENT OF BONUS
 26. (1) There shall be paid to every employee, drawing wages not exceeding such
 amount per mensem, as determined by notification, by the appropriate Government, by his
@@ -672,8 +643,6 @@ allocable surplus during the previous accounting year.
 (2) For the purpose of calculation of the bonus where the wages of the employee
 exceeds such amount per mensem, as determined by notification by the appropriate
 Government, the bonus payable to such employee under sub-sections (1) and (3) shall be
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 13
 calculated as if his wage were such amount, so determined by the appropriate Government
 or the minimum wage fixed by the appropriate Government, whichever is higher.
@@ -725,8 +694,6 @@ profits.
 Explanation 2.––For the purposes of sub-sections (6), (7) and (8), sale of the goods
 produced or manufactured during the course of the trial running of any factory or of the
 14
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 prospecting stage of any mine or an oil-field shall not be taken into consideration and where
 any question arises with regard to such production or manufacture, the appropriate
 Government may, after giving the parties a reasonable opportunity of representing the case,
@@ -793,8 +760,6 @@ the balance sheet before it, but the authority shall not disclose any informatio
 in the balance sheet unless agreed to by the employer.
 20 of 1946.
 14 of 1947.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 15
 32. The gross profits derived by an employer from an establishment in respect of the
 accounting year shall,–
@@ -856,8 +821,6 @@ direct tax
 payable by
 employer.
 16
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 exempted, such institution shall be treated as if it were a company in which the public
 are substantially interested within the meaning of that Act;
 (c) where the employer is an individual or a Hindu undivided family, the tax
@@ -909,7 +872,7 @@ set off under this section, then, in calculating bonus for the succeeding accoun
 the amount of set on or set off carried forward from the earliest accounting year shall first be
 taken into account.
 37. Where in any accounting year,—
- (a) an employer has paid any puja bonus or other customary bonus to
+(a) an employer has paid any puja bonus or other customary bonus to
 employee; or
 (b) an employer has paid a part of the bonus payable under this Code to an
 employee before the date on which such bonus becomes payable,
@@ -921,8 +884,6 @@ financial loss to the employer, then, it shall be lawful for the employer to ded
 of loss from the amount of bonus payable by him to the employee under this Code in
 respect of that accounting year only and the employee shall be entitled to receive the
 balance, if any.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 17
 39. (1) All amounts payable to an employee by way of bonus under this Code shall be
 paid by crediting it in the bank account of the employee by his employer within a period of
@@ -988,8 +949,6 @@ applicability
 of this
 Chapter.
 18
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 (h) employees employed by inland water transport establishments operating on
 routes passing through any other country; and
 (i) employees of any other establishment which the appropriate Government
@@ -999,7 +958,7 @@ scheme of profit sharing available in such establishments to the employees.
 contained in any other provisions of this Chapter, the provisions of this Chapter shall apply
 to such establishment in which twenty or more persons are employed or were employed on
 any day during an accounting year.
-CHAPTER V
+## CHAPTER V
 ADVISORY BOARD
 Central
 Advisory
@@ -1037,8 +996,6 @@ establishments or employments as the State Government may, by notification, spec
 in this behalf; and
 (d) in any other matter relating to this Code, which the State Government may
 refer from time to time to the Board.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 19
 (5) The State Advisory Board may constitute one or more committees or sub-committees
 to look into issues pertaining to matters specified in clauses (a) to (d) of sub-section (4).
@@ -1072,7 +1029,7 @@ such manner as may be prescribed.
 and the State Advisory Board referred to in sub-section (4) including that of the committees
 and sub-committees constituted by the State Advisory Board, shall be such as may be
 prescribed.
-CHAPTER VI
+## CHAPTER VI
 PAYMENT OF DUES, CLAIMS AND AUDIT
 43. Every employer shall pay all amounts required to be paid under this Code to every
 employee employed by him:
@@ -1098,8 +1055,6 @@ dues in case of
 death of
 employee.
 20
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 (b) where no such nomination has been made or where for any reasons such
 amounts cannot be paid to the person so nominated, be deposited with the such
 authority, as may be prescribed, who shall deal with the amounts so deposited in the
@@ -1130,7 +1085,7 @@ paid under sub-section (2), the authority shall issue a certificate of recovery 
 or District Magistrate of the district where the establishment is located who shall recover
 the same as arrears of land revenue and remit the same to the authority for payment to the
 concerned employee.
-(4)  Any application before the authority for claim referred to in sub-section (1) may
+(4) Any application before the authority for claim referred to in sub-section (1) may
 be filed by,–
 (a) the employee concerned; or
 (b) any Trade Union registered under the Trade Unions Act, 1926 of which the
@@ -1150,13 +1105,11 @@ authority or appellate authority shall be deemed to be a civil court for all the
 section 195 and Chapter XXVI of the Code of Criminal Procedure, 1973.
 46. Notwithstanding anything contained in this Code, where any dispute arises
 between an employer and his employees with respect to—
-(a)  fixation of bonus or eligibility for payment of bonus under the provisions of
+(a) fixation of bonus or eligibility for payment of bonus under the provisions of
 this Code; or
 16 of 1926.
 5 of 1908.
 2 of 1974.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 21
 (b) the application of this Code, in respect of bonus, to an establishment in
 public sector,
@@ -1230,8 +1183,6 @@ being
 coporations
 or companies.
 22
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 (3) Where an employer fails to get the accounts audited under sub-section (2), the
 authority, appellate authority, Tribunal or arbitrator, referred to in sub-section (1), as the
 case may be, may, without prejudice to the provisions of section 54, get the accounts
@@ -1280,10 +1231,8 @@ Explanation.—For the purposes of this sub-section, the expression "domestic
 purpose" means the purpose exclusively relating to the home or family affairs of the employer
 and does not include any affair relating to any establishment, industry, trade, business,
 manufacture or occupation.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 23
-CHAPTER VII
+## CHAPTER VII
 INSPECTOR-CUM-FACILITATOR
 51. (1) The appropriate Government may, by notification, appoint Inspector-cum
 Facilitators for the purposes of this Code who shall exercise the powers conferred on them
@@ -1336,9 +1285,7 @@ Facilitators
 and their
 powers.
 24
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
-CHAPTER VIII
+## CHAPTER VIII
 OFFENCES AND PENALTIES
 Cognizance of
 offences.
@@ -1400,8 +1347,6 @@ the employer to comply with the provisions of this Code by way of a written dire
 which shall lay down a time period for such compliance, and, if the employer complies with
 16 of 1926.
 2 of 1974.
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 25
 the direction within such period, the Inspector-cum-Facilitator shall not initiate such
 prosecution proceeding and, no such opportunity shall be accorded to an employer, if the
@@ -1458,14 +1403,12 @@ companies.
 Composition
 of offences.
 26
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 (7) Any person who fails to comply with an order made by the officer referred to in
 sub-section (1), shall be punishable with a sum equivalent to twenty per cent. of the
 maximum fine provided for the offence, in addition to such fine.
 (8) No offence punishable under the provisions of this Code shall be compounded
 except under and in accordance with the provisions of this section.
-CHAPTER IX
+## CHAPTER IX
 MISCELLANEOUS
 Bar of suits.
 Protection of
@@ -1525,8 +1468,6 @@ satisfaction of the court—
 (a) that he has used due diligence to enforce the execution of this Code; and
 (b) that the said other person committed the offence in question without his
 knowledge, consent or connivance,
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 27
 that other person shall be convicted of the offence and shall be liable to the like punishment
 as if he were the employer and the employer shall be discharged from any liability under this
@@ -1596,8 +1537,6 @@ appropriate
 Government
 to make rules.
 28
-THE GAZETTE OF INDIA EXTRAORDINARY 
-[PART II—
 (n) the procedure for making deductions for damage or loss under sub-section (2)
 of section 21;
 (o) the form of the register to record all deductions and all realisations thereof
@@ -1638,7 +1577,7 @@ make rules for,—
 section 9;
 (c) the manner of making set on or set off for the sixth accounting year under
 clause (i) of sub-section (7) of section 26;
-(d) the manner of making set on or set off  for the seventh accounting year
+(d) the manner of making set on or set off for the seventh accounting year
 under clause (ii) of sub-section (7) of section 26;
 (e) the manner of calculating gross profit under clauses (a) and (b) of
 section 32;
@@ -1649,8 +1588,6 @@ the fourth accounting year under sub-section (1) of section 36;
 (h) the manner of utilising the minimum amount or the deficiency to be carried
 forward for being set off in the succeeding accounting year and so on up to and
 inclusive of the fourth accounting year under sub-section (2) of section 36; and
-SEC. 1]
-THE GAZETTE OF INDIA EXTRAORDINARY
 29
 (i) the manner of holding an enquiry under sub-section (1) of section 53.
 (4) Every rule made by the Central Government under this section shall be laid, as
@@ -1674,7 +1611,7 @@ period of three years from the commencement of this Code.
 made, before each House of Parliament.
 4 of 1936.
 11 of 1948.
-21 of  1965.
+21 of 1965.
 25 of 1976.
 10 of 1897.
 69. (1) The Payment of Wages Act, 1936, the Minimum Wages Act, 1948, the Payment
@@ -1688,13 +1625,13 @@ to the provisions of this Code till they are repealed under the corresponding pr
 Code or by the notification to that effect by the Central Government.
 (3) Without prejudice to the provisions of sub-section (2), the provisions of
 section 6 of the General Clauses Act, 1897 shall apply to the repeal of such enactments.
-————
-DR. G.  NARAYANA  RAJU,
+DR. G. NARAYANA RAJU,
 Secretary to the Govt. of India.
 Power to
 remove
 difficulties.
 Repeal and
 savings.
-UPLOADED BY THE MANAGER, GOVERNMENT OF INDIA PRESS, MINTO ROAD,  NEW DELHI–110002
-AND PUBLISHED BY THE CONTROLLER OF PUBLICATIONS, DELHI–110054
+UPLOADED BY THE MANAGER, GOVERNMENT OF INDIA PRESS, MINTO ROAD, NEW DELHI–110002
+AND PUBLISHED BY THE CONTROLLER OF PUBLICATIONS, DELHI–110054.
+MGIPMRND—2589GI(S3)—08-08-2019.
