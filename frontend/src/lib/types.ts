@@ -516,7 +516,7 @@ export interface RuleOut {
 
 export const ROLE_LABELS: Record<Role, string> = {
   EMPLOYER: "Employer",
-  INSPECTOR: "Inspector-cum-Facilitator",
+  INSPECTOR: "Inspector",
   ADMIN: "Administrator",
   ANALYST: "Analyst",
 };

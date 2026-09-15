@@ -140,100 +140,100 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
   },
   "WAGES.HOURS.NORMAL_DAY_EIGHT": {
     simpleExplanation:
-      "The uploaded wage record states normal daily hours above eight.",
+      "Normal daily working hours for adult employees must not exceed 8 hours per day, excluding statutory intervals of rest.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "A manufacturing facility plans its standard production shift timings.",
     compliantExample:
-      "Example (compliant record): {\"wage_register\": [{\"normal_hours_per_day\": 8}]} — this passes.",
+      "Workers are rostered for an 8-hour daily shift (e.g., 9:00 AM to 5:00 PM) plus a scheduled 30-minute lunch break.",
     violationExample:
-      "Example (non compliant record): {\"wage_register\": [{\"normal_hours_per_day\": 10}]} — this is reported.",
+      "Workers are scheduled for 10 regular hours daily without recording the extra 2 hours as overtime.",
     actionToComply: [
-      "Correct the normal-hours record and treat qualifying additional work as overtime under the applicable rules.",
-      "Cite and verify against Code on Wages (Central) Rules, 2026 — r.5.",
+      "Ensure regular daily shift schedules do not exceed 8 hours per day.",
+      "Record any additional work beyond 8 hours as overtime with 2x compensatory pay.",
     ],
   },
   "WAGES.OVERTIME.AMOUNT_RECONCILES": {
     simpleExplanation:
-      "The overtime amount in the uploaded record does not equal the recorded overtime hours multiplied by the recorded rate.",
+      "The total overtime pay in the wage register must accurately reconcile with the recorded overtime hours multiplied by the overtime rate.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "A technician completes 10 hours of overtime at a rate of ₹200/hr (total statutory entitlement ₹2,000).",
     compliantExample:
-      "Example (compliant record): {\"wage_register\": [{\"overtime_hours\": 10, \"overtime_rate_paise\": 20000, \"overtime_paise\": 200000}]} — this passes.",
+      "The wage register credits ₹2,000 for 10 overtime hours, exactly matching 10 hrs × ₹200/hr.",
     violationExample:
-      "Example (non compliant record): {\"wage_register\": [{\"overtime_hours\": 10, \"overtime_rate_paise\": 20000, \"overtime_paise\": 100000}]} — this is reported.",
+      "The wage register records 10 overtime hours at ₹200/hr but only credits ₹1,000, leaving a ₹1,000 discrepancy.",
     actionToComply: [
-      "Correct the hours, rate or overtime amount so the uploaded wage record reconciles.",
-      "Cite and verify against Code on Wages, 2019 — s.14; Code on Wages (Central) Rules, 2026 — r.5.",
+      "Audit payroll calculations to ensure overtime hours multiplied by overtime rate equals total overtime pay.",
+      "Rectify any discrepancies in the wage register before releasing payment disbursements.",
     ],
   },
   "WAGES.REGISTER.GROSS_RECORDED": {
     simpleExplanation:
-      "Gross wages are blank for a worker in the uploaded wage record.",
+      "Gross wages must be explicitly recorded for every employee in the statutory wage register.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Generating monthly wage register entries across factory and warehouse staff.",
     compliantExample:
-      "Example (compliant record): {\"wage_register\": [{\"gross_paise\": 1500000}]} — this passes.",
+      "Every employee record displays their calculated gross wage (e.g. ₹15,000) combining basic, DA, and allowances.",
     violationExample:
-      "Example (non compliant record): {\"wage_register\": [{\"gross_paise\": null}]} — this is reported.",
+      "Gross wage column is left blank or null for employees on the register.",
     actionToComply: [
-      "Complete the gross-wage entry from the verified wage components.",
-      "Cite and verify against Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV.",
+      "Ensure every employee entry in Form IV includes calculated gross wages.",
+      "Validate automated payroll exports to eliminate blank wage entries.",
     ],
   },
   "WAGES.REGISTER.NET_RECORDED": {
     simpleExplanation:
-      "Net wages are blank for a worker in the uploaded wage record.",
+      "The net wages paid to each worker after statutory and authorized deductions must be explicitly recorded.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Finalizing monthly wage register payouts and bank disbursement statements.",
     compliantExample:
-      "Example (compliant record): {\"wage_register\": [{\"net_paid_paise\": 1300000}]} — this passes.",
+      "The register specifies the exact net amount paid (e.g. ₹13,000 after deductions) for each worker.",
     violationExample:
-      "Example (non compliant record): {\"wage_register\": [{\"net_paid_paise\": null}]} — this is reported.",
+      "The net wage column is omitted or left unrecorded, obscuring the actual amount paid.",
     actionToComply: [
-      "Record the verified net amount paid after additions and deductions.",
-      "Cite and verify against Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV.",
+      "Record the verified net amount paid after all authorized deductions for every worker.",
+      "Reconcile net pay figures with bank salary transfer sheets.",
     ],
   },
   "WAGES.REGISTER.PAYMENT_DATE_RECORDED": {
     simpleExplanation:
-      "The payment date is blank for a worker in the uploaded wage record.",
+      "The actual date on which wages were disbursed must be explicitly recorded for every employee.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Monthly salary disbursement cycle across permanent and contract workers.",
     compliantExample:
-      "Example (compliant record): {\"wage_register\": [{\"paid_on\": \"2026-04-05\"}]} — this passes.",
+      "The wage register records the exact payment date (e.g. 5th April 2026) for each employee.",
     violationExample:
-      "Example (non compliant record): {\"wage_register\": [{\"paid_on\": null}]} — this is reported.",
+      "The payment date column is left blank or unrecorded in the wage register.",
     actionToComply: [
-      "Enter the actual verified payment date for the worker.",
-      "Cite and verify against Code on Wages, 2019 — s.17 and s.50; Code on Wages (Central) Rules, 2026 — Form IV.",
+      "Enter the actual disbursement date for every employee entry in the wage register.",
+      "Retain timestamped bank transfer confirmations to support the recorded payment dates.",
     ],
   },
   "WAGES.REGISTER.DAYS_PAID_RECORDED": {
     simpleExplanation:
-      "The number of paid days is blank for a worker in the uploaded wage record.",
+      "The total number of days for which wages are paid in the wage period must be explicitly recorded in the register.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Calculating monthly employee salaries based on verified attendance records.",
     compliantExample:
-      "Example (compliant record): {\"wage_register\": [{\"days_paid\": 26}]} — this passes.",
+      "The wage register states 26 days paid based on attendance and authorized paid leaves.",
     violationExample:
-      "Example (non compliant record): {\"wage_register\": [{\"days_paid\": null}]} — this is reported.",
+      "The days paid column is left blank or missing on the statutory wage register.",
     actionToComply: [
-      "Reconcile attendance and enter the verified number of days paid.",
-      "Cite and verify against Code on Wages, 2019 — s.50; Code on Wages (Central) Rules, 2026 — r.51 and Form IV.",
+      "Reconcile biometric attendance and muster rolls to record total paid days for each worker.",
+      "Ensure total days paid includes earned leave, festival holidays, and working days.",
     ],
   },
   "WAGES.DEFINITION.EXCLUDED_HALF_DEEMED_WAGES": {
     simpleExplanation:
-      "Allowances excluded from wages exceed one half of total remuneration, so the excess is deemed to be wages and must be included in the statutory wage base.",
+      "Excluded allowances (such as HRA, conveyance, and bonus) must not exceed 50% of total remuneration. Any excess beyond 50% is deemed to be wages for statutory benefits.",
     exampleScenario:
-      "This check runs whenever the records it needs are uploaded for the period.",
+      "A compensation package pays Basic ₹12,000, DA ₹3,000, and Special Allowances ₹5,000 (total ₹20,000).",
     compliantExample:
-      "Example (allowances within half): {\"wage_register\": [{\"basic_paise\": 1200000, \"da_paise\": 300000, \"other_allowances_paise\": 500000}]} — this passes.",
+      "Excluded allowances (₹5,000) are 25% of total remuneration, well within the 50% statutory threshold.",
     violationExample:
-      "Example (allowances two thirds need addback): {\"wage_register\": [{\"basic_paise\": 400000, \"da_paise\": 100000, \"other_allowances_paise\": 1500000}]} — this is reported.",
+      "Salary is split into Basic ₹4,000 and allowances ₹16,000 (80%), artificially minimizing the base for PF and gratuity.",
     actionToComply: [
-      "Add the excess above one half of remuneration into the statutory wage base used for contributions, gratuity and overtime, or restructure pay so excluded allowances stay within one half.",
-      "Verify against Code on Wages, 2019 — s.2(y) proviso.",
+      "Structure salary compensation so basic pay and DA make up at least 50% of total CTC.",
+      "Include any allowance amounts exceeding 50% in the statutory wage base for PF, ESI, and gratuity.",
     ],
   },
   // =========================================================================
@@ -283,100 +283,100 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
   },
   "IR.GRIEVANCE_COMMITTEE.EQUAL_REPRESENTATION": {
     simpleExplanation:
-      "The uploaded committee record does not show equal employer and worker representation.",
+      "The Grievance Redressal Committee must have equal representation of employer and worker nominees.",
     exampleScenario:
-      "This check runs only when docs.grievance_committee_count > 0.",
+      "An industrial establishment with 20 or more workers constitutes a Grievance Redressal Committee.",
     compliantExample:
-      "Example (equal): {\"docs\": {\"grievance_committee_count\": 1}, \"prose\": {\"grievance_committee_employer_reps\": 4, \"grievance_committee_worker_reps\": 4}} — this passes.",
+      "The committee comprises 4 employer representatives and 4 worker representatives, maintaining parity.",
     violationExample:
-      "Example (unequal): {\"docs\": {\"grievance_committee_count\": 1}, \"prose\": {\"grievance_committee_employer_reps\": 6, \"grievance_committee_worker_reps\": 2}} — this is reported.",
+      "The committee has 6 employer representatives and only 2 worker representatives.",
     actionToComply: [
-      "Reconstitute and record the committee with equal employer and worker representation.",
-      "Cite and verify against Industrial Relations Code, 2020 — s.4(2).",
+      "Ensure the Grievance Redressal Committee maintains an equal 50:50 ratio of employer and worker nominees.",
+      "Record committee nominations and official member lists in establishment records.",
     ],
   },
   "IR.GRIEVANCE_COMMITTEE.CHAIRPERSON_RECORDED": {
     simpleExplanation:
-      "The uploaded committee record does not identify its chairperson.",
+      "The Grievance Redressal Committee must record a designated chairperson, alternating annually between employer and worker representatives.",
     exampleScenario:
-      "This check runs only when docs.grievance_committee_count > 0.",
+      "Annual reorganization and chair appointment for the Grievance Redressal Committee.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"grievance_committee_count\": 1}, \"prose\": {\"has_chairperson\": true}} — this passes.",
+      "The committee formally designates a chairperson, alternating between worker and management representatives each year.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"grievance_committee_count\": 1}, \"prose\": {\"has_chairperson\": false}} — this is reported.",
+      "The committee operates without a designated chairperson or never alternates the role to worker representatives.",
     actionToComply: [
-      "Record the chairperson selected in accordance with the alternating representation requirement.",
-      "Cite and verify against Industrial Relations Code, 2020 — s.4(3).",
+      "Formally designate and record the chairperson in Grievance Redressal Committee records.",
+      "Ensure the role of chairperson alternates annually between employer and worker representatives.",
     ],
   },
   "IR.STRIKE.NOTICE_WITHIN_SIXTY_DAYS": {
     simpleExplanation:
-      "The uploaded record places the strike or lock-out outside the permitted sixty-day notice window.",
+      "A strike or lock-out must commence within 60 days of giving statutory notice. Actions initiated after 60 days require a fresh notice.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "A registered trade union issues formal notice of industrial action.",
     compliantExample:
-      "Example (within window): {\"prose\": {\"strike_notice_days\": 30}} — this passes.",
+      "The strike commences 20 days after notice is served, falling within the permitted 14 to 60 day legal window.",
     violationExample:
-      "Example (outside window): {\"prose\": {\"strike_notice_days\": 75}} — this is reported.",
+      "Commencing industrial action 75 days after the notice was served without giving a fresh 14-day notice.",
     actionToComply: [
-      "Issue a fresh notice and ensure the action occurs no earlier than fourteen and no later than sixty days after notice.",
-      "Cite and verify against Industrial Relations Code, 2020 — s.62.",
+      "Schedule industrial action between 14 and 60 days following the delivery of statutory notice.",
+      "Issue a fresh notice if negotiations extend beyond the 60-day validity window.",
     ],
   },
   "IR.STANDING_ORDERS.CERTIFIED_OR_MODEL": {
     simpleExplanation:
-      "The uploaded standing orders do not show certification or adoption of the applicable model standing orders.",
+      "Establishments with 300 or more workers must either adopt Model Standing Orders or obtain certified Standing Orders governing conditions of service.",
     exampleScenario:
-      "This check runs only when docs.standing_orders_count > 0.",
+      "A plant employing 350 workers establishes formal service and conduct rules.",
     compliantExample:
-      "Example (certified): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"is_certified\": true, \"adopts_model_standing_orders\": false}} — this passes.",
+      "The establishment formally adopts the Central Model Standing Orders or obtains certification from the Certifying Officer.",
     violationExample:
-      "Example (neither): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"is_certified\": false, \"adopts_model_standing_orders\": false}} — this is reported.",
+      "Operating a facility of 350 workers under informal, uncertified internal company rules.",
     actionToComply: [
-      "Record adoption of the applicable model orders or obtain certification of differing standing orders.",
-      "Cite and verify against Industrial Relations Code, 2020 — Chapter IV.",
+      "Formally adopt the Model Standing Orders under the Industrial Relations Code.",
+      "Submit custom draft standing orders to the Certifying Officer for formal certification if applicable.",
     ],
   },
   "IR.STANDING_ORDERS.WORKER_CLASSIFICATION": {
     simpleExplanation:
-      "The uploaded standing orders do not cover classification of workers.",
+      "Standing Orders must explicitly classify workers into defined statutory categories such as permanent, probationer, temporary, fixed-term, and apprentice.",
     exampleScenario:
-      "This check runs only when docs.standing_orders_count > 0.",
+      "Drafting terms of employment and job classifications for establishment staff.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_classification_of_workers\": true}} — this passes.",
+      "Standing orders explicitly define categories for permanent staff, probationers, fixed-term employees, and apprentices.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_classification_of_workers\": false}} — this is reported.",
+      "Classifying all workers ambiguously as general staff without defining service categories or probation terms.",
     actionToComply: [
-      "Add the required worker classifications to the standing orders.",
-      "Cite and verify against Industrial Relations Code, 2020 — First Schedule.",
+      "Include defined worker classifications (permanent, probationer, temporary, fixed-term) in standing orders.",
+      "Align employment letters and contracts with these statutory classifications.",
     ],
   },
   "IR.STANDING_ORDERS.DISCIPLINARY_PROCEDURE": {
     simpleExplanation:
-      "The uploaded standing orders do not describe the disciplinary procedure.",
+      "Standing Orders must clearly define acts of misconduct, disciplinary inquiry procedures, suspension rules, and penalties.",
     exampleScenario:
-      "This check runs only when docs.standing_orders_count > 0.",
+      "Establishing disciplinary guidelines and domestic inquiry standards for the workplace.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_disciplinary_procedure\": true}} — this passes.",
+      "Standing orders outline defined acts of misconduct, notice periods, hearing rights, and fair inquiry processes.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_disciplinary_procedure\": false}} — this is reported.",
+      "Disciplining or dismissing workers without documented domestic inquiry procedures or defined misconduct rules.",
     actionToComply: [
-      "Add misconduct, disciplinary-process and worker-redress provisions.",
-      "Cite and verify against Industrial Relations Code, 2020 — First Schedule.",
+      "Document clear misconduct definitions and written domestic inquiry procedures in standing orders.",
+      "Ensure procedures adhere to principles of natural justice, including right to be heard and show-cause notice.",
     ],
   },
   "IR.STANDING_ORDERS.TERMINATION_TERMS": {
     simpleExplanation:
-      "The uploaded standing orders do not state termination and notice conditions.",
+      "Standing Orders must clearly set out notice periods and terms governing termination of employment and separation.",
     exampleScenario:
-      "This check runs only when docs.standing_orders_count > 0.",
+      "Defining statutory separation and retrenchment terms in workplace regulations.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_termination\": true}} — this passes.",
+      "Standing orders detail one month's notice or payment in lieu, alongside statutory retrenchment compensations.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"standing_orders_count\": 1}, \"prose\": {\"covers_termination\": false}} — this is reported.",
+      "Standing orders allow summary termination without notice, hearing, or statutory severance provisions.",
     actionToComply: [
-      "Add the applicable termination and notice conditions.",
-      "Cite and verify against Industrial Relations Code, 2020 — First Schedule.",
+      "Detail statutory notice periods (e.g. 30 days) and severance terms in standing orders.",
+      "Ensure termination terms align with Chapter IX and Section 70 of the Industrial Relations Code.",
     ],
   },
   // =========================================================================
@@ -426,86 +426,86 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
   },
   "SS.EPF.WAGE_BASE_RECORDED": {
     simpleExplanation:
-      "The uploaded EPF record has a member row with no contribution wage base.",
+      "The monthly EPFO electronic return (ECR) must explicitly declare the statutory PF qualifying wage base (Basic + DA) for every covered worker.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Preparing monthly PF contribution statements for establishment staff.",
     compliantExample:
-      "Example (compliant record): {\"epf\": [{\"wage_base_paise\": 100000}]} — this passes.",
+      "The electronic return specifies each worker's statutory PF wage base (e.g. ₹15,000) for calculation.",
     violationExample:
-      "Example (non compliant record): {\"epf\": [{\"wage_base_paise\": null}]} — this is reported.",
+      "The PF wage base column is left blank or zero on the electronic challan return.",
     actionToComply: [
-      "Complete the verified EPF contribution particulars in the applicable return.",
-      "Cite and verify against Code on Social Security, 2020 — Chapter III and prescribed contribution return.",
+      "Declare the exact statutory PF wage base for every enrolled worker on the monthly ECR return.",
+      "Verify that basic wage and dearness allowance are correctly included in the PF wage base.",
     ],
   },
   "SS.EPF.EMPLOYEE_SHARE_RECORDED": {
     simpleExplanation:
-      "The uploaded EPF record has a member row with no employee contribution amount.",
+      "The employee's 12% PF contribution deduction must be explicitly recorded in the monthly EPF return.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Reconciling monthly employee payroll deductions against EPFO remittances.",
     compliantExample:
-      "Example (compliant record): {\"epf\": [{\"employee_share_paise\": 100000}]} — this passes.",
+      "The monthly ECR return records the exact employee deduction of ₹1,800 on a ₹15,000 wage base.",
     violationExample:
-      "Example (non compliant record): {\"epf\": [{\"employee_share_paise\": null}]} — this is reported.",
+      "Employee contribution figures are left blank or zero for active enrolled workers.",
     actionToComply: [
-      "Complete the verified EPF contribution particulars in the applicable return.",
-      "Cite and verify against Code on Social Security, 2020 — Chapter III and prescribed contribution return.",
+      "Record the verified 12% employee deduction for every member on the monthly EPFO return.",
+      "Ensure deductions in the return match the amounts deducted on employee pay slips.",
     ],
   },
   "SS.EPF.EMPLOYER_SHARE_RECORDED": {
     simpleExplanation:
-      "The uploaded EPF record has a member row with no employer contribution amount.",
+      "The employer's matching PF contribution (allocated between EPF and EPS) must be explicitly recorded in the monthly EPF return.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Calculating monthly employer statutory contributions for covered workforce.",
     compliantExample:
-      "Example (compliant record): {\"epf\": [{\"employer_share_paise\": 100000}]} — this passes.",
+      "The return records the employer contribution (3.67% EPF + 8.33% EPS, total 12%) for each worker.",
     violationExample:
-      "Example (non compliant record): {\"epf\": [{\"employer_share_paise\": null}]} — this is reported.",
+      "The employer contribution column is left blank or missing on the electronic return.",
     actionToComply: [
-      "Complete the verified EPF contribution particulars in the applicable return.",
-      "Cite and verify against Code on Social Security, 2020 — Chapter III and prescribed contribution return.",
+      "Compute and record the employer matching contribution (8.33% EPS and 3.67% EPF) for each member.",
+      "Ensure total remitted amounts correspond with bank payment challans.",
     ],
   },
   "SS.ESIC.WAGE_BASE_RECORDED": {
     simpleExplanation:
-      "The uploaded ESIC record has a member row with no contribution wage base.",
+      "The monthly ESIC return must declare the total insurable gross wages for every covered employee earning up to ₹21,000 per month.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Filing monthly health insurance contribution returns on the ESIC portal.",
     compliantExample:
-      "Example (compliant record): {\"esic\": [{\"wage_base_paise\": 100000}]} — this passes.",
+      "Gross monthly wages (e.g. ₹18,000) are accurately declared for each insured employee.",
     violationExample:
-      "Example (non compliant record): {\"esic\": [{\"wage_base_paise\": null}]} — this is reported.",
+      "Insurable wage values are submitted as blank or zero for active covered employees.",
     actionToComply: [
-      "Complete the verified ESIC contribution particulars in the applicable return.",
-      "Cite and verify against Code on Social Security, 2020 — Chapter IV and prescribed contribution return.",
+      "Declare the total insurable gross wage earned by each covered employee in the monthly ESIC return.",
+      "Verify that all earnings except annual bonus and travelling allowance are included in insurable wages.",
     ],
   },
   "SS.ESIC.EMPLOYEE_SHARE_RECORDED": {
     simpleExplanation:
-      "The uploaded ESIC record has a member row with no employee contribution amount.",
+      "The employee's 0.75% ESIC contribution deduction must be explicitly recorded in the monthly ESIC return.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Processing monthly salary deductions for employees covered under ESIC.",
     compliantExample:
-      "Example (compliant record): {\"esic\": [{\"employee_share_paise\": 100000}]} — this passes.",
+      "The return records the statutory 0.75% employee deduction (e.g. ₹135 on an ₹18,000 wage base).",
     violationExample:
-      "Example (non compliant record): {\"esic\": [{\"employee_share_paise\": null}]} — this is reported.",
+      "The employee contribution column is left blank or zero for covered staff.",
     actionToComply: [
-      "Complete the verified ESIC contribution particulars in the applicable return.",
-      "Cite and verify against Code on Social Security, 2020 — Chapter IV and prescribed contribution return.",
+      "Record the statutory 0.75% deduction for each covered employee in the ESIC monthly filing.",
+      "Verify that employee deductions reconcile exactly with payroll wage register entries.",
     ],
   },
   "SS.ESIC.EMPLOYER_SHARE_RECORDED": {
     simpleExplanation:
-      "The uploaded ESIC record has a member row with no employer contribution amount.",
+      "The employer's 3.25% ESIC contribution must be explicitly recorded and remitted in the monthly ESIC return.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Depositing monthly employer social health insurance contributions.",
     compliantExample:
-      "Example (compliant record): {\"esic\": [{\"employer_share_paise\": 100000}]} — this passes.",
+      "The return records the employer contribution of 3.25% (e.g. ₹585 on an ₹18,000 wage base) for each employee.",
     violationExample:
-      "Example (non compliant record): {\"esic\": [{\"employer_share_paise\": null}]} — this is reported.",
+      "The employer contribution is omitted or left unrecorded on the monthly filing.",
     actionToComply: [
-      "Complete the verified ESIC contribution particulars in the applicable return.",
-      "Cite and verify against Code on Social Security, 2020 — Chapter IV and prescribed contribution return.",
+      "Calculate and record the 3.25% employer contribution for every covered employee.",
+      "Remit the total combined 4% ESIC contribution before the 15th of the following month.",
     ],
   },
   // =========================================================================
@@ -541,7 +541,7 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
   },
   "OSH.ACCIDENT.NOTIFIED": {
     simpleExplanation:
-      "Any workplace accident causing death or bodily injury preventing an employee from working for 48 hours or more must be formally reported to the Inspector-cum-Facilitator.",
+      "Any workplace accident causing death or bodily injury preventing an employee from working for 48 hours or more must be formally reported to the Inspector.",
     exampleScenario:
       "A shop-floor technician suffers a burn that requires 4 days of hospital treatment and sick leave.",
     compliantExample:
@@ -550,7 +550,7 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
       "Recording the accident in internal clinic logs but failing to notify the government labour inspector.",
     actionToComply: [
       "Maintain a comprehensive Accident Register on site.",
-      "Send statutory accident notifications to the Inspector-cum-Facilitator for any absence exceeding 48 hours.",
+      "Send statutory accident notifications to the Inspector for any absence exceeding 48 hours.",
     ],
   },
   "OSH.HOURS.WEEKLY_CAP": {
@@ -597,114 +597,114 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
   },
   "OSH.APPOINTMENT_LETTER.EMPLOYEE_NAME": {
     simpleExplanation:
-      "The uploaded appointment letter does not state the employee name.",
+      "Every formal appointment letter issued to an employee must clearly state the worker's full legal name.",
     exampleScenario:
-      "This check runs only when docs.appointment_letter_count > 0.",
+      "Issuing formal written employment contracts to new hires on their joining date.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_employee_name\": true}} — this passes.",
+      "The appointment letter prominently displays the worker's full legal name as shown on their official ID.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_employee_name\": false}} — this is reported.",
+      "An appointment letter is issued with the worker's name omitted or left blank.",
     actionToComply: [
-      "Record the employee's name in the appointment letter.",
-      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
+      "Ensure all appointment letters clearly display the employee's full legal name.",
+      "Issue statutory Form-I appointment letters to all employees on their date of joining.",
     ],
   },
   "OSH.APPOINTMENT_LETTER.DESIGNATION": {
     simpleExplanation:
-      "The uploaded appointment letter does not state the designation or post.",
+      "Every appointment letter must explicitly state the worker's designation, job role, and category of work.",
     exampleScenario:
-      "This check runs only when docs.appointment_letter_count > 0.",
+      "Hiring machine operators and technicians for facility operations.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_designation\": true}} — this passes.",
+      "The appointment letter specifies the exact role 'Machinist - Grade II' and outlines key responsibilities.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_designation\": false}} — this is reported.",
+      "The appointment letter omits any designation or job role title.",
     actionToComply: [
-      "Add the employee's designation or post.",
-      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
+      "Specify the employee's exact job title and role classification in the appointment letter.",
+      "Ensure designation aligns with the establishment's statutory wage schedule.",
     ],
   },
   "OSH.APPOINTMENT_LETTER.JOINING_DATE": {
     simpleExplanation:
-      "The uploaded appointment letter does not state the date of joining.",
+      "Every appointment letter must explicitly state the employee's official date of joining or commencement of employment.",
     exampleScenario:
-      "This check runs only when docs.appointment_letter_count > 0.",
+      "Onboarding new employees and establishing statutory tenure and seniority records.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_date_of_joining\": true}} — this passes.",
+      "The appointment letter clearly states 'Date of Joining: 01-March-2026'.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_date_of_joining\": false}} — this is reported.",
+      "The appointment letter omits the start date, creating ambiguity over employment commencement.",
     actionToComply: [
-      "Add the verified date of joining.",
-      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
+      "State the verified joining date prominently in the written appointment letter.",
+      "Align the recorded joining date with muster rolls and PF/ESIC enrollment filings.",
     ],
   },
   "OSH.APPOINTMENT_LETTER.WAGE_RATE": {
     simpleExplanation:
-      "The uploaded appointment letter does not state the wage or salary.",
+      "Every appointment letter must state the wage or salary payable, including payment frequency and component breakdown.",
     exampleScenario:
-      "This check runs only when docs.appointment_letter_count > 0.",
+      "Documenting remuneration terms in written employment agreements.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_wage_rate\": true}} — this passes.",
+      "The letter details the agreed monthly salary of ₹22,000 with basic, DA, and allowance breakdowns.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_wage_rate\": false}} — this is reported.",
+      "The appointment letter discusses terms of work but omits the agreed wage or salary amount.",
     actionToComply: [
-      "Add the wage or salary payable.",
-      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
+      "Clearly detail the wage rate, salary components, and payment intervals in the letter.",
+      "Verify that the offered wage complies with applicable state minimum wage floors.",
     ],
   },
   "OSH.APPOINTMENT_LETTER.WORKING_HOURS": {
     simpleExplanation:
-      "The uploaded appointment letter does not state the working hours.",
+      "Every appointment letter must specify standard daily and weekly working hours, shift timings, and weekly rest days.",
     exampleScenario:
-      "This check runs only when docs.appointment_letter_count > 0.",
+      "Setting out working hour expectations and shift schedules in employment letters.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_working_hours\": true}} — this passes.",
+      "The letter specifies an 8-hour daily schedule (48 hours weekly) with a designated Sunday rest day.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_working_hours\": false}} — this is reported.",
+      "The appointment letter makes no mention of working hours or weekly rest schedules.",
     actionToComply: [
-      "Add the applicable daily or weekly working hours.",
-      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
+      "State standard daily working hours (up to 8 hrs) and weekly limits (48 hrs) in the letter.",
+      "Define scheduled shift hours and weekly off days.",
     ],
   },
   "OSH.APPOINTMENT_LETTER.EMPLOYER_SIGNATURE": {
     simpleExplanation:
-      "The uploaded appointment letter does not state the employer signature or authentication.",
+      "Every appointment letter must be authenticated with the signature and seal of an authorized employer representative.",
     exampleScenario:
-      "This check runs only when docs.appointment_letter_count > 0.",
+      "Issuing formal employment documentation on company letterhead.",
     compliantExample:
-      "Example (uploaded record complies): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"is_signed_by_employer\": true}} — this passes.",
+      "The appointment letter is signed and stamped by the authorized HR Director or establishment manager.",
     violationExample:
-      "Example (uploaded record is incomplete): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"is_signed_by_employer\": false}} — this is reported.",
+      "Issuing unauthenticated, unsigned appointment letters or blank templates to employees.",
     actionToComply: [
-      "Have the appointment letter signed or authenticated on behalf of the employer.",
-      "Cite and verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
+      "Ensure all appointment letters are signed and stamped by an authorized establishment officer.",
+      "Retain signed duplicate copies in employee personnel files.",
     ],
   },
   "OSH.ACCIDENT.NOTIFICATION_REFERENCE": {
     simpleExplanation:
-      "An uploaded accident row gives a notification date but no notification reference.",
+      "When logging a statutory workplace accident, the official acknowledgement reference number from the authority must be recorded.",
     exampleScenario:
-      "This check runs whenever the required records are uploaded for the period.",
+      "Maintaining accident logs and statutory incident records following a workplace injury.",
     compliantExample:
-      "Example (compliant record): {\"incidents\": [{\"notified_on\": \"2026-03-05\", \"notification_reference\": \"NOTICE-12\"}]} — this passes.",
+      "The incident register records the accident date alongside the official portal filing reference 'NOTICE-2026-0842'.",
     violationExample:
-      "Example (non compliant record): {\"incidents\": [{\"notified_on\": \"2026-03-05\", \"notification_reference\": null}]} — this is reported.",
+      "An accident is recorded internally but lacks the mandatory authority notification reference number.",
     actionToComply: [
-      "Record the authority notification reference against the accident entry.",
-      "Cite and verify against OSH & Working Conditions Code, 2020 — s.10; OSHWC (Central) Rules, 2026 — r.7.",
+      "Submit statutory accident notifications electronically to the Inspector within required deadlines.",
+      "Record the official filing reference number in the statutory accident register.",
     ],
   },
   "OSH.HOURS.BEYOND_NORMAL_DAY_NOT_OVERTIME": {
     simpleExplanation:
-      "A worker was recorded working more than the eight-hour normal working day on at least one day, but no overtime hours are recorded for that worker.",
+      "When an employee works beyond 8 hours in a day, every excess hour must be recorded and paid as overtime at double the ordinary wage rate.",
     exampleScenario:
-      "This check runs whenever the records it needs are uploaded for the period.",
+      "A factory operator works a 10-hour shift to finish an urgent production run.",
     compliantExample:
-      "Example (nine hour day recorded as overtime): {\"attendance\": [{\"max_daily_hours\": 9, \"overtime_hours\": 6}]} — this passes.",
+      "The attendance log records 8 normal hours and 2 overtime hours, and payroll compensates the 2 hours at double rate.",
     violationExample:
-      "Example (thirteen hour day without overtime): {\"attendance\": [{\"max_daily_hours\": 13.5, \"overtime_hours\": 0}]} — this is reported.",
+      "A worker is recorded working 12 hours on a shift, but overtime hours are recorded as 0 with no overtime pay.",
     actionToComply: [
-      "Record every hour worked beyond the eight-hour normal day as overtime and pay it at not less than twice the ordinary rate.",
-      "Verify against OSH & Working Conditions Code, 2020 — s.25; OSHWC (Central) Rules, 2026 — r.69.",
+      "Record every hour worked in excess of 8 hours per day as overtime in attendance records.",
+      "Compensate overtime hours at not less than twice the regular hourly rate in payroll.",
     ],
   },
 };

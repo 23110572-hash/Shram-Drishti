@@ -319,11 +319,11 @@ export function RulesPage() {
                   {isExpanded && (
                     <div className="border-t border-slate-100 bg-slate-50/50 p-6 pt-5 sm:p-8 sm:pt-6">
                       <div className="space-y-6">
-                        {/* 1. Plain English Explanation */}
+                        {/* 1. Explanation */}
                         <div className="rounded-2xl border border-blue-100 bg-blue-50/50 p-6">
                           <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-blue-900">
                             <BookOpen className="h-4.5 w-4.5 text-blue-700" />
-                            Plain English Explanation
+                            Explanation
                           </div>
                           <p className="mt-2.5 text-base leading-relaxed text-slate-800 sm:text-lg">
                             {simpleText}
@@ -350,7 +350,7 @@ export function RulesPage() {
                               <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-5">
                                 <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-emerald-900">
                                   <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600" />
-                                  Compliant Example (Pass)
+                                  Compliant Example
                                 </div>
                                 <p className="mt-2.5 text-sm leading-relaxed text-emerald-950 sm:text-base">
                                   {guide.compliantExample}
@@ -361,7 +361,7 @@ export function RulesPage() {
                               <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-5">
                                 <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-rose-900">
                                   <ShieldAlert className="h-4.5 w-4.5 text-rose-600" />
-                                  Violation Example (Breach)
+                                  Violation Example
                                 </div>
                                 <p className="mt-2.5 text-sm leading-relaxed text-rose-950 sm:text-base">
                                   {guide.violationExample}
@@ -375,7 +375,7 @@ export function RulesPage() {
                         <div className="rounded-2xl border border-slate-200 bg-white p-6">
                           <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-900">
                             <ShieldCheck className="h-4.5 w-4.5 text-emerald-600" />
-                            How to Comply (Action Required)
+                            How to Comply
                           </div>
                           {guide?.actionToComply && guide.actionToComply.length > 0 ? (
                             <ul className="mt-3.5 space-y-2.5 text-sm text-slate-800 sm:text-base">

@@ -190,19 +190,19 @@ export function ProfilePage() {
               </p>
             </div>
 
-            {/* Inspector-cum-Facilitator */}
+            {/* Inspector */}
             <div className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 sm:p-5 transition-all hover:border-indigo-300 hover:bg-indigo-50/80">
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
                   <ShieldCheck className="h-5 w-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-950">Inspector-cum-Facilitator</h3>
+                  <h3 className="text-lg font-bold text-slate-950">Inspector</h3>
                   <span className="text-xs font-semibold text-indigo-700">Enforcement &amp; Jurisdictional Review</span>
                 </div>
               </div>
               <p className="mt-2.5 text-sm sm:text-base font-medium leading-relaxed text-slate-700">
-                Reads everything within an assigned jurisdiction, works the risk-ranked worklist, and decides whether a finding is resolved, waived or incorrect.
+                Reads everything within an assigned jurisdiction, works the risk ranked worklist, and decides whether a finding is resolved, waived or incorrect.
               </p>
             </div>
 
@@ -234,7 +234,7 @@ export function ProfilePage() {
                 </div>
               </div>
               <p className="mt-2.5 text-sm sm:text-base font-medium leading-relaxed text-slate-700">
-                Read-only aggregate view. No access to individual findings.
+                Read only aggregate view. No access to individual findings.
               </p>
             </div>
           </div>
