@@ -84,7 +84,7 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
   },
   "WAGES.REST_DAY.WEEKLY": {
     simpleExplanation:
-      "Every worker is entitled to at least one full 24-hour day of rest in every period of 7 days, generally on Sunday or a substituted day of rest.",
+      "Every worker is entitled to at least one full 24 hour day of rest in every period of 7 days, generally on Sunday or a substituted day of rest.",
     exampleScenario:
       "A 24/7 assembly line or data operations facility with continuous shifts.",
     compliantExample:
@@ -92,7 +92,7 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     violationExample:
       "Scheduling staff for 12 or 18 consecutive days during peak workloads without any scheduled day of rest.",
     actionToComply: [
-      "Build shift rosters that guarantee at least one day off in every 7-day period.",
+      "Build shift rosters that guarantee at least one day off in every 7 day period.",
       "Maintain compensatory off registers if a worker is called in on their scheduled off.",
     ],
   },
@@ -144,7 +144,7 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     exampleScenario:
       "A manufacturing facility plans its standard production shift timings.",
     compliantExample:
-      "Workers are rostered for an 8-hour daily shift (e.g., 9:00 AM to 5:00 PM) plus a scheduled 30-minute lunch break.",
+      "Workers are rostered for an 8 hour daily shift (e.g., 9:00 AM to 5:00 PM) plus a scheduled 30 minute lunch break.",
     violationExample:
       "Workers are scheduled for 10 regular hours daily without recording the extra 2 hours as overtime.",
     actionToComply: [
@@ -273,11 +273,11 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     exampleScenario:
       "A trade union plans a strike over wage renegotiations.",
     compliantExample:
-      "The union serves a formal written 14-day advance notice on October 1st for a strike starting October 16th, and notifies the conciliation officer.",
+      "The union serves a formal written 14 day advance notice on October 1st for a strike starting October 16th, and notifies the conciliation officer.",
     violationExample:
-      "Workers stage an immediate flash walkout without 14 days' notice, or management suddenly locks the gates overnight.",
+      "Workers begin a lightning strike with only 3 days' advance notice during active wage discussions.",
     actionToComply: [
-      "Ensure any strike or lock-out notice strictly respects the 14-day cooling period.",
+      "Ensure any strike or lock-out notice strictly respects the 14 day cooling period.",
       "Immediately transmit notices to the Conciliation Officer to start mediation.",
     ],
   },
@@ -317,10 +317,10 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     compliantExample:
       "The strike commences 20 days after notice is served, falling within the permitted 14 to 60 day legal window.",
     violationExample:
-      "Commencing industrial action 75 days after the notice was served without giving a fresh 14-day notice.",
+      "Commencing industrial action 75 days after the notice was served without giving a fresh 14 day notice.",
     actionToComply: [
-      "Schedule industrial action between 14 and 60 days following the delivery of statutory notice.",
-      "Issue a fresh notice if negotiations extend beyond the 60-day validity window.",
+      "Track strike/lock-out validity strictly between day 15 and day 60 post-notice.",
+      "Issue a fresh notice if negotiations extend beyond the 60 day validity window.",
     ],
   },
   "IR.STANDING_ORDERS.CERTIFIED_OR_MODEL": {
@@ -629,7 +629,7 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     exampleScenario:
       "Onboarding new employees and establishing statutory tenure and seniority records.",
     compliantExample:
-      "The appointment letter clearly states 'Date of Joining: 01-March-2026'.",
+      "The appointment letter clearly states 'Date of Joining: 01 March 2026'.",
     violationExample:
       "The appointment letter omits the start date, creating ambiguity over employment commencement.",
     actionToComply: [
@@ -657,7 +657,7 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     exampleScenario:
       "Setting out working hour expectations and shift schedules in employment letters.",
     compliantExample:
-      "The letter specifies an 8-hour daily schedule (48 hours weekly) with a designated Sunday rest day.",
+      "The letter specifies an 8 hour daily schedule (48 hours weekly) with a designated Sunday rest day.",
     violationExample:
       "The appointment letter makes no mention of working hours or weekly rest schedules.",
     actionToComply: [
@@ -697,7 +697,7 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     simpleExplanation:
       "When an employee works beyond 8 hours in a day, every excess hour must be recorded and paid as overtime at double the ordinary wage rate.",
     exampleScenario:
-      "A factory operator works a 10-hour shift to finish an urgent production run.",
+      "A factory operator works a 10 hour shift to finish an urgent production run.",
     compliantExample:
       "The attendance log records 8 normal hours and 2 overtime hours, and payroll compensates the 2 hours at double rate.",
     violationExample:
