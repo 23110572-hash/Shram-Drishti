@@ -1,12 +1,12 @@
 pack: industrial_relations
-version: '2026.2'
+version: '2026.5'
 jurisdiction: IN
-description: 'Industrial Relations Code, 2020 (Act 35 of 2020). Thresholds were read from the IndiaCode consolidated text
-  (as on 2 April 2026) held at "storage/Industrial relations code 2020.md", and each is quoted in the rule''s source_ref.
+description: 'Industrial Relations Code, 2020 (Act 35 of 2020). Thresholds were read from the IndiaCode consolidated text (as on 2 April 2026)
+  held at "storage/Industrial relations code 2020.md", and each is quoted in the rule''s source_ref.
 
-  Every rule in this pack carries basis: STATUTE. The IR Code is unusual among the four in stating its own numbers — one hundred
-  workers for a Works Committee, twenty for a Grievance Redressal Committee, ten members, three hundred for standing orders,
-  thirty days for a decision — so nothing here waits on a notification.
+  Every rule in this pack carries basis: STATUTE. The IR Code is unusual among the four in stating its own numbers — one hundred workers for a
+  Works Committee, twenty for a Grievance Redressal Committee, ten members, three hundred for standing orders, thirty days for a decision — so
+  nothing here waits on a notification.
 
   '
 rules:
@@ -57,8 +57,8 @@ rules:
   weight: 5
   title: Women's representation on the Grievance Committee below the workforce proportion
   citation: Industrial Relations Code, 2020 — s.4(4) proviso
-  source_ref: 'IR Code s.4(4) proviso: representation of women workers ''shall not be less than the proportion of women workers
-    to the total workers employed'''
+  source_ref: 'IR Code s.4(4) proviso: representation of women workers ''shall not be less than the proportion of women workers to the total workers
+    employed'''
   basis: STATUTE
   requires:
   - estab
@@ -105,8 +105,8 @@ rules:
   weight: 4
   title: Strike or lock-out without the required fourteen days' notice
   citation: Industrial Relations Code, 2020 — s.62
-  source_ref: 'IR Code s.62: no strike ''without giving notice of strike ... within sixty days before striking'' or ''within
-    fourteen days of giving such notice'''
+  source_ref: 'IR Code s.62: no strike ''without giving notice of strike ... within sixty days before striking'' or ''within fourteen days of
+    giving such notice'''
   basis: STATUTE
   requires:
   - prose
@@ -141,15 +141,14 @@ rules:
   weight: 6
   title: Uploaded Grievance Committee record has unequal employer and worker representation
   citation: Industrial Relations Code, 2020 — s.4(2)
-  source_ref: 'storage/Industrial relations code 2020.md, s.4(2): the committee shall consist of equal numbers representing
-    the employer and workers'
+  source_ref: 'storage/Industrial relations code 2020.md, s.4(2): the committee shall consist of equal numbers representing the employer and workers'
   basis: STATUTE
   requires:
   - docs
   - prose
   applicability: docs.grievance_committee_count > 0
-  expression: not is_missing(prose.grievance_committee_employer_reps) and not is_missing(prose.grievance_committee_worker_reps)
-    and prose.grievance_committee_employer_reps == prose.grievance_committee_worker_reps
+  expression: not is_missing(prose.grievance_committee_employer_reps) and not is_missing(prose.grievance_committee_worker_reps) and prose.grievance_committee_employer_reps
+    == prose.grievance_committee_worker_reps
   observe:
     employer_representatives: prose.grievance_committee_employer_reps
     worker_representatives: prose.grievance_committee_worker_reps
@@ -191,14 +190,13 @@ rules:
   weight: 4
   title: Chairperson is not identified in the uploaded Grievance Committee record
   citation: Industrial Relations Code, 2020 — s.4(3)
-  source_ref: 'storage/Industrial relations code 2020.md, s.4(3): the chairperson is selected alternately from employer and
-    worker representatives'
+  source_ref: 'storage/Industrial relations code 2020.md, s.4(3): the chairperson is selected alternately from employer and worker representatives'
   basis: STATUTE
   requires:
   - docs
   - prose
   applicability: docs.grievance_committee_count > 0
-  expression: prose.has_chairperson == True
+  expression: (is_missing(prose.has_chairperson) or prose.has_chairperson == True)
   observe:
     recorded_value: prose.has_chairperson
   expect:
@@ -271,14 +269,14 @@ rules:
   weight: 6
   title: Uploaded standing orders are neither certified nor recorded as adopted model orders
   citation: Industrial Relations Code, 2020 — Chapter IV
-  source_ref: 'storage/Industrial relations code 2020.md, Chapter IV: model standing orders and certification of standing
-    orders'
+  source_ref: 'storage/Industrial relations code 2020.md, Chapter IV: model standing orders and certification of standing orders'
   basis: STATUTE
   requires:
   - docs
   - prose
   applicability: docs.standing_orders_count > 0
-  expression: prose.is_certified == True or prose.adopts_model_standing_orders == True
+  expression: (is_missing(prose.is_certified) and is_missing(prose.adopts_model_standing_orders)) or prose.is_certified == True or prose.adopts_model_standing_orders
+    == True
   observe:
     certified: prose.is_certified
     model_orders_adopted: prose.adopts_model_standing_orders
@@ -322,14 +320,13 @@ rules:
   weight: 4
   title: Uploaded standing orders omit worker classification
   citation: Industrial Relations Code, 2020 — First Schedule
-  source_ref: 'storage/Industrial relations code 2020.md, First Schedule: classification of workers is a matter to be provided
-    in standing orders'
+  source_ref: 'storage/Industrial relations code 2020.md, First Schedule: classification of workers is a matter to be provided in standing orders'
   basis: STATUTE
   requires:
   - docs
   - prose
   applicability: docs.standing_orders_count > 0
-  expression: prose.covers_classification_of_workers == True
+  expression: (is_missing(prose.covers_classification_of_workers) or prose.covers_classification_of_workers == True)
   observe:
     recorded_value: prose.covers_classification_of_workers
   expect:
@@ -369,14 +366,13 @@ rules:
   weight: 4
   title: Uploaded standing orders omit disciplinary procedure
   citation: Industrial Relations Code, 2020 — First Schedule
-  source_ref: 'storage/Industrial relations code 2020.md, First Schedule: misconduct and means of redress are matters for
-    standing orders'
+  source_ref: 'storage/Industrial relations code 2020.md, First Schedule: misconduct and means of redress are matters for standing orders'
   basis: STATUTE
   requires:
   - docs
   - prose
   applicability: docs.standing_orders_count > 0
-  expression: prose.covers_disciplinary_procedure == True
+  expression: (is_missing(prose.covers_disciplinary_procedure) or prose.covers_disciplinary_procedure == True)
   observe:
     recorded_value: prose.covers_disciplinary_procedure
   expect:
@@ -416,14 +412,13 @@ rules:
   weight: 4
   title: Uploaded standing orders omit termination terms
   citation: Industrial Relations Code, 2020 — First Schedule
-  source_ref: 'storage/Industrial relations code 2020.md, First Schedule: termination of employment and notice are matters
-    for standing orders'
+  source_ref: 'storage/Industrial relations code 2020.md, First Schedule: termination of employment and notice are matters for standing orders'
   basis: STATUTE
   requires:
   - docs
   - prose
   applicability: docs.standing_orders_count > 0
-  expression: prose.covers_termination == True
+  expression: (is_missing(prose.covers_termination) or prose.covers_termination == True)
   observe:
     recorded_value: prose.covers_termination
   expect:

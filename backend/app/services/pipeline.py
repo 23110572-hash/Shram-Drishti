@@ -199,7 +199,7 @@ async def _process_document(job_id: str, document_id: str) -> None:
 
             pages = await _prepare_pages(session, document, job.id)
             session.commit()
-            _set_job_progress(job.id, 62, "OCR and Gemini are reading documents")
+            _set_job_progress(job.id, 62, "Reading documents")
 
             pdf_source_url: str | None = None
             if document.detected_mime == "application/pdf":
@@ -306,7 +306,7 @@ async def _process_document(job_id: str, document_id: str) -> None:
 
                 document.establishment_id = binding.establishment_id
 
-            _set_job_progress(job.id, 72, "Reconciling extracted information")
+            _set_job_progress(job.id, 72, "Checking the information")
             result = await extractor.extract(
                 doc_type=classification.doc_type,
                 pages=pages,
@@ -1268,6 +1268,23 @@ async def _evaluate_establishment(
                 period_end=period_end,
                 report=report,
             )
+            # Counts observed in the uploaded records. Reported beside the result
+            # rather than written into the employer's declared profile.
+            observed = context.namespaces.get("counts") or {}
+            score.computation["observed_counts"] = {
+                key: observed.get(key)
+                for key in (
+                    "register",
+                    "wage_register",
+                    "epf",
+                    "esic",
+                    "annual_return",
+                    "effective",
+                    "effective_peak_12m",
+                    "contract",
+                )
+                if observed.get(key) is not None
+            }
             score_available = bool(score.computation.get("score_available"))
             if score_available:
                 score_service.persist_score(
@@ -1435,7 +1452,7 @@ def _combined_analyst_summary(outcome: AnalystOutcome) -> str | None:
     if outcome.overall_assessment:
         parts.append(outcome.overall_assessment.strip())
     if outcome.consistency_notes:
-        parts.append(f"Cross-document check: {outcome.consistency_notes.strip()}")
+        parts.append(outcome.consistency_notes.strip())
     return "\n\n".join(part for part in parts if part) or None
 
 

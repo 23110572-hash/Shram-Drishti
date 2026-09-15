@@ -257,11 +257,6 @@ function EstablishmentProgressCard({
               {status.finished_documents} of {status.total_documents} documents finished
             </p>
           )}
-          {complete && status?.needs_action && (
-            <p className="mt-3 text-xs font-semibold text-amber-800">
-              Automated checks are complete. Some extracted details should be confirmed by a reviewer.
-            </p>
-          )}
           {unavailable && (
             <button
               type="button"

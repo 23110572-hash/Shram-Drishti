@@ -94,6 +94,15 @@ system that always finds something will be ignored.
 You may not declare a non-compliance. That needs a statutory citation and a \
 reproducible test, which is what the rule engine is for. Your observations are \
 advisory and are presented to inspectors as such.
+
+Write overall_assessment for an employer with no legal or technical training:
+
+- Very simple English, short sentences.
+- One problem per line, each line starting with "- ".
+- Refer to documents in ordinary words such as "wage register" or "EPF filing", \
+and never print internal document ids or codes.
+- No section numbers, no legal wording, no advice on what to do.
+- If nothing of concern was found, say that in one short line.
 """
 
 CROSS_DOCUMENT_SYSTEM = """\
@@ -107,12 +116,19 @@ fund filing, a wage base in the challan lower than the basic pay in the \
 register, attendance showing overtime that the wage register never paid, a \
 headcount in the annual return that no register supports.
 
-Find those contradictions. For each one, name the documents that disagree and \
-quote the conflicting figures from each. An inspector must be able to verify it \
-from the documents without asking you anything.
+Find those contradictions.
 
-Say what reconciles cleanly too. An employer whose records agree deserves that \
-recorded.
+Write for an employer who has no legal or technical training.
+
+- Use very simple English and short sentences.
+- Write each problem on its own line, starting with "- ".
+- Name documents the way a person would: "wage register", "EPF filing", \
+"attendance record". Never print internal document ids or codes.
+- Give the plain figures that disagree, for example: "the wage register lists 24 \
+workers but the EPF filing lists 22".
+- Do not quote sections of law, and do not explain the law.
+- Do not tell the employer what to do. Only state what was found.
+- If the records agree, say so in one short line.
 """
 
 

@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.document import Document, Job, UploadBatch, UploadBatchDocument
-from app.models.enums import DocumentStatus, JobStatus
+from app.models.enums import DocumentStatus, DocumentType, JobStatus
 from app.models.base import utcnow
 
 EXTRACTION_TERMINAL = {
@@ -64,6 +64,50 @@ def evaluation_jobs(session: Session, batch: UploadBatch) -> list[Job]:
     return [job for job in jobs if (job.detail or {}).get("batch_id") == batch.id]
 
 
+#: Documents whose dates describe the wage period being assessed. Certificates,
+#: appointment letters and standing orders carry joining or validity dates
+#: instead, so including them would stretch one month into several years.
+PERIOD_BEARING = {
+    DocumentType.WAGE_REGISTER,
+    DocumentType.WAGE_SLIP,
+    DocumentType.MUSTER_ROLL,
+    DocumentType.LEAVE_REGISTER,
+    DocumentType.OVERTIME_REGISTER,
+    DocumentType.DEDUCTION_REGISTER,
+    DocumentType.EPF_ECR,
+    DocumentType.ESIC_CHALLAN,
+    DocumentType.EMPLOYEE_REGISTER,
+}
+
+
+def _assessment_period(documents: list[Document]) -> tuple[date | None, date | None]:
+    """The wage period the uploaded payroll records actually cover.
+
+    Grouped rather than spanned. Taking the earliest start and latest end across
+    every document produced a multi-year "wage period", which then reported a
+    compliant employer for a wage period longer than one month.
+    """
+    groups: dict[tuple[date, date], int] = {}
+    for document in documents:
+        if document.period_start is None:
+            continue
+        if document.doc_type not in PERIOD_BEARING:
+            continue
+        key = (document.period_start, document.period_end or document.period_start)
+        groups[key] = groups.get(key, 0) + 1
+
+    if not groups:
+        dated = [doc for doc in documents if doc.period_start is not None]
+        if not dated:
+            return None, None
+        latest = max(dated, key=lambda doc: doc.period_start)
+        return latest.period_start, latest.period_end or latest.period_start
+
+    # Most corroborated period first, then the most recent of any tie.
+    best = sorted(groups.items(), key=lambda item: (item[1], item[0][1]), reverse=True)[0]
+    return best[0][0], best[0][1]
+
+
 def maybe_release_batch(session: Session, batch_id: str) -> Job | None:
     """Release exactly one evaluation after a sealed batch fully extracts."""
     batch = session.execute(
@@ -89,10 +133,10 @@ def maybe_release_batch(session: Session, batch_id: str) -> Job | None:
         batch.completed_at = utcnow()
         return None
 
-    starts = [doc.period_start for doc in usable if doc.period_start is not None]
-    ends = [doc.period_end or doc.period_start for doc in usable if doc.period_start is not None]
-    period_start: date = min(starts)
-    period_end: date = max(end for end in ends if end is not None)
+    period_start, period_end = _assessment_period(usable)
+    if period_start is None or period_end is None:
+        batch.completed_at = utcnow()
+        return None
 
     from app.services.jobs import enqueue_evaluation
 

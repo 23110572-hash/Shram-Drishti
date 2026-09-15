@@ -147,8 +147,15 @@ export function EstablishmentsPage() {
 
                     <td className="px-6 py-4">
                       <span className="font-bold text-slate-800">
-                        {count(row.worker_count)}
+                        {count(
+                          row.worker_count > 0
+                            ? row.worker_count
+                            : row.observed_worker_count ?? 0,
+                        )}
                       </span>
+                      {row.worker_count === 0 && row.observed_worker_count !== null && (
+                        <p className="text-xs text-slate-500">from documents</p>
+                      )}
                       {row.worker_count_peak_12m > row.worker_count && (
                         <p className="text-xs text-slate-500">
                           peak {count(row.worker_count_peak_12m)}
@@ -413,12 +420,10 @@ function EstablishmentDrawer({
                         </h2>
                         <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
                           {issueCount > 0
-                            ? "These verified problems were found by checking the uploaded documents together."
+                            ? "Found by checking your uploaded documents together."
                             : "No verified problem was found by the rules that could be checked from the uploaded documents."}
                         </p>
-                        <p className="mt-1 text-xs font-semibold text-slate-500">
-                          {period(scorecard.period_start, scorecard.period_end)}
-                        </p>
+
                       </div>
                     </div>
                     <div className="text-right">
@@ -437,6 +442,8 @@ function EstablishmentDrawer({
                     <h3 className="font-bold text-slate-950">Documents checked together</h3>
                     <p className="mt-1 text-sm font-semibold text-slate-700">
                       {receivedDocumentTypes.length} document type{receivedDocumentTypes.length === 1 ? "" : "s"} · {scorecard.assessed_rule_count} rule{scorecard.assessed_rule_count === 1 ? "" : "s"} checked
+                      {scorecard.observed_worker_count !== null &&
+                        ` · ${count(scorecard.observed_worker_count)} workers found in the records`}
                     </p>
                     {receivedDocumentTypes.length > 0 ? (
                       <div className="mt-2 flex flex-wrap gap-2">
@@ -472,29 +479,29 @@ function EstablishmentDrawer({
                   {openFindings.length > 0 && (
                     <div className="space-y-2">
                       <h3 className="text-sm font-extrabold text-slate-900">
-                        Problems found and how to fix them
+                        Problems found
                       </h3>
-                      <ul className="space-y-2">
-                        {openFindings.map((finding) => (
+                      <ol className="space-y-2">
+                        {openFindings.map((finding, index) => (
                           <li
                             key={finding.id}
-                            className="rounded-2xl border border-rose-200 bg-white p-4"
+                            className="flex gap-3 rounded-2xl border border-rose-200 bg-white p-4"
                           >
-                            <div className="flex flex-wrap items-center gap-2">
-                              <SeverityBadge severity={finding.severity} />
-                              <p className="font-bold text-slate-900">{finding.title}</p>
+                            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-rose-100 text-xs font-black text-rose-700">
+                              {index + 1}
+                            </span>
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <SeverityBadge severity={finding.severity} />
+                                <p className="font-bold text-slate-900">{finding.title}</p>
+                              </div>
+                              <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                                {finding.message}
+                              </p>
                             </div>
-                            <p className="mt-2 text-sm leading-relaxed text-slate-700">
-                              {finding.message}
-                            </p>
-                            <p className="mt-2 rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-950">
-                              <span className="font-bold">How to fix it: </span>
-                              {finding.remediation ??
-                                "Check the supporting record, correct the information, and upload the corrected document."}
-                            </p>
                           </li>
                         ))}
-                      </ul>
+                      </ol>
                     </div>
                   )}
 
@@ -539,10 +546,21 @@ function EstablishmentDrawer({
 
                   {scorecard.review_summary && (
                     <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-sm leading-relaxed text-sky-950">
-                      <p className="font-bold">AI summary of the checked documents</p>
-                      <p className="mt-2 whitespace-pre-line">{scorecard.review_summary}</p>
+                      <p className="font-bold">What the AI noticed across your documents</p>
+                      <ul className="mt-2 space-y-1.5">
+                        {scorecard.review_summary
+                          .split("\n")
+                          .map((line) => line.replace(/^[-*\u2022]\s*/, "").trim())
+                          .filter((line) => line.length > 0)
+                          .map((line, index) => (
+                            <li key={index} className="flex gap-2">
+                              <span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-600" />
+                              <span>{line}</span>
+                            </li>
+                          ))}
+                      </ul>
                       <p className="mt-2 text-xs text-sky-900/80">
-                        AI connects names, totals, dates, and other information across the uploaded records. The rule checks decide the official problems and score.
+                        These are extra observations. The rule checks above decide the official problems and the score.
                       </p>
                     </div>
                   )}

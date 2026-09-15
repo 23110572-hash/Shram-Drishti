@@ -1,15 +1,14 @@
 pack: osh
-version: '2026.3'
+version: '2026.5'
 jurisdiction: IN
-description: 'Occupational Safety, Health and Working Conditions Code, 2020 (Act 37 of 2020). Registration validity, appointment
-  letters, contractor licensing, accident notification and the canteen threshold are stated in the Act itself and carry basis:
-  STATUTE. Attendance and overtime checks compare the muster roll against the wage register and need no external figure, so
-  they carry basis: RECONCILIATION.
+description: 'Occupational Safety, Health and Working Conditions Code, 2020 (Act 37 of 2020). Registration validity, appointment letters, contractor
+  licensing, accident notification and the canteen threshold are stated in the Act itself and carry basis: STATUTE. Attendance and overtime checks
+  compare the muster roll against the wage register and need no external figure, so they carry basis: RECONCILIATION.
 
-  The Code deliberately leaves several numbers to be notified. s.24(3) says only that the Central Government "may make rules"
-  for creches, with no headcount at all; s.25 fixes eight hours of normal work but leaves intervals and spreadover to notification,
-  so the twelve-hour ceiling tested here comes from the Rules; s.10 leaves the accident notification period to be prescribed.
-  Those rules carry basis: RULES_PENDING and must not be enforced until the notified Rules are held.
+  The Code deliberately leaves several numbers to be notified. s.24(3) says only that the Central Government "may make rules" for creches, with
+  no headcount at all; s.25 fixes eight hours of normal work but leaves intervals and spreadover to notification, so the twelve-hour ceiling tested
+  here comes from the Rules; s.10 leaves the accident notification period to be prescribed. Those rules carry basis: RULES_PENDING and must not
+  be enforced until the notified Rules are held.
 
   '
 rules:
@@ -20,8 +19,8 @@ rules:
   weight: 8
   title: Contract labour engaged through an unlicensed or lapsed contractor
   citation: OSH & Working Conditions Code, 2020 — ss.45 and 47; OSHWC (Central) Rules, 2026 — rr.87-90
-  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, rr.87-90: licensing
-    applies where fifty or more contract labour are engaged; licence validity is five years'
+  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, rr.87-90: licensing applies where fifty
+    or more contract labour are engaged; licence validity is five years'
   basis: STATUTE
   requires:
   - estab
@@ -40,10 +39,9 @@ rules:
     en: Contract labour is engaged through one or more contractors without a valid licence.
     hi: एक या अधिक ठेकेदारों के माध्यम से वैध अनुज्ञप्ति के बिना ठेका श्रम नियोजित है।
   remediation:
-    en: Ensure every contractor holds a current licence covering the number of workers deployed, and stop engaging unlicensed
-      contractors.
-    hi: सुनिश्चित करें कि प्रत्येक ठेकेदार के पास नियोजित श्रमिकों की संख्या हेतु वर्तमान अनुज्ञप्ति है, और अनुज्ञप्तिहीन
-      ठेकेदारों को नियोजित करना बंद करें।
+    en: Ensure every contractor holds a current licence covering the number of workers deployed, and stop engaging unlicensed contractors.
+    hi: सुनिश्चित करें कि प्रत्येक ठेकेदार के पास नियोजित श्रमिकों की संख्या हेतु वर्तमान अनुज्ञप्ति है, और अनुज्ञप्तिहीन ठेकेदारों को नियोजित
+      करना बंद करें।
   fixtures:
   - name: all_contractors_licensed
     should_pass: true
@@ -72,8 +70,8 @@ rules:
   weight: 5
   title: More contract workers deployed than the licence permits
   citation: OSHWC (Central) Rules, 2026 — r.89(2)(ii)
-  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.89(2)(ii): contractor
-    licence records the maximum number of contract labour'
+  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.89(2)(ii): contractor licence records
+    the maximum number of contract labour'
   basis: RECONCILIATION
   requires:
   - estab
@@ -161,8 +159,8 @@ rules:
   weight: 5
   title: Weekly working hours exceed the permitted maximum
   citation: OSH & Working Conditions Code, 2020 — s.25; OSHWC (Central) Rules, 2026 — r.64
-  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.64: no worker
-    shall be required or allowed to work for more than forty-eight hours in any week'
+  source_ref: 'storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.64: no worker shall be required or
+    allowed to work for more than forty-eight hours in any week'
   basis: STATUTE
   requires:
   - attendance
@@ -271,288 +269,6 @@ rules:
       wage_register:
       - overtime_hours: 18
         overtime_paise: 0
-- id: OSH.APPOINTMENT_LETTER.EMPLOYEE_NAME
-  code: OSH
-  kind: NON_COMPLIANCE
-  severity: MEDIUM
-  weight: 4
-  title: Uploaded appointment letter omits employee name
-  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
-  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
-    particulars
-  basis: STATUTE
-  requires:
-  - docs
-  - prose
-  applicability: docs.appointment_letter_count > 0
-  expression: prose.states_employee_name == True
-  observe:
-    recorded_value: prose.states_employee_name
-  expect:
-    required: 'True'
-  message:
-    en: The uploaded appointment letter does not state the employee name.
-    hi: null
-  remediation:
-    en: Record the employee's name in the appointment letter.
-    hi: null
-  fixtures:
-  - name: uploaded_record_complies
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_employee_name: true
-  - name: uploaded_record_is_incomplete
-    should_pass: false
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_employee_name: false
-  - name: document_not_uploaded_is_not_assessed
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 0
-      prose:
-        states_employee_name: false
-- id: OSH.APPOINTMENT_LETTER.DESIGNATION
-  code: OSH
-  kind: NON_COMPLIANCE
-  severity: MEDIUM
-  weight: 4
-  title: Uploaded appointment letter omits designation or post
-  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
-  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
-    particulars
-  basis: STATUTE
-  requires:
-  - docs
-  - prose
-  applicability: docs.appointment_letter_count > 0
-  expression: prose.states_designation == True
-  observe:
-    recorded_value: prose.states_designation
-  expect:
-    required: 'True'
-  message:
-    en: The uploaded appointment letter does not state the designation or post.
-    hi: null
-  remediation:
-    en: Add the employee's designation or post.
-    hi: null
-  fixtures:
-  - name: uploaded_record_complies
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_designation: true
-  - name: uploaded_record_is_incomplete
-    should_pass: false
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_designation: false
-  - name: document_not_uploaded_is_not_assessed
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 0
-      prose:
-        states_designation: false
-- id: OSH.APPOINTMENT_LETTER.JOINING_DATE
-  code: OSH
-  kind: NON_COMPLIANCE
-  severity: MEDIUM
-  weight: 4
-  title: Uploaded appointment letter omits date of joining
-  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
-  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
-    particulars
-  basis: STATUTE
-  requires:
-  - docs
-  - prose
-  applicability: docs.appointment_letter_count > 0
-  expression: prose.states_date_of_joining == True
-  observe:
-    recorded_value: prose.states_date_of_joining
-  expect:
-    required: 'True'
-  message:
-    en: The uploaded appointment letter does not state the date of joining.
-    hi: null
-  remediation:
-    en: Add the verified date of joining.
-    hi: null
-  fixtures:
-  - name: uploaded_record_complies
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_date_of_joining: true
-  - name: uploaded_record_is_incomplete
-    should_pass: false
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_date_of_joining: false
-  - name: document_not_uploaded_is_not_assessed
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 0
-      prose:
-        states_date_of_joining: false
-- id: OSH.APPOINTMENT_LETTER.WAGE_RATE
-  code: OSH
-  kind: NON_COMPLIANCE
-  severity: MEDIUM
-  weight: 4
-  title: Uploaded appointment letter omits wage or salary
-  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
-  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
-    particulars
-  basis: STATUTE
-  requires:
-  - docs
-  - prose
-  applicability: docs.appointment_letter_count > 0
-  expression: prose.states_wage_rate == True
-  observe:
-    recorded_value: prose.states_wage_rate
-  expect:
-    required: 'True'
-  message:
-    en: The uploaded appointment letter does not state the wage or salary.
-    hi: null
-  remediation:
-    en: Add the wage or salary payable.
-    hi: null
-  fixtures:
-  - name: uploaded_record_complies
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_wage_rate: true
-  - name: uploaded_record_is_incomplete
-    should_pass: false
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_wage_rate: false
-  - name: document_not_uploaded_is_not_assessed
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 0
-      prose:
-        states_wage_rate: false
-- id: OSH.APPOINTMENT_LETTER.WORKING_HOURS
-  code: OSH
-  kind: NON_COMPLIANCE
-  severity: MEDIUM
-  weight: 4
-  title: Uploaded appointment letter omits working hours
-  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
-  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
-    particulars
-  basis: STATUTE
-  requires:
-  - docs
-  - prose
-  applicability: docs.appointment_letter_count > 0
-  expression: prose.states_working_hours == True
-  observe:
-    recorded_value: prose.states_working_hours
-  expect:
-    required: 'True'
-  message:
-    en: The uploaded appointment letter does not state the working hours.
-    hi: null
-  remediation:
-    en: Add the applicable daily or weekly working hours.
-    hi: null
-  fixtures:
-  - name: uploaded_record_complies
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_working_hours: true
-  - name: uploaded_record_is_incomplete
-    should_pass: false
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        states_working_hours: false
-  - name: document_not_uploaded_is_not_assessed
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 0
-      prose:
-        states_working_hours: false
-- id: OSH.APPOINTMENT_LETTER.EMPLOYER_SIGNATURE
-  code: OSH
-  kind: NON_COMPLIANCE
-  severity: MEDIUM
-  weight: 4
-  title: Uploaded appointment letter omits employer signature or authentication
-  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
-  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter
-    particulars
-  basis: STATUTE
-  requires:
-  - docs
-  - prose
-  applicability: docs.appointment_letter_count > 0
-  expression: prose.is_signed_by_employer == True
-  observe:
-    recorded_value: prose.is_signed_by_employer
-  expect:
-    required: 'True'
-  message:
-    en: The uploaded appointment letter does not state the employer signature or authentication.
-    hi: null
-  remediation:
-    en: Have the appointment letter signed or authenticated on behalf of the employer.
-    hi: null
-  fixtures:
-  - name: uploaded_record_complies
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        is_signed_by_employer: true
-  - name: uploaded_record_is_incomplete
-    should_pass: false
-    facts:
-      docs:
-        appointment_letter_count: 1
-      prose:
-        is_signed_by_employer: false
-  - name: document_not_uploaded_is_not_assessed
-    should_pass: true
-    facts:
-      docs:
-        appointment_letter_count: 0
-      prose:
-        is_signed_by_employer: false
 - id: OSH.ACCIDENT.NOTIFICATION_REFERENCE
   code: OSH
   kind: NON_COMPLIANCE
@@ -560,8 +276,8 @@ rules:
   weight: 5
   title: Accident notification date is recorded without a notification reference
   citation: OSH & Working Conditions Code, 2020 — s.10; OSHWC (Central) Rules, 2026 — r.7
-  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.7 prescribed accident
-    and dangerous-occurrence notification
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.7 prescribed accident and dangerous-occurrence
+    notification
   basis: STATUTE
   requires:
   - incidents
@@ -597,9 +313,8 @@ rules:
   weight: 7
   title: Work beyond the eight-hour normal day is not recorded as overtime
   citation: OSH & Working Conditions Code, 2020 — s.25; OSHWC (Central) Rules, 2026 — r.69
-  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020.md, s.25 fixes the eight-hour normal
-    working day; storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.69 treats work
-    beyond it as overtime
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020.md, s.25 fixes the eight-hour normal working day; storage/The
+    Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.69 treats work beyond it as overtime
   basis: STATUTE
   requires:
   - attendance
@@ -611,12 +326,11 @@ rules:
   expect:
     normal_day_hours: '8'
   message:
-    en: A worker was recorded working more than the eight-hour normal working day on at least one day, but no overtime hours
-      are recorded for that worker.
+    en: A worker was recorded working more than the eight-hour normal working day on at least one day, but no overtime hours are recorded for
+      that worker.
     hi: null
   remediation:
-    en: Record every hour worked beyond the eight-hour normal day as overtime and pay it at not less than twice the ordinary
-      rate.
+    en: Record every hour worked beyond the eight-hour normal day as overtime and pay it at not less than twice the ordinary rate.
     hi: null
   fixtures:
   - name: nine_hour_day_recorded_as_overtime
@@ -637,3 +351,67 @@ rules:
       attendance:
       - max_daily_hours: 13.5
         overtime_hours: 0
+- id: OSH.APPOINTMENT_LETTER.REQUIRED_PARTICULARS
+  code: OSH
+  kind: NON_COMPLIANCE
+  severity: MEDIUM
+  weight: 4
+  title: Appointment letter is missing required particulars
+  citation: OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6
+  source_ref: storage/The Occupational Safety, Health and Working Conditions Code, 2020 central code.md, r.6 prescribed appointment-letter particulars
+  basis: STATUTE
+  requires:
+  - docs
+  - prose
+  applicability: docs.appointment_letter_count > 0
+  expression: (is_missing(prose.states_employee_name) or prose.states_employee_name == True) and (is_missing(prose.states_designation) or prose.states_designation
+    == True) and (is_missing(prose.states_date_of_joining) or prose.states_date_of_joining == True) and (is_missing(prose.states_wage_rate) or
+    prose.states_wage_rate == True) and (is_missing(prose.states_working_hours) or prose.states_working_hours == True) and (is_missing(prose.is_signed_by_employer)
+    or prose.is_signed_by_employer == True)
+  observe:
+    employee_name_stated: prose.states_employee_name
+    designation_stated: prose.states_designation
+    joining_date_stated: prose.states_date_of_joining
+    wage_rate_stated: prose.states_wage_rate
+    working_hours_stated: prose.states_working_hours
+    employer_signature_present: prose.is_signed_by_employer
+  expect:
+    all_particulars_present: 'True'
+  message:
+    en: The appointment letter does not record every particular the appointment-letter rule requires, such as the employee's name, designation,
+      joining date, wages, working hours or the employer's signature.
+    hi: null
+  remediation:
+    en: Issue appointment letters that carry all prescribed particulars and retain a signed copy for every employee.
+    hi: null
+  fixtures:
+  - name: all_particulars_present
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_employee_name: true
+        states_designation: true
+        states_date_of_joining: true
+        states_wage_rate: true
+        states_working_hours: true
+        is_signed_by_employer: true
+  - name: particulars_not_readable_is_not_a_violation
+    should_pass: true
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose: {}
+  - name: wage_and_hours_absent
+    should_pass: false
+    facts:
+      docs:
+        appointment_letter_count: 1
+      prose:
+        states_employee_name: true
+        states_designation: true
+        states_date_of_joining: true
+        states_wage_rate: false
+        states_working_hours: false
+        is_signed_by_employer: true

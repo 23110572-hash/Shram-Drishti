@@ -113,6 +113,9 @@ class ScorecardOut(BaseModel):
     records_quality: str | None
     assessed_rule_count: int
     scope_statement: str
+    #: Workers counted in the uploaded records. Never overwrites the declared
+    #: profile, because one uncertain reading must not change legal applicability.
+    observed_worker_count: int | None
     computation: dict[str, Any] | None = None
 
 
@@ -125,6 +128,9 @@ class EstablishmentSummary(BaseModel):
     sector: str | None
     worker_count: int
     worker_count_peak_12m: int
+    #: Workers counted in the latest assessed records, when the declared profile
+    #: has not been filled in. Reported separately, never merged into the profile.
+    observed_worker_count: int | None = None
     is_active: bool
     latest_score: float | None
     risk_band: RiskBand | None
@@ -562,6 +568,9 @@ def _summaries(
                 sector=establishment.sector,
                 worker_count=establishment.worker_count,
                 worker_count_peak_12m=establishment.worker_count_peak_12m,
+                observed_worker_count=(
+                    _observed_worker_count(scorecard) if scorecard else None
+                ),
                 is_active=establishment.is_active,
                 latest_score=scorecard.overall_score if scorecard else None,
                 risk_band=scorecard.risk_band if scorecard else None,
@@ -622,6 +631,16 @@ def _present_document_types(
     return sorted(values, key=lambda item: item.value)
 
 
+def _observed_worker_count(scorecard: Scorecard) -> int | None:
+    counts = (scorecard.computation or {}).get("observed_counts") or {}
+    values = [
+        value
+        for key, value in counts.items()
+        if key != "contract" and isinstance(value, int) and value > 0
+    ]
+    return max(values) if values else None
+
+
 def _scorecard_out(
     scorecard: Scorecard,
     *,
@@ -664,6 +683,7 @@ def _scorecard_out(
         review_summary=scorecard.review_summary,
         records_quality=scorecard.records_quality,
         assessed_rule_count=int((scorecard.computation or {}).get("assessed_rule_count", 0)),
+        observed_worker_count=_observed_worker_count(scorecard),
         scope_statement=str(
             (scorecard.computation or {}).get("scope_statement")
             or "This result covers only the uploaded records and is not a complete compliance certificate for the establishment."
@@ -881,7 +901,7 @@ def establishment_processing(
         stage = "Uploading documents"
     elif len(terminal_documents) < len(documents):
         progress = min(85, round(extraction_progress * 0.85))
-        stage = "OCR and Gemini reading documents" if extraction_progress < 70 else "Reconciling extracted information"
+        stage = "Reading documents" if extraction_progress < 70 else "Checking the information"
     else:
         progress = 90
         if evaluations:

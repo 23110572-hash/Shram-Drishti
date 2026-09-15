@@ -272,6 +272,7 @@ export interface EstablishmentSummary {
   sector: string | null;
   worker_count: number;
   worker_count_peak_12m: number;
+  observed_worker_count: number | null;
   is_active: boolean;
   latest_score: number | null;
   risk_band: RiskBand | null;
@@ -330,6 +331,7 @@ export interface ScorecardOut {
   records_quality: string | null;
   assessed_rule_count: number;
   scope_statement: string;
+  observed_worker_count: number | null;
   computation?: Record<string, unknown> | null;
 }
 

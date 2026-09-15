@@ -595,90 +595,6 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
       "Ensure every recorded overtime hour generates double-rate compensation.",
     ],
   },
-  "OSH.APPOINTMENT_LETTER.EMPLOYEE_NAME": {
-    simpleExplanation:
-      "Every formal appointment letter issued to an employee must clearly state the worker's full legal name.",
-    exampleScenario:
-      "Issuing formal written employment contracts to new hires on their joining date.",
-    compliantExample:
-      "The appointment letter prominently displays the worker's full legal name as shown on their official ID.",
-    violationExample:
-      "An appointment letter is issued with the worker's name omitted or left blank.",
-    actionToComply: [
-      "Ensure all appointment letters clearly display the employee's full legal name.",
-      "Issue statutory Form-I appointment letters to all employees on their date of joining.",
-    ],
-  },
-  "OSH.APPOINTMENT_LETTER.DESIGNATION": {
-    simpleExplanation:
-      "Every appointment letter must explicitly state the worker's designation, job role, and category of work.",
-    exampleScenario:
-      "Hiring machine operators and technicians for facility operations.",
-    compliantExample:
-      "The appointment letter specifies the exact role 'Machinist - Grade II' and outlines key responsibilities.",
-    violationExample:
-      "The appointment letter omits any designation or job role title.",
-    actionToComply: [
-      "Specify the employee's exact job title and role classification in the appointment letter.",
-      "Ensure designation aligns with the establishment's statutory wage schedule.",
-    ],
-  },
-  "OSH.APPOINTMENT_LETTER.JOINING_DATE": {
-    simpleExplanation:
-      "Every appointment letter must explicitly state the employee's official date of joining or commencement of employment.",
-    exampleScenario:
-      "Onboarding new employees and establishing statutory tenure and seniority records.",
-    compliantExample:
-      "The appointment letter clearly states 'Date of Joining: 01 March 2026'.",
-    violationExample:
-      "The appointment letter omits the start date, creating ambiguity over employment commencement.",
-    actionToComply: [
-      "State the verified joining date prominently in the written appointment letter.",
-      "Align the recorded joining date with muster rolls and PF/ESIC enrollment filings.",
-    ],
-  },
-  "OSH.APPOINTMENT_LETTER.WAGE_RATE": {
-    simpleExplanation:
-      "Every appointment letter must state the wage or salary payable, including payment frequency and component breakdown.",
-    exampleScenario:
-      "Documenting remuneration terms in written employment agreements.",
-    compliantExample:
-      "The letter details the agreed monthly salary of ₹22,000 with basic, DA, and allowance breakdowns.",
-    violationExample:
-      "The appointment letter discusses terms of work but omits the agreed wage or salary amount.",
-    actionToComply: [
-      "Clearly detail the wage rate, salary components, and payment intervals in the letter.",
-      "Verify that the offered wage complies with applicable state minimum wage floors.",
-    ],
-  },
-  "OSH.APPOINTMENT_LETTER.WORKING_HOURS": {
-    simpleExplanation:
-      "Every appointment letter must specify standard daily and weekly working hours, shift timings, and weekly rest days.",
-    exampleScenario:
-      "Setting out working hour expectations and shift schedules in employment letters.",
-    compliantExample:
-      "The letter specifies an 8 hour daily schedule (48 hours weekly) with a designated Sunday rest day.",
-    violationExample:
-      "The appointment letter makes no mention of working hours or weekly rest schedules.",
-    actionToComply: [
-      "State standard daily working hours (up to 8 hrs) and weekly limits (48 hrs) in the letter.",
-      "Define scheduled shift hours and weekly off days.",
-    ],
-  },
-  "OSH.APPOINTMENT_LETTER.EMPLOYER_SIGNATURE": {
-    simpleExplanation:
-      "Every appointment letter must be authenticated with the signature and seal of an authorized employer representative.",
-    exampleScenario:
-      "Issuing formal employment documentation on company letterhead.",
-    compliantExample:
-      "The appointment letter is signed and stamped by the authorized HR Director or establishment manager.",
-    violationExample:
-      "Issuing unauthenticated, unsigned appointment letters or blank templates to employees.",
-    actionToComply: [
-      "Ensure all appointment letters are signed and stamped by an authorized establishment officer.",
-      "Retain signed duplicate copies in employee personnel files.",
-    ],
-  },
   "OSH.ACCIDENT.NOTIFICATION_REFERENCE": {
     simpleExplanation:
       "When logging a statutory workplace accident, the official acknowledgement reference number from the authority must be recorded.",
@@ -705,6 +621,20 @@ export const RULE_GUIDE_DATA: Record<string, RuleGuideItem> = {
     actionToComply: [
       "Record every hour worked in excess of 8 hours per day as overtime in attendance records.",
       "Compensate overtime hours at not less than twice the regular hourly rate in payroll.",
+    ],
+  },
+  "OSH.APPOINTMENT_LETTER.REQUIRED_PARTICULARS": {
+    simpleExplanation:
+      "The appointment letter does not record every particular the appointment-letter rule requires, such as the employee's name, designation, joining date, wages, working hours or the employer's signature.",
+    exampleScenario:
+      "This check runs only when docs.appointment_letter_count > 0.",
+    compliantExample:
+      "Example (all particulars present): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_employee_name\": true, \"states_designation\": true, \"states_date_of_joining\": true, \"states_wage_rate\": true, \"states_working_hours\": true, \"is_signed_by_employer\": true}} — this passes.",
+    violationExample:
+      "Example (wage and hours absent): {\"docs\": {\"appointment_letter_count\": 1}, \"prose\": {\"states_employee_name\": true, \"states_designation\": true, \"states_date_of_joining\": true, \"states_wage_rate\": false, \"states_working_hours\": false, \"is_signed_by_employer\": true}} — this is reported.",
+    actionToComply: [
+      "Issue appointment letters that carry all prescribed particulars and retain a signed copy for every employee.",
+      "Verify against OSH & Working Conditions Code, 2020 — s.6(1)(f); OSHWC (Central) Rules, 2026 — r.6.",
     ],
   },
 };
