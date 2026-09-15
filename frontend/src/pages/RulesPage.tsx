@@ -330,12 +330,12 @@ export function RulesPage() {
                           </p>
                         </div>
 
-                        {/* 2. Real-World Practical Example */}
+                        {/* 2. Real World Example */}
                         {guide && (
                           <div className="space-y-3.5">
                             <div className="flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-slate-800">
                               <Lightbulb className="h-4.5 w-4.5 text-amber-600" />
-                              Real-World Practical Example
+                              Real World Example
                             </div>
 
                             {/* Example Context Scenario */}
