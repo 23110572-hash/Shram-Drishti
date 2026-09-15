@@ -21,6 +21,7 @@ import { count, date, dateTime, paise, percent, period } from "@/lib/format";
 import {
   CODE_SHORT_LABELS,
   DOCUMENT_TYPE_LABELS,
+  STATE_CODES,
   WAGE_RATE_SOURCE_LABELS,
   type EstablishmentDetail,
   type EstablishmentSummary,
@@ -36,12 +37,14 @@ import {
   SkeletonRows,
 } from "@/components/ui/State";
 
-/** Establishments: the unit everything else hangs off.
- *
- *  Compliance is assessed per establishment and per period, not per document, so
- *  this is where a score, its evidence completeness and the thresholds that apply
- *  are shown together.
- */
+/** Helper to convert state code (e.g., DL) into full state name (e.g., Delhi) */
+function getStateName(code?: string | null): string {
+  if (!code) return "";
+  const found = STATE_CODES.find(
+    (s) => s.code.toUpperCase() === code.trim().toUpperCase(),
+  );
+  return found ? found.name : code;
+}
 
 export function EstablishmentsPage() {
   const [search, setSearch] = useState("");
@@ -69,9 +72,8 @@ export function EstablishmentsPage() {
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-950 sm:text-5xl">
             Establishments
           </h1>
-          <p className="mt-2 max-w-3xl text-base text-slate-700 sm:text-lg">
-            Each establishment carries its own compliance position, evidence
-            completeness and the statutory thresholds that apply to it.
+          <p className="mt-2 text-base text-slate-700 sm:text-lg">
+            Track compliance status and statutory obligations across all registered establishments.
           </p>
         </div>
 
@@ -92,7 +94,7 @@ export function EstablishmentsPage() {
       </header>
 
       <div className="overflow-hidden rounded-3xl border border-sky-200/90 bg-white/95 shadow-sm backdrop-blur-xl">
-        {establishments.isPending && <SkeletonRows rows={5} columns={6} />}
+        {establishments.isPending && <SkeletonRows rows={5} columns={5} />}
 
         {establishments.isError && (
           <ErrorState
@@ -122,9 +124,8 @@ export function EstablishmentsPage() {
                   <th scope="col" className="px-6 py-4 font-bold">Establishment</th>
                   <th scope="col" className="px-6 py-4 font-bold">Workers</th>
                   <th scope="col" className="px-6 py-4 font-bold">Compliance</th>
-                  <th scope="col" className="px-6 py-4 font-bold">Evidence</th>
                   <th scope="col" className="px-6 py-4 font-bold">Open findings</th>
-                  <th scope="col" className="px-6 py-4 font-bold">Last assessed</th>
+                  <th scope="col" className="px-6 py-4 font-bold">Compliance Date</th>
                   <th scope="col" className="px-6 py-4"><span className="sr-only">Open</span></th>
                 </tr>
               </thead>
@@ -139,7 +140,7 @@ export function EstablishmentsPage() {
                       <p className="font-bold text-slate-900">{row.name}</p>
                       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-slate-500">
                         <MapPin aria-hidden="true" className="h-3 w-3" />
-                        {row.state_code}
+                        {getStateName(row.state_code)}
                         {row.district && ` · ${row.district}`}
                         {row.lin && ` · LIN ${row.lin}`}
                       </p>
@@ -168,14 +169,6 @@ export function EstablishmentsPage() {
                         <RiskBadge band={row.risk_band} score={row.latest_score} />
                       ) : (
                         <Badge tone="neutral">Not assessed</Badge>
-                      )}
-                    </td>
-
-                    <td className="px-6 py-4">
-                      {row.data_completeness === null ? (
-                        <span className="text-slate-400">—</span>
-                      ) : (
-                        <CompletenessBar value={row.data_completeness} />
                       )}
                     </td>
 
@@ -366,7 +359,7 @@ function EstablishmentDrawer({
             </p>
             {establishment && (
               <p className="mt-1 text-xs text-slate-500">
-                {establishment.jurisdiction_code}
+                {getStateName(establishment.state_code || establishment.jurisdiction_code)}
                 {establishment.sector && ` · ${establishment.sector}`}
                 {establishment.lin && ` · LIN ${establishment.lin}`}
               </p>
