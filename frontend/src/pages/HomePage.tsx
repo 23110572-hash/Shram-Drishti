@@ -20,12 +20,8 @@ import {
 
 /** Landing page.
  *
- *  Everything on this page is read from the running service. The counts are real
- *  counts, the rule totals come from the loaded packs, and the status indicators
- *  reflect actual connectivity. Nothing here is illustrative.
- *
- *  For a signed-in user it becomes a summary of their own position; for a visitor
- *  it explains what the system does and what it deliberately does not do.
+ *  Provides an intuitive, plain-language overview of the compliance check system.
+ *  Shows live data for signed-in officers and clear step-by-step guidance for all visitors.
  */
 
 export function HomePage() {
@@ -61,9 +57,7 @@ export function HomePage() {
         </h1>
 
         <p className="mx-auto max-w-3xl text-lg font-medium leading-relaxed text-slate-700 sm:text-2xl">
-          Reads an employer's registers, returns and challans, checks them against
-          the four Labour Codes, and shows an inspector exactly which cell on which
-          page supports every finding.
+          Upload your workplace registers, salary sheets, and attendance records. We check them against India's labour laws and clearly highlight the exact page and row for every finding.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -73,15 +67,15 @@ export function HomePage() {
               className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-3.5 text-base font-bold text-white shadow-lg transition-all hover:bg-slate-800"
             >
               <Upload className="h-5 w-5" />
-              Submit filings
+              Submit documents
             </Link>
           ) : (
             <div
               className="flex cursor-not-allowed select-none items-center gap-2 rounded-full border border-slate-300/80 bg-slate-100/90 px-8 py-3.5 text-base font-bold text-slate-400 opacity-70 shadow-none"
-              title="Sign in required to submit filings"
+              title="Sign in required to submit documents"
             >
               <Lock className="h-5 w-5 text-amber-500" />
-              <span>Submit filings (Locked)</span>
+              <span>Submit documents (Locked)</span>
             </div>
           )}
           <Link
@@ -111,7 +105,7 @@ export function HomePage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Open breaches
+                Active issues
               </span>
               <FileSearch className="h-4 w-4 text-rose-700" />
             </div>
@@ -119,7 +113,7 @@ export function HomePage() {
               {findings.data ? count(findings.data.scored_total) : "—"}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
-              Cited against a statutory provision
+              Verified against labour rules
             </p>
           </Link>
 
@@ -137,7 +131,7 @@ export function HomePage() {
               {findings.data ? paise(findings.data.total_exposure_paise) : "—"}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
-              Where it could be quantified
+              Estimated wage or dues difference
             </p>
           </Link>
 
@@ -147,7 +141,7 @@ export function HomePage() {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Advisory signals
+                Helpful notices
               </span>
               <Eye className="h-4 w-4 text-sky-700" />
             </div>
@@ -155,7 +149,7 @@ export function HomePage() {
               {findings.data ? count(findings.data.advisory_total) : "—"}
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
-              Never scored, never enforced
+              Tips for good workplace practice
             </p>
           </Link>
 
@@ -174,8 +168,8 @@ export function HomePage() {
             </p>
             <p className="mt-0.5 text-xs text-slate-500">
               {rules.data
-                ? `${rules.data.sound_rules} applicable as they stand`
-                : "across four Codes"}
+                ? `${rules.data.sound_rules} rules ready to check filings`
+                : "across four Labour Codes"}
             </p>
           </Link>
         </section>
@@ -188,35 +182,34 @@ export function HomePage() {
             How a filing becomes a finding
           </h2>
           <p className="text-lg font-medium leading-relaxed text-slate-700 sm:text-xl">
-            Four simple stages. The division of labour between the model and the rules is
-            deliberate and is the reason a finding can be defended.
+            Four simple steps. The system reads your files, confirms every number, and checks official rules so every result is clear and reliable.
           </p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <Stage
             number="01"
-            title="Read the page"
+            title="Read the documents"
             accent="text-sky-700"
-            body="A PDF with a text layer is read directly and exactly. Anything else is rasterised, sent to OCR, and given to a vision model together with the page image so the two can be cross checked."
+            body="Digital PDFs are read immediately. Scanned papers and photos are read with smart vision tools that capture each table, row, and word accurately."
           />
           <Stage
             number="02"
-            title="Prove every figure"
+            title="Check every number"
             accent="text-indigo-700"
-            body="Each number is searched for among the OCR words on the page it was attributed to. A figure that cannot be found there, and was not declared as a correction, is held for a human rather than used."
+            body="Every wage, work hour, and date is verified directly against your uploaded page. If any number is unclear, it is paused for a human check instead of guessing."
           />
           <Stage
             number="03"
-            title="Apply the statute"
+            title="Match with the law"
             accent="text-amber-700"
-            body="Deterministic rules compare what was read against the number written in the Act. Same documents, same verdict, every time with the section cited."
+            body="The system checks each verified figure against official statutory rules. You get the same fair, reliable result every time, with the exact legal rule cited."
           />
           <Stage
             number="04"
-            title="Show the evidence"
+            title="Clear proof for everyone"
             accent="text-emerald-700"
-            body="Every finding links to the cell it came from, so an employer can check it and an inspector can act on it. A finding nobody can verify is one an employer can simply deny."
+            body="Every finding links directly to the exact page and table cell it came from. Employers can see why, and officers can review the proof without any confusion."
           />
         </div>
       </section>
@@ -240,7 +233,7 @@ function Stage({
       <span className={`block font-mono text-xl font-black ${accent}`}>
         {number}
       </span>
-      <h3 className="text-xl font-bold text-slate-950">{title}</h3>
+      <h3 className="text-xl font-bold text-slate-950 capitalize">{title}</h3>
       <p className="text-base font-medium leading-relaxed text-slate-700">{body}</p>
     </div>
   );
