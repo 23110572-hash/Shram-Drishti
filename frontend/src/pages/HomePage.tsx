@@ -1,44 +1,21 @@
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
-  Eye,
-  FileSearch,
   Lock,
-  Scale,
   Shield,
   Upload,
 } from "lucide-react";
 
-import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { count, paise } from "@/lib/format";
-import {
-  type FindingCounts,
-  type RulesOverview,
-} from "@/lib/types";
 
 /** Landing page.
  *
  *  Provides an intuitive, plain-language overview of the compliance check system.
- *  Shows live data for signed-in officers and clear step-by-step guidance for all visitors.
+ *  Shows clear step-by-step guidance for all visitors and direct access to filings and rules.
  */
 
 export function HomePage() {
   const { user } = useAuth();
-
-  const rules = useQuery({
-    queryKey: ["rules-overview"],
-    queryFn: () => api.get<RulesOverview>("/rules"),
-    retry: false,
-  });
-
-  const findings = useQuery({
-    queryKey: ["finding-counts", null],
-    queryFn: () => api.get<FindingCounts>("/findings/counts?open_only=true"),
-    enabled: Boolean(user),
-    retry: false,
-  });
 
   return (
     <div className="space-y-20 sm:space-y-24">
@@ -50,14 +27,14 @@ export function HomePage() {
         </div>
 
         <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
-          Labour Code inspection and{" "}
+          AI Driven Smart Labour{" "}
           <span className="bg-gradient-to-r from-sky-700 via-blue-700 to-indigo-700 bg-clip-text text-transparent">
-            compliance assessment
+            Compliance Inspection
           </span>
         </h1>
 
         <p className="mx-auto max-w-3xl text-lg font-medium leading-relaxed text-slate-700 sm:text-2xl">
-          Upload your workplace registers, salary sheets, and attendance records. We check them against India's labour laws and clearly highlight the exact page and row for every finding.
+          Analyze workplace documents, detect compliance gaps, identify anomalies, and generate evidence-backed risk insights under India’s Labour Codes.
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
@@ -95,85 +72,6 @@ export function HomePage() {
           )}
         </div>
       </section>
-
-      {/* Signed-in summary */}
-      {user && (
-        <section className="mx-auto grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link
-            to="/findings"
-            className="rounded-3xl border border-slate-200/90 bg-white/90 p-6 shadow-sm backdrop-blur-md transition-colors hover:border-sky-300"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Active issues
-              </span>
-              <FileSearch className="h-4 w-4 text-rose-700" />
-            </div>
-            <p className="mt-1 text-3xl font-extrabold text-slate-900">
-              {findings.data ? count(findings.data.scored_total) : "—"}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Verified against labour rules
-            </p>
-          </Link>
-
-          <Link
-            to="/findings"
-            className="rounded-3xl border border-slate-200/90 bg-white/90 p-6 shadow-sm backdrop-blur-md transition-colors hover:border-sky-300"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Amount at stake
-              </span>
-              <Scale className="h-4 w-4 text-amber-700" />
-            </div>
-            <p className="mt-1 text-3xl font-extrabold text-slate-900">
-              {findings.data ? paise(findings.data.total_exposure_paise) : "—"}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Estimated wage or dues difference
-            </p>
-          </Link>
-
-          <Link
-            to="/establishments"
-            className="rounded-3xl border border-slate-200/90 bg-white/90 p-6 shadow-sm backdrop-blur-md transition-colors hover:border-sky-300"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Helpful notices
-              </span>
-              <Eye className="h-4 w-4 text-sky-700" />
-            </div>
-            <p className="mt-1 text-3xl font-extrabold text-slate-900">
-              {findings.data ? count(findings.data.advisory_total) : "—"}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-500">
-              Tips for good workplace practice
-            </p>
-          </Link>
-
-          <Link
-            to="/rules"
-            className="rounded-3xl border border-slate-200/90 bg-white/90 p-6 shadow-sm backdrop-blur-md transition-colors hover:border-sky-300"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                Rules loaded
-              </span>
-              <BookOpen className="h-4 w-4 text-indigo-700" />
-            </div>
-            <p className="mt-1 text-3xl font-extrabold text-slate-900">
-              {rules.data ? count(rules.data.total_rules) : "—"}
-            </p>
-            <p className="mt-0.5 text-xs text-slate-500">
-              {rules.data
-                ? `${rules.data.sound_rules} rules ready to check filings`
-                : "across four Labour Codes"}
-            </p>
-          </Link>
-        </section>
-      )}
 
       {/* How a filing becomes a finding */}
       <section className="mx-auto max-w-6xl space-y-10">
