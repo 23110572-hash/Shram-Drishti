@@ -289,7 +289,6 @@ export function UploadPanel({ onUploaded }: UploadPanelProps) {
           status: "done",
           progress: 100,
           documentId: response.document_id,
-          message: response.message,
         });
         uploaded.push(response.document_id);
       } catch (error) {
@@ -673,13 +672,8 @@ function QueueRow({
           </div>
         )}
 
-        {item.message && (
-          <p
-            className={[
-              "mt-1 text-xs leading-relaxed",
-              item.status === "error" ? "font-semibold text-rose-700" : "text-slate-600",
-            ].join(" ")}
-          >
+        {item.status === "error" && item.message && (
+          <p className="mt-1 text-xs font-semibold leading-relaxed text-rose-700">
             {item.message}
           </p>
         )}
