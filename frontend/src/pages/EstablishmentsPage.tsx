@@ -111,7 +111,7 @@ export function EstablishmentsPage() {
             description={
               search
                 ? "No establishment matches that name within your scope."
-                : "Establishments appear here once registered. Documents cannot be assessed until they are attached to one."
+                : undefined
             }
           />
         )}

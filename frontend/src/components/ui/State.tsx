@@ -50,9 +50,9 @@ export function SkeletonRows({ rows = 5, columns = 5 }: { rows?: number; columns
 interface EmptyStateProps {
   icon: ComponentType<{ className?: string }>;
   title: string;
-  description: string;
-  action?: ReactNode;
-  tone?: "neutral" | "good";
+  description?: string | undefined;
+  action?: ReactNode | undefined;
+  tone?: "neutral" | "good" | undefined;
 }
 
 export function EmptyState({
@@ -76,7 +76,7 @@ export function EmptyState({
           <Icon className="h-8 w-8" />
         </div>
         <h3 className="text-xl font-bold text-slate-900">{title}</h3>
-        <p className="text-sm leading-relaxed text-slate-600">{description}</p>
+        {description && <p className="text-sm leading-relaxed text-slate-600">{description}</p>}
         {action && <div className="pt-2">{action}</div>}
       </div>
     </div>

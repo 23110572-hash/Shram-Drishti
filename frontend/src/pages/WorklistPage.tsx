@@ -65,8 +65,7 @@ export function WorklistPage() {
           <EmptyState
             icon={ShieldCheck}
             tone="good"
-            title="Nothing queued for inspection"
-            description="No establishment within your jurisdiction currently meets the threshold for a prioritised visit. Establishments appear here as filings are assessed."
+            title="Nothing For Inspection"
           />
         )}
 
