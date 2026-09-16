@@ -29,7 +29,7 @@ import {
   type LabourCode,
   type ScorecardOut,
 } from "@/lib/types";
-import { Badge, RiskBadge, SeverityBadge } from "@/components/ui/Badge";
+import { Badge, RiskBadge } from "@/components/ui/Badge";
 import {
   Caution,
   EmptyState,
@@ -329,12 +329,6 @@ function EstablishmentDrawer({
       contributingFindingIds.size === 0 || contributingFindingIds.has(finding.id),
   );
   const missingDocumentTypes = scorecard?.missing_document_types ?? [];
-  const missingDocumentSet = new Set(missingDocumentTypes);
-  const receivedDocumentTypes =
-    scorecard?.present_document_types ??
-    (scorecard?.expected_document_types ?? []).filter(
-      (docType) => !missingDocumentSet.has(docType),
-    );
   const issueCount = findings.data ? openFindings.length : scorecard?.open_finding_count ?? 0;
 
   return (
@@ -403,20 +397,11 @@ function EstablishmentDrawer({
                         )}
                       </div>
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
-                          Uploaded-document compliance result
-                        </p>
                         <h2 className="mt-1 text-2xl font-extrabold text-slate-950">
                           {issueCount > 0
                             ? `${issueCount} problem${issueCount === 1 ? "" : "s"} found`
                             : "No verified problems found"}
                         </h2>
-                        <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
-                          {issueCount > 0
-                            ? "Found by checking your uploaded documents together."
-                            : "No verified problem was found by the rules that could be checked from the uploaded documents."}
-                        </p>
-
                       </div>
                     </div>
                     <div className="text-right">
@@ -431,34 +416,7 @@ function EstablishmentDrawer({
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-sky-200 bg-white p-4">
-                    <h3 className="font-bold text-slate-950">Documents checked together</h3>
-                    <p className="mt-1 text-sm font-semibold text-slate-700">
-                      {receivedDocumentTypes.length} document type{receivedDocumentTypes.length === 1 ? "" : "s"} · {scorecard.assessed_rule_count} rule{scorecard.assessed_rule_count === 1 ? "" : "s"} checked
-                      {scorecard.observed_worker_count !== null &&
-                        ` · ${count(scorecard.observed_worker_count)} workers found in the records`}
-                    </p>
-                    {receivedDocumentTypes.length > 0 ? (
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {receivedDocumentTypes.map((docType) => (
-                          <Badge key={docType} tone="info">
-                            {DOCUMENT_TYPE_LABELS[docType]}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="mt-1 text-sm text-slate-700">
-                        No usable document was available for this assessment period.
-                      </p>
-                    )}
-                    <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                      These are the document types the system linked and checked together for this result.
-                    </p>
-                  </div>
 
-                  <p className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700">
-                    {scorecard.scope_statement}
-                  </p>
 
                   {findings.isPending && issueCount > 0 && (
                     <p className="text-sm text-slate-500">Loading the issues…</p>
@@ -484,10 +442,7 @@ function EstablishmentDrawer({
                               {index + 1}
                             </span>
                             <div className="min-w-0">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <SeverityBadge severity={finding.severity} />
-                                <p className="font-bold text-slate-900">{finding.title}</p>
-                              </div>
+                              <p className="font-bold text-slate-900">{finding.title}</p>
                               <p className="mt-1 text-sm leading-relaxed text-slate-700">
                                 {finding.message}
                               </p>
@@ -539,7 +494,7 @@ function EstablishmentDrawer({
 
                   {scorecard.review_summary && (
                     <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-sm leading-relaxed text-sky-950">
-                      <p className="font-bold">What the AI noticed across your documents</p>
+                      <p className="font-bold text-base text-sky-950">Summary</p>
                       <ul className="mt-2 space-y-1.5">
                         {scorecard.review_summary
                           .split("\n")
@@ -552,9 +507,6 @@ function EstablishmentDrawer({
                             </li>
                           ))}
                       </ul>
-                      <p className="mt-2 text-xs text-sky-900/80">
-                        These are extra observations. The rule checks above decide the official problems and the score.
-                      </p>
                     </div>
                   )}
 
