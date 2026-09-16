@@ -87,27 +87,27 @@ export function HomePage() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <Stage
             number="01"
-            title="Read the documents"
+            title="Reading the Document"
             accent="text-sky-700"
-            body="Digital PDFs are read immediately. Scanned papers and photos are read with smart vision tools that capture each table, row, and word accurately."
+            body="Vision model and OCR analyzes digital PDFs, scanned documents, and images to extract tables, employee records, wages, attendance, and other compliance evidence."
           />
           <Stage
             number="02"
-            title="Check every number"
+            title="Detect Gaps &amp; Anomalies"
             accent="text-indigo-700"
-            body="Every wage, work hour, and date is verified directly against your uploaded page. If any number is unclear, it is paused for a human check instead of guessing."
+            body="The system cross checks extracted information to identify missing fields, inconsistencies, unusual values, and potential compliance violations."
           />
           <Stage
             number="03"
-            title="Match with the law"
+            title="Check Against Labour Codes"
             accent="text-amber-700"
-            body="The system checks each verified figure against official statutory rules. You get the same fair, reliable result every time, with the exact legal rule cited."
+            body="All findings are evaluated against applicable requirements from the four Labour Codes using a structured, rule based compliance engine."
           />
           <Stage
             number="04"
-            title="Clear proof for everyone"
+            title="Evidence Backed Risk Assessment"
             accent="text-emerald-700"
-            body="Every finding links directly to the exact page and table cell it came from. Employers can see why, and officers can review the proof without any confusion."
+            body="Every finding is linked to its source document and page, with severity and supporting evidence. Establishments receive a clear risk based compliance scorecard for review."
           />
         </div>
       </section>
@@ -131,7 +131,7 @@ function Stage({
       <span className={`block font-mono text-xl font-black ${accent}`}>
         {number}
       </span>
-      <h3 className="text-xl font-bold text-slate-950 capitalize">{title}</h3>
+      <h3 className="text-xl font-bold text-slate-950">{title}</h3>
       <p className="text-base font-medium leading-relaxed text-slate-700">{body}</p>
     </div>
   );
